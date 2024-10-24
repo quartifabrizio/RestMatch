@@ -33,7 +33,7 @@ jojolly - rysto - restworld - camerieri.it - indeed - hosco - adecco - facebook 
 -Analisi delle performance dei ristoratori: I ristoratori devono poter analizzare le loro performance e tendenze nel tempo per prendere decisioni strategiche.
 
 # UML Diagram
-
+https://yuml.me/a81fe5ea.jpg
 
 
 # Endpoint
