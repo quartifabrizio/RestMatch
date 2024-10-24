@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RestMatch</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="#" class="navbar-brand">Dashboard</a>
+            <ul class="navbar-links">
+                <li><a href="/index" class="logout-button">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenuto della dashboard -->
+    <div class="dashboard-content">
+        <h1>Benvenuto su RestMatch</h1>
+        <p>Seleziona il tuo ruolo:</p>
+        
+        <!-- Sezione a due colonne per i ruoli -->
+        <div class="role-selection">
+            <!-- Colonna Lavoratore -->
+            <div class="role-column">
+                <h2>Lavoratore</h2>
+                <p>Se sei un lavoratore, potrai cercare offerte di lavoro nei migliori ristoranti, gestire le tue candidature e trovare opportunità di crescita.</p>
+                <a href="/lavoratore" class="role-button">Scegli Lavoratore</a>
+            </div>
+
+            <!-- Colonna Ristoratore -->
+            <div class="role-column">
+                <h2>Ristoratore</h2>
+                <p>Se sei un ristoratore, potrai pubblicare annunci di lavoro, cercare i candidati migliori per la tua attività e gestire le assunzioni in modo semplice.</p>
+                <a href="/ristoratore" class="role-button">Scegli Ristoratore</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
