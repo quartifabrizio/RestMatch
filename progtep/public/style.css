@@ -1,0 +1,248 @@
+/* Reset e impostazioni di base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f0f0; /* Colore di sfondo più chiaro */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Centrare verticalmente e orizzontalmente */
+    height: 100vh;
+    margin: 0;
+}
+
+.navbar {
+    background-color: #2c3e50; /* Colore più moderno */
+    padding: 15px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Aggiunta di un'ombra alla navbar */
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.navbar-brand {
+    color: white;
+    text-decoration: none;
+    font-size: 1.7em;
+    font-weight: bold;
+}
+
+.navbar-links {
+    list-style: none;
+}
+
+.navbar-links li {
+    display: inline;
+}
+
+.logout-button {
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    background-color: #e74c3c; /* Colore rosso più vivido */
+    border-radius: 50px; /* Bottoni arrotondati */
+    font-size: 1em;
+    transition: background-color 0.3s, transform 0.2s; /* Aggiunta di un effetto hover */
+}
+
+.logout-button:hover {
+    background-color: #c0392b;
+    transform: scale(1.05); /* Leggera animazione */
+}
+
+.dashboard-content {
+    text-align: center;
+    margin-top: 80px; /* Spazio per la navbar */
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+}
+
+h1 {
+    font-size: 3em; /* Font più grande per l'intestazione */
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+p {
+    font-size: 1.2em;
+    color: #7f8c8d; /* Testo grigio moderno */
+    margin-bottom: 30px;
+}
+
+.role-selection {
+    display: flex;
+    justify-content: center;
+    gap: 60px; /* Maggiore spazio tra le colonne */
+    margin-top: 30px;
+}
+
+.role-column {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Ombra più pronunciata */
+    padding: 30px;
+    max-width: 350px;
+    text-align: center;
+    transition: transform 0.3s; /* Effetto hover */
+}
+
+.role-column:hover {
+    transform: translateY(-10px); /* Sollevamento al passaggio del mouse */
+}
+
+h2 {
+    font-size: 2em; /* Font più grande per i titoli dei ruoli */
+    color: #34495e; /* Colore blu-grigio moderno */
+    margin-bottom: 15px;
+}
+
+p {
+    font-size: 1.1em;
+    color: #7f8c8d;
+    margin-bottom: 25px;
+}
+
+.role-button {
+    display: inline-block;
+    padding: 15px 30px;
+    background-color: #27ae60; /* Verde moderno */
+    color: white;
+    text-decoration: none;
+    border-radius: 50px; /* Arrotondamento completo */
+    font-size: 1.2em;
+    transition: background-color 0.3s, transform 0.2s; /* Aggiunta di transizioni */
+}
+
+.role-button:hover {
+    background-color: #229954;
+    transform: scale(1.05); /* Effetto hover che aumenta le dimensioni */
+}
+
+@media (max-width: 768px) {
+    /* Adattamento per dispositivi mobili */
+    .role-selection {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .navbar-container {
+        flex-direction: column;
+    }
+}
+/* Stili per la pagina di login e registrazione */
+
+.container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    margin-top: 50px; /* Centrare la scheda */
+}
+
+.main-title {
+    font-size: 3em;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#login-title, #register-title {
+    font-size: 2em;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-weight: bold;
+    text-align: left;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+}
+
+input:focus {
+    border-color: #27ae60;
+    outline: none;
+    box-shadow: 0 0 5px rgba(39, 174, 96, 0.5);
+}
+
+.form-container {
+    margin-top: 20px;
+    text-align: left;
+}
+
+.form-button {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.form-button:hover {
+    background-color: #229954;
+    transform: scale(1.05);
+}
+
+a {
+    color: #27ae60;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#message {
+    margin-bottom: 15px;
+    color: #e74c3c;
+}
+
+/* Responsività per dispositivi mobili */
+@media (max-width: 768px) {
+    .container {
+        max-width: 100%;
+        padding: 20px;
+    }
+
+    #login-title, #register-title {
+        font-size: 1.8em;
+    }
+
+    .main-title {
+        font-size: 2.5em;
+    }
+}
+
