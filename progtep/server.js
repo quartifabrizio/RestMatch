@@ -89,6 +89,7 @@ app.get('/ristoratore', (req, res) => {
 });
 
 // Avvio del server
-app.listen(port, () => {
-    console.log(`Server in esecuzione su http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Server in esecuzione su http://0.0.0.0:${port}`);
 });
+

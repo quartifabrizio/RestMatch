@@ -4,7 +4,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
-    fetch('/login', {
+    fetch('http://37.27.91.38:3000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -30,7 +30,7 @@ document.getElementById('register-form').addEventListener('submit', function(eve
     const titolo_studio = document.getElementById('register-titolo').value;
     const password = document.getElementById('register-password').value;
 
-    fetch('/register', {
+    fetch('http://37.27.91.38:3000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nome, email, citta, titolo_studio, password })
