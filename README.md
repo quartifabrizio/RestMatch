@@ -1,23 +1,23 @@
 # RestMatch
 
 ## Introduzione
-**RestMatch** è una piattaforma che mette in contatto ristoratori e personale della ristorazione, consentendo ai lavoratori di cercare opportunità di lavoro in base alle proprie disponibilità, e ai ristoratori di esplorare i profili dei candidati ideali. Inserisci i tuoi dati e le tue preferenze, scopri con un semplice click le numerose opzioni che rispecchiano i tuoi criteri e, sempre tramite la piattaforma, contatta il ristoratore per verificare la sua disponibilità e ricevere l’esito della richiesta.
+**RestMatch** è una piattaforma che connette ristoratori e personale specializzato nel settore della ristorazione, offrendo ai lavoratori la possibilità di cercare opportunità di lavoro in base alle proprie disponibilità e ai ristoratori l’accesso ai profili di candidati qualificati. Basta inserire i propri dati e preferenze per scoprire, con un semplice click, le opzioni che meglio rispondono alle proprie esigenze. La piattaforma consente inoltre di contattare direttamente i ristoratori e monitorare lo stato della propria candidatura, tutto in un unico spazio.
 
 ## Tagline
-> La tua rete di opportunità nella ristorazione: trova e contatta il personale o il ristoratore perfetto, quando serve e dove serve, tutto in un’unica piattaforma.
+> La tua piattaforma di job matching per la ristorazione: trova e contatta il personale o il ristoratore perfetto, quando serve e dove serve, tutto in un’unica piattaforma.
 
 ## Target
 - **Personale con esperienza** alla ricerca di opportunità nella ristorazione.
 - **Attività ristorative** che necessitano di personale qualificato.
 
 ## Problema
-Difficoltà per i lavoratori nel trovare un’opportunità di lavoro nella ristorazione che rispetti le proprie disponibilità e preferenze.
+Difficoltà per i lavoratori nel trovare opportunità di lavoro nella ristorazione in linea con le proprie disponibilità e preferenze, e per i ristoratori nel reperire personale qualificato che risponda ai requisiti richiesti.
 
 ## Tecnologie
 - **Frontend**: HTML, CSS, JavaScript
 - **Backend**: Node.js, Express.js
-- **Database**: SQLite
 - **API**: RESTful API 
+- **Database**: SQLite
 
 ## Competitor
 - jojolly
@@ -57,4 +57,4 @@ Difficoltà per i lavoratori nel trovare un’opportunità di lavoro nella risto
 6. **Analisi delle Performance dei Ristoratori**: I ristoratori devono poter visualizzare l’andamento delle proprie performance e tendenze per prendere decisioni strategiche.
 
 ## Diagramma UML
-- Visualizza il diagramma dei casi d'uso: ![Casi d'Uso RestMatch](https://yuml.me/a81fe5ea.jpg)
+- Visualizza il diagramma dei casi d'uso: ![Casi d'Uso RestMatch](https://yuml.me/47f2c177.svg)
