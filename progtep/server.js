@@ -2,6 +2,9 @@ const express = require('express');
 const sqlite = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocs = require('./swaggerOptions');
+
 const app = express();
 const port = 3000;
 
@@ -18,6 +21,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Rotta per visualizzare la documentazione Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
 // Servire il file index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'index.html'));
@@ -33,7 +39,34 @@ db.run(`CREATE TABLE IF NOT EXISTS utenti (
     password TEXT
 )`);
 
-// API di registrazione
+/**
+ * @swagger
+ * /register:
+ *   post:
+ *     summary: Registra un nuovo utente
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               citta:
+ *                 type: string
+ *               titolo_studio:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Registrazione completata
+ *       500:
+ *         description: Errore interno del server
+ */
 app.post('/register', async (req, res) => {
     const { nome, email, citta, titolo_studio, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -47,12 +80,30 @@ app.post('/register', async (req, res) => {
     });
 });
 
-app.get('/logout', (req, res) => {
-    // Puoi gestire qui la logica di logout, come cancellare la sessione
-    res.redirect('/index.html'); // Reindirizza alla pagina di login
-});
-
-// API di login
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Effettua il login di un utente
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login riuscito
+ *       401:
+ *         description: Password errata
+ *       404:
+ *         description: Utente non trovato
+ */
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
@@ -74,22 +125,58 @@ app.post('/login', (req, res) => {
     });
 });
 
-// Dashboard per la scelta del ruolo
+/**
+ * @swagger
+ * /logout:
+ *   get:
+ *     summary: Effettua il logout dell'utente
+ *     responses:
+ *       302:
+ *         description: Reindirizza alla pagina di login
+ */
+app.get('/logout', (req, res) => {
+    res.redirect('/index.html'); 
+});
+
+/**
+ * @swagger
+ * /dashboard:
+ *   get:
+ *     summary: Visualizza la dashboard per la scelta del ruolo
+ *     responses:
+ *       200:
+ *         description: Ritorna la pagina della dashboard
+ */
 app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
-// Rotte per le pagine dei ruoli
+/**
+ * @swagger
+ * /lavoratore:
+ *   get:
+ *     summary: Visualizza la pagina del lavoratore
+ *     responses:
+ *       200:
+ *         description: Ritorna la pagina del lavoratore
+ */
 app.get('/lavoratore', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'lavoratore.html'));
 });
 
+/**
+ * @swagger
+ * /ristoratore:
+ *   get:
+ *     summary: Visualizza la pagina del ristoratore
+ *     responses:
+ *       200:
+ *         description: Ritorna la pagina del ristoratore
+ */
 app.get('/ristoratore', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'ristoratore.html'));
 });
 
 // Avvio del server
-app.listen(port, '37.27.91.38', () => {
-    console.log(`Server in esecuzione su http://37.27.91.38:${port}`);
-});;
-
+app.listen(port, () => {
+});
