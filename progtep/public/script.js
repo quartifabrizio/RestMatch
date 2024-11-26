@@ -9,14 +9,23 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.redirect) {
             window.location.href = data.redirect;
         } else {
             document.getElementById('message').textContent = data.message;
         }
-    });
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        document.getElementById('message').textContent = 'An error occurred: ' + error.message;
+    });    
 });
 
 

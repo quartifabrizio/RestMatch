@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('./swaggerOptions');
+const cors = require('cors');
 
 const app = express();
 const port = 3000;
@@ -20,6 +21,7 @@ let db = new sqlite.Database('./database.db', (err) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors());
 
 // Rotta per visualizzare la documentazione Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
@@ -179,4 +181,6 @@ app.get('/ristoratore', (req, res) => {
 
 // Avvio del server
 app.listen(port, () => {
+    console.log(`Server avviato su http://37.27.91.38:${port}`);
 });
+
