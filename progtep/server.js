@@ -1,186 +1,95 @@
 const express = require('express');
-const sqlite = require('sqlite3').verbose();
-const bcrypt = require('bcrypt');
-const path = require('path');
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocs = require('./swaggerOptions');
-const cors = require('cors');
-
+const bodyParser = require('body-parser');
+const sqlite3 = require('sqlite3').verbose();
 const app = express();
 const port = 3000;
 
-// Connessione al database SQLite
-let db = new sqlite.Database('./database.db', (err) => {
-    if (err) {
-        return console.error(err.message);
-    }
-    console.log('Connesso al database SQLite');
-});
-
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+const path = require('path');
+const serveStatic = require('serve-static');
+app.use(serveStatic(path.join(__dirname, 'views')));
 
-// Rotta per visualizzare la documentazione Swagger
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+// Connessione al database
+const db = new sqlite3.Database('database.db', (err) => {
+    if (err) {
+        console.error('Errore durante la connessione al database:', err);
+    } else {
+        console.log('Connesso al database SQLite.');
 
-// Servire il file index.html
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'index.html'));
+        // Assicurarsi che la tabella "userss" esista
+        db.run(`
+            CREATE TABLE IF NOT EXISTS userss (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT NOT NULL UNIQUE,
+                telefono TEXT NOT NULL,
+                data_nascita TEXT NOT NULL,
+                citta TEXT NOT NULL,
+                ruolo TEXT NOT NULL,
+                password TEXT NOT NULL
+            )
+        `, (err) => {
+            if (err) console.error('Errore durante la creazione della tabella:', err);
+        });
+    }
 });
 
-// Creazione della tabella utenti
-db.run(`CREATE TABLE IF NOT EXISTS utenti (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nome TEXT,
-    email TEXT,
-    citta TEXT,
-    titolo_studio TEXT,
-    password TEXT
-)`);
+// Endpoint di registrazione
+app.post('/register', (req, res) => {
+    const { email, telefono, data_nascita, citta, ruolo, password } = req.body;
 
-/**
- * @swagger
- * /register:
- *   post:
- *     summary: Registra un nuovo utente
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               nome:
- *                 type: string
- *               email:
- *                 type: string
- *               citta:
- *                 type: string
- *               titolo_studio:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Registrazione completata
- *       500:
- *         description: Errore interno del server
- */
-app.post('/register', async (req, res) => {
-    const { nome, email, citta, titolo_studio, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    db.run(`INSERT INTO utenti (nome, email, citta, titolo_studio, password) VALUES (?, ?, ?, ?, ?)`, 
-    [nome, email, citta, titolo_studio, hashedPassword], function(err) {
+    const query = `
+        INSERT INTO userss (email, telefono, data_nascita, citta, ruolo, password) 
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    db.run(query, [email, telefono, data_nascita, citta, ruolo, password], function (err) {
         if (err) {
-            return res.status(500).json({ error: err.message });
+            if (err.code === 'SQLITE_CONSTRAINT') {
+                return res.status(400).send('Utente già registrato');
+            }
+            console.error('Errore durante la registrazione:', err);
+            return res.status(500).send('Errore del server');
         }
-        res.json({ message: 'Registrazione completata', id: this.lastID });
+        res.status(201).send('Registrazione completata!');
     });
 });
 
-/**
- * @swagger
- * /login:
- *   post:
- *     summary: Effettua il login di un utente
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Login riuscito
- *       401:
- *         description: Password errata
- *       404:
- *         description: Utente non trovato
- */
+
+
+// Endpoint di login
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
-    db.get('SELECT * FROM utenti WHERE email = ?', [email], async (err, user) => {
+    // Verificare le credenziali nel database
+    const query = `SELECT * FROM userss WHERE email = ? AND password = ?`;
+    db.get(query, [email, password], (err, row) => {
         if (err) {
-            return res.status(500).json({ error: err.message });
+            console.error('Errore durante il login:', err);
+            return res.status(500).send('Errore del server');
         }
-        if (!user) {
-            return res.status(404).json({ message: 'Utente non trovato' });
+        if (!row) {
+            return res.status(401).send('Credenziali non valide');
         }
-
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) {
-            return res.status(401).json({ message: 'Password errata' });
-        }
-
-        // Login riuscito, reindirizza alla dashboard
-        res.json({ message: 'Login riuscito', redirect: '/dashboard' });
+        res.json({ redirect: '/dashboard' }); // Invia un'istruzione per la redirezione
     });
 });
 
-/**
- * @swagger
- * /logout:
- *   get:
- *     summary: Effettua il logout dell'utente
- *     responses:
- *       302:
- *         description: Reindirizza alla pagina di login
- */
-app.get('/logout', (req, res) => {
-    res.redirect('/index.html'); 
-});
-
-/**
- * @swagger
- * /dashboard:
- *   get:
- *     summary: Visualizza la dashboard per la scelta del ruolo
- *     responses:
- *       200:
- *         description: Ritorna la pagina della dashboard
- */
+// Servire il dashboard
 app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
-/**
- * @swagger
- * /lavoratore:
- *   get:
- *     summary: Visualizza la pagina del lavoratore
- *     responses:
- *       200:
- *         description: Ritorna la pagina del lavoratore
- */
-app.get('/lavoratore', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'lavoratore.html'));
+
+// Servire i file HTML
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '/views/index.html'));
+});
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, '/views/registra.html'));
 });
 
-/**
- * @swagger
- * /ristoratore:
- *   get:
- *     summary: Visualizza la pagina del ristoratore
- *     responses:
- *       200:
- *         description: Ritorna la pagina del ristoratore
- */
-app.get('/ristoratore', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'ristoratore.html'));
-});
-
-// Avvio del server
+// Avviare il server
 app.listen(port, () => {
-    console.log(`Server avviato su http://37.27.91.38:${port}`);
+    console.log(`Server in esecuzione su http://localhost:${port}`);
 });
-

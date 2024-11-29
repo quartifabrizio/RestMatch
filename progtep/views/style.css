@@ -1,0 +1,176 @@
+/* Impostazioni generali */
+body {
+    background-color: #e0f7fa; /* Azzurro chiaro */
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    color: #00796b; /* Azzurro più scuro */
+}
+
+h1#main-title {
+    font-size: 2.5rem;
+    color: #004d40; /* Verde acqua scuro */
+    margin-bottom: 20px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+/* Stile del form */
+form {
+    background-color: white;
+    border: 2px solid #b2ebf2;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    text-align: center;
+}
+
+form h2 {
+    color: #004d40;
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
+    font-size: 14px;
+    color: #00796b;
+}
+
+/* Input, select e button */
+input, select {
+    width: calc(100% - 20px);
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #b2ebf2;
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 16px;
+    color: #004d40;
+    background-color: #f9f9f9;
+}
+
+input::placeholder, select {
+    color: #b0bec5;
+    font-style: italic;
+}
+
+button {
+    width: 100%;
+    background-color: #00796b;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #004d40;
+}
+
+/* Link e messaggi */
+p {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+a {
+    color: #00796b;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+/* Reset del margine e padding del body */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #00796b;
+
+    color: white;
+    height: 10%; /* La navbar occupa il 10% della pagina */
+    box-sizing: border-box;
+}
+
+.navbar h1 {
+    font-size: 1.8rem;
+}
+
+.navbar ul {
+    list-style-type: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar ul li {
+    margin: 0 10px;
+}
+
+.navbar ul li a {
+    text-decoration: none;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.navbar ul li a:hover {
+    text-decoration: underline;
+}
+
+/* Pagina divisa */
+main {
+    display: flex;
+    height: 90%; /* Il contenuto principale occupa il restante 90% */
+}
+
+.split {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 100%; /* Assicurati che le sezioni occupino l'intera altezza */
+    box-sizing: border-box;
+}
+
+.split.left {
+    background-color: #e0f7fa; /* Azzurro chiaro */
+}
+
+.split.right {
+    background-color: #f1f8e9; /* Verde chiaro */
+}
+
+.split h2 {
+    color: #004d40;
+    font-size: 2rem;
+    margin-bottom: 15px;
+}
+
+.split p {
+    font-size: 1.2rem;
+    color: #004d40;
+}
