@@ -18,7 +18,7 @@ const db = new sqlite3.Database('database.db', (err) => {
     } else {
         console.log('Connesso al database SQLite.');
 
-        // Assicurarsi che la tabella "userss" esista
+        // Creazione della tabella utenti
         db.run(`
             CREATE TABLE IF NOT EXISTS userss (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,6 +31,22 @@ const db = new sqlite3.Database('database.db', (err) => {
             )
         `, (err) => {
             if (err) console.error('Errore durante la creazione della tabella:', err);
+        });
+
+        // Creazione della tabella preferenze
+        db.run(`
+            CREATE TABLE IF NOT EXISTS preferences (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                country TEXT NOT NULL,
+                start_date TEXT NOT NULL,
+                end_date TEXT NOT NULL,
+                job_type TEXT NOT NULL,
+                restaurant_type TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES userss(id)
+            )
+        `, (err) => {
+            if (err) console.error('Errore durante la creazione della tabella preferenze:', err);
         });
     }
 });
@@ -55,13 +71,10 @@ app.post('/register', (req, res) => {
     });
 });
 
-
-
 // Endpoint di login
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
-    // Verificare le credenziali nel database
     const query = `SELECT * FROM userss WHERE email = ? AND password = ?`;
     db.get(query, [email, password], (err, row) => {
         if (err) {
@@ -71,13 +84,18 @@ app.post('/login', (req, res) => {
         if (!row) {
             return res.status(401).send('Credenziali non valide');
         }
-        res.json({ redirect: '/dashboard' }); // Invia un'istruzione per la redirezione
+        res.json({ redirect: '/dashboard' });
     });
 });
 
-// Servire il dashboard
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+app.post('/savePreferences', (req, res) => {
+    const { region, city, startDate, endDate, jobType, restaurantType } = req.body;
+
+    // Puoi salvare queste preferenze nel database, aggiungendo la logica di autenticazione
+    console.log('Preferenze ricevute:', { region, city, startDate, endDate, jobType, restaurantType });
+
+    // Simula una risposta di successo
+    res.status(200).send('Preferenze salvate con successo');
 });
 
 
@@ -87,6 +105,9 @@ app.get('/', (req, res) => {
 });
 app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, '/views/registra.html'));
+});
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, '/views/dashboard.html'));
 });
 
 // Avviare il server

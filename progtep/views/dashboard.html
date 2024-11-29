@@ -20,14 +20,111 @@
     </header>
 
     <main>
+        <!-- Sinistra: Form per salvare le preferenze -->
         <section class="split left">
-            <h2>Benvenuto</h2>
-            <p>Questa è la tua dashboard. Qui puoi accedere a tutte le funzionalità di RestMatch.</p>
+            <h2>Salva le tue preferenze</h2>
+            <form id="preferencesForm">
+                <label for="region">Regione</label>
+                <select id="region" name="region" required>
+                    <option value="" disabled selected>Seleziona una regione</option>
+                </select>
+
+                <label for="city">Città</label>
+                <select id="city" name="city" required>
+                    <option value="" disabled selected>Seleziona una città</option>
+                </select>
+
+                <label for="startDate">Data Inizio</label>
+                <input type="date" id="startDate" name="startDate" required>
+
+                <label for="endDate">Data Fine</label>
+                <input type="date" id="endDate" name="endDate" required>
+
+                <label for="jobType">Lavoro Richiesto</label>
+                <input type="text" id="jobType" name="jobType" placeholder="Inserisci il lavoro richiesto" required>
+
+                <label for="restaurantType">Tipologia di Ristorante</label>
+                <select id="restaurantType" name="restaurantType" required>
+                    <option value="" disabled selected>Seleziona una tipologia</option>
+                    <option value="Trattoria">Trattoria</option>
+                    <option value="Ristorante Cinese">Ristorante Cinese</option>
+                    <option value="Ristorante Italiano">Ristorante Italiano</option>
+                    <option value="Sushi">Sushi</option>
+                    <option value="Fast Food">Fast Food</option>
+                    <option value="Pizzeria">Pizzeria</option>
+                </select>
+
+                <button type="submit">Salva Preferenze</button>
+            </form>
         </section>
+
+        <!-- Destra: Elenco offerte di lavoro -->
         <section class="split right">
-            <h2>Dettagli</h2>
-            <p>Visualizza statistiche, informazioni o altri dati utili in questa sezione.</p>
+            <h2>Offerte di lavoro</h2>
+            <div class="job-list">
+                <!-- Modello di offerta -->
+                <div class="job-card">
+                    <div class="job-image">
+                        <img src="https://via.placeholder.com/100" alt="Immagine Ristorante">
+                    </div>
+                    <div class="job-info">
+                        <h3 class="job-title">Ristorante Bella Vita</h3>
+                        <p class="job-role"><strong>Ruolo:</strong> Chef</p>
+                        <p class="job-description"><strong>Descrizione:</strong>Cerchiamo uno chef esperto per la nostra trattoria a conduzione familiare.</p>
+                        <p class="job-period"><strong>Periodo:</strong> 01/12/2024 - 31/12/2024</p>
+                    </div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-image">
+                        <img src="https://via.placeholder.com/100" alt="Immagine Ristorante">
+                    </div>
+                    <div class="job-info">
+                        <h3 class="job-title">La Cucina Moderna</h3>
+                        <p class="job-role"><strong>Ruolo:</strong> Cameriere</p>
+                        <p class="job-description"><strong>Descrizione:</strong>Ristorante di lusso cerca un cameriere professionale per servizio serale.</p>
+                        <p class="job-period"><strong>Periodo:</strong> 15/12/2024 - 15/01/2025</p>
+                    </div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-image">
+                        <img src="https://via.placeholder.com/100" alt="Immagine Ristorante">
+                    </div>
+                    <div class="job-info">
+                        <h3 class="job-title">Pizzeria Da Gino</h3>
+                        <p class="job-role"><strong>Ruolo:</strong> Pizzaiolo</p>
+                        <p class="job-description"><strong>Descrizione:</strong>Stiamo cercando un pizzaiolo esperto per turno serale in pizzeria tradizionale.</p>
+                        <p class="job-period"><strong>Periodo:</strong> 01/01/2025 - 28/02/2025</p>
+                    </div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-image">
+                        <img src="https://via.placeholder.com/100" alt="Immagine Ristorante">
+                    </div>
+                    <div class="job-info">
+                        <h3 class="job-title">Sushi Fusion</h3>
+                        <p class="job-role"><strong>Ruolo:</strong> Aiuto Cuoco</p>
+                        <p class="job-description"><strong>Descrizione:</strong>Ristorante sushi fusion cerca aiuto cuoco per supportare il team in cucina.</p>
+                        <p class="job-period"><strong>Periodo:</strong> 10/12/2024 - 10/03/2025</p>
+                    </div>
+                </div>
+            </div>
         </section>
     </main>
+
+    <style>
+        .split { float: left; width: 50%; height: 100vh; overflow-y: auto; }
+        .split.left { background-color: #f4f4f4; padding: 20px; }
+        .split.right { background-color: #fff; padding: 20px; }
+        .job-list { margin-top: 20px; }
+        .job-card { display: flex; margin-bottom: 20px; border: 1px solid #ccc; padding: 10px; border-radius: 5px; align-items: center; }
+        .job-image { flex: 0 0 100px; margin-right: 15px; }
+        .job-image img { width: 100px; height: 100px; object-fit: cover; border-radius: 5px; }
+        .job-info { flex-grow: 1; }
+        .job-title { font-size: 1.2em; margin-bottom: 5px; line-height: 100px; /* Allinea il titolo verticalmente */ }
+        .job-role, .job-description, .job-period { margin: 3px 0; }
+    </style>
 </body>
 </html>
