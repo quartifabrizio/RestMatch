@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,23 +27,27 @@
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
     
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
-    
-            if (response.ok) {
-                const data = await response.json();
-                if (data.redirect) {
-                    window.location.href = data.redirect;
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    }
+                } else {
+                    const message = await response.text();
+                    alert(message);
                 }
-            } else {
-                const message = await response.text();
-                alert(message);
+            } catch (error) {
+                console.error('Errore durante il login:', error);
+                alert('Errore durante il login. Riprova più tardi.');
             }
         });
     </script>
-    
 </body>
 </html>
