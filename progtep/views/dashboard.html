@@ -3,128 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - RestMatch</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9f9f9;
+        }
+        #chat-container {
+            width: 80%;
+            max-width: 600px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 16px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            height: 80%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #title {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin: -16px -16px 16px -16px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+        #messages .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            max-width: 70%;
+            display: flex;
+            align-items: center;
+        }
+        #messages .message.self {
+            background: #d1f7d6;
+            align-self: flex-start;
+        }
+        #messages .message.other {
+            background: #e9e9e9;
+            align-self: flex-end;
+        }
+        #messages .message img {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+        #input-container {
+            display: flex;
+            margin-top: 16px;
+        }
+        #input-container input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+        #input-container button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #input-container button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <h1>RestMatch</h1>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#section1">Sezione 1</a></li>
-                <li><a href="#section2">Sezione 2</a></li>
-                <li><a href="/logout">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div id="chat-container">
+        <div id="title">Chat Room</div>
+        <div id="messages"></div>
+        <div id="input-container">
+            <input id="message-input" type="text" placeholder="Scrivi un messaggio...">
+            <button id="send-button">Invia</button>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
 
-    <main>
-        <!-- Sinistra: Form per salvare le preferenze -->
-        <section class="split left">
-            <h2>Salva le tue preferenze</h2>
-            <form id="preferencesForm">
-                <label for="region">Regione</label>
-                <select id="region" name="region" required>
-                    <option value="" disabled selected>Seleziona una regione</option>
-                </select>
+        const messages = document.getElementById('messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
 
-                <label for="city">Città</label>
-                <select id="city" name="city" required>
-                    <option value="" disabled selected>Seleziona una città</option>
-                </select>
+        // Helper function to add a message
+        function addMessage(msg, isSelf) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', isSelf ? 'self' : 'other');
 
-                <label for="startDate">Data Inizio</label>
-                <input type="date" id="startDate" name="startDate" required>
+            const icon = document.createElement('img');
+            icon.src = isSelf ? '/path/to/user-icon.png' : '/path/to/other-icon.png';
+            icon.alt = isSelf ? 'You' : 'Other';
+            
+            const textNode = document.createTextNode(msg);
 
-                <label for="endDate">Data Fine</label>
-                <input type="date" id="endDate" name="endDate" required>
+            messageElement.appendChild(icon);
+            messageElement.appendChild(textNode);
+            messages.appendChild(messageElement);
+            messages.scrollTop = messages.scrollHeight;
+        }
 
-                <label for="jobType">Lavoro Richiesto</label>
-                <input type="text" id="jobType" name="jobType" placeholder="Inserisci il lavoro richiesto" required>
+        // Ricezione di un messaggio
+        socket.on('chat message', (msg) => {
+            addMessage(msg, false);
+        });
 
-                <label for="restaurantType">Tipologia di Ristorante</label>
-                <select id="restaurantType" name="restaurantType" required>
-                    <option value="" disabled selected>Seleziona una tipologia</option>
-                    <option value="Trattoria">Trattoria</option>
-                    <option value="Ristorante Cinese">Ristorante Cinese</option>
-                    <option value="Ristorante Italiano">Ristorante Italiano</option>
-                    <option value="Sushi">Sushi</option>
-                    <option value="Fast Food">Fast Food</option>
-                    <option value="Pizzeria">Pizzeria</option>
-                </select>
+        // Inviare un messaggio
+        sendButton.addEventListener('click', () => {
+            const msg = messageInput.value;
+            if (msg.trim() !== '') {
+                socket.emit('chat message', msg); // Solo invio, non visualizzazione immediata
+                messageInput.value = '';
+            }
+        });
 
-                <button type="submit">Salva Preferenze</button>
-            </form>
-        </section>
+        // Invio con il tasto Enter
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
+        });
 
-        <!-- Destra: Elenco offerte di lavoro -->
-        <section class="split right">
-            <h2>Offerte di lavoro</h2>
-            <div class="job-list">
-                <!-- Modello di offerta -->
-                <div class="job-card">
-                    <div class="job-image">
-                        <img src="https://via.placeholder.com/100" alt="Immagine Ristorante">
-                    </div>
-                    <div class="job-info">
-                        <h3 class="job-title">Ristorante Bella Vita</h3>
-                        <p class="job-role"><strong>Ruolo:</strong> Chef</p>
-                        <p class="job-description"><strong>Descrizione:</strong>Cerchiamo uno chef esperto per la nostra trattoria a conduzione familiare.</p>
-                        <p class="job-period"><strong>Periodo:</strong> 01/12/2024 - 31/12/2024</p>
-                    </div>
-                </div>
+        // Mostra il messaggio inviato dall'utente solo quando confermato dal server
+        socket.on('self message', (msg) => {
+            addMessage(msg, true);
+        });
 
-                <div class="job-card">
-                    <div class="job-image">
-                        <img src="https://via.placeholder.com/100" alt="Immagine Ristorante">
-                    </div>
-                    <div class="job-info">
-                        <h3 class="job-title">La Cucina Moderna</h3>
-                        <p class="job-role"><strong>Ruolo:</strong> Cameriere</p>
-                        <p class="job-description"><strong>Descrizione:</strong>Ristorante di lusso cerca un cameriere professionale per servizio serale.</p>
-                        <p class="job-period"><strong>Periodo:</strong> 15/12/2024 - 15/01/2025</p>
-                    </div>
-                </div>
-
-                <div class="job-card">
-                    <div class="job-image">
-                        <img src="https://via.placeholder.com/100" alt="Immagine Ristorante">
-                    </div>
-                    <div class="job-info">
-                        <h3 class="job-title">Pizzeria Da Gino</h3>
-                        <p class="job-role"><strong>Ruolo:</strong> Pizzaiolo</p>
-                        <p class="job-description"><strong>Descrizione:</strong>Stiamo cercando un pizzaiolo esperto per turno serale in pizzeria tradizionale.</p>
-                        <p class="job-period"><strong>Periodo:</strong> 01/01/2025 - 28/02/2025</p>
-                    </div>
-                </div>
-
-                <div class="job-card">
-                    <div class="job-image">
-                        <img src="https://via.placeholder.com/100" alt="Immagine Ristorante">
-                    </div>
-                    <div class="job-info">
-                        <h3 class="job-title">Sushi Fusion</h3>
-                        <p class="job-role"><strong>Ruolo:</strong> Aiuto Cuoco</p>
-                        <p class="job-description"><strong>Descrizione:</strong>Ristorante sushi fusion cerca aiuto cuoco per supportare il team in cucina.</p>
-                        <p class="job-period"><strong>Periodo:</strong> 10/12/2024 - 10/03/2025</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <style>
-        .split { float: left; width: 50%; height: 100vh; overflow-y: auto; }
-        .split.left { background-color: #f4f4f4; padding: 20px; }
-        .split.right { background-color: #fff; padding: 20px; }
-        .job-list { margin-top: 20px; }
-        .job-card { display: flex; margin-bottom: 20px; border: 1px solid #ccc; padding: 10px; border-radius: 5px; align-items: center; }
-        .job-image { flex: 0 0 100px; margin-right: 15px; }
-        .job-image img { width: 100px; height: 100px; object-fit: cover; border-radius: 5px; }
-        .job-info { flex-grow: 1; }
-        .job-title { font-size: 1.2em; margin-bottom: 5px; line-height: 100px; /* Allinea il titolo verticalmente */ }
-        .job-role, .job-description, .job-period { margin: 3px 0; }
-    </style>
+        // Invio messaggio con conferma
+        sendButton.addEventListener('click', () => {
+            const msg = messageInput.value;
+            if (msg.trim() !== '') {
+                socket.emit('send message', msg);
+                messageInput.value = '';
+            }
+        });
+    </script>
 </body>
 </html>
