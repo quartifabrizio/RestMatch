@@ -8,6 +8,8 @@ const path = require('path');
 const serveStatic = require('serve-static');
 const http = require('http');
 const { Server } = require('socket.io');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express();
 const port = 3000;
@@ -32,6 +34,37 @@ app.use(
         cookie: { secure: false, maxAge: 60000 }, // Set secure: true if using HTTPS
     })
 );
+
+
+// Configurazione per il login tramite Google
+passport.use(new GoogleStrategy({
+    clientID: '13892389865-r5k64i2d6s5rkjg2nstafvq7husg13nh.apps.googleusercontent.com',
+    clientSecret: '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',
+    callbackURL: '/auth/google/callback'
+}, (accessToken, refreshToken, profile, done) => {
+    // Puoi salvare o gestire il profilo utente qui
+    return done(null, profile);
+}));
+
+// Serializzazione e deserializzazione utente
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+    done(null, user);
+});
+
+// Rotte per il login tramite Google
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+app.get('/auth/google/callback', passport.authenticate('google', {
+    failureRedirect: '/login'
+}), (req, res) => {
+    // Reindirizza dopo il successo del login tramite Google
+    res.redirect('/home');
+});
+
 
 // Connect to the database
 const db = new sqlite3.Database('database.db', (err) => {
@@ -164,6 +197,10 @@ io.on('connection', (socket) => {
 });
 
 // Start server
-server.listen(port, () => {
-    console.log(`Server in esecuzione su http://localhost:${port}`);
+server.listen(port, 'localhost', (err) => {
+    if (err) {
+        console.error('Errore durante l\'avvio del server:', err);
+    } else {
+        console.log(`Server in esecuzione su http://localhost:${port}`);
+    }
 });
