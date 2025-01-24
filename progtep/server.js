@@ -35,15 +35,31 @@ app.use(
     })
 );
 
+// Initialize Passport.js
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Configurazione per il login tramite Google
 passport.use(new GoogleStrategy({
     clientID: '13892389865-r5k64i2d6s5rkjg2nstafvq7husg13nh.apps.googleusercontent.com',
     clientSecret: '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',
-    callbackURL: '/auth/google/callback'
+    callbackURL: 'https://studious-spork-v6gq6wq7jj6hx9p4.github.dev/auth/google/callback'
 }, (accessToken, refreshToken, profile, done) => {
-    // Puoi salvare o gestire il profilo utente qui
-    return done(null, profile);
+    const email = profile.emails[0].value;
+    const query = `SELECT * FROM userss WHERE email = ?`;
+
+    db.get(query, [email], (err, row) => {
+        if (err) return done(err);
+        if (row) {
+            return done(null, row);
+        } else {
+            const insertQuery = `INSERT INTO userss (email, telefono, data_nascita, citta, ruolo, password) VALUES (?, '', '', '', 'google', '')`;
+            db.run(insertQuery, [email], function (err) {
+                if (err) return done(err);
+                return done(null, { id: this.lastID, email });
+            });
+        }
+    });
 }));
 
 // Serializzazione e deserializzazione utente
@@ -62,9 +78,8 @@ app.get('/auth/google/callback', passport.authenticate('google', {
     failureRedirect: '/login'
 }), (req, res) => {
     // Reindirizza dopo il successo del login tramite Google
-    res.redirect('/home');
+    res.redirect('/dashboard');
 });
-
 
 // Connect to the database
 const db = new sqlite3.Database('database.db', (err) => {
@@ -83,8 +98,7 @@ const db = new sqlite3.Database('database.db', (err) => {
                 citta TEXT NOT NULL,
                 ruolo TEXT NOT NULL,
                 password TEXT NOT NULL
-            )`,
-            (err) => {
+            )`, (err) => {
                 if (err) console.error('Errore durante la creazione della tabella utenti:', err);
             }
         );
@@ -100,8 +114,7 @@ const db = new sqlite3.Database('database.db', (err) => {
                 job_type TEXT NOT NULL,
                 restaurant_type TEXT NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES userss(id)
-            )`,
-            (err) => {
+            )`, (err) => {
                 if (err) console.error('Errore durante la creazione della tabella preferenze:', err);
             }
         );

@@ -20,17 +20,18 @@
         <p>Non hai un account? <a href="/register">Registrati qui</a></p>
     </form>
 
-    <!-- Aggiungi un pulsante per il login con Google -->
-    <p><a href="/auth/google"><button type="button">Accedi con Google</button></a></p>
-
+    <!-- Pulsante per il login con Google -->
+    <p>
+        <a href="/auth/google"><button type="button">Accedi con Google</button></a>
+    </p>
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (event) => {
             event.preventDefault();
-    
+
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-    
+
             try {
                 const response = await fetch('/login', {
                     method: 'POST',
@@ -53,5 +54,4 @@
             }
         });
     </script>
-</body>
-</html>
+</body></html> 

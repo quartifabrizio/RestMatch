@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,6 +37,11 @@
         <p>Hai già un account? <a href="/">Accedi qui</a></p>
     </form>
 
+    <!-- Pulsante per registrarsi con Google -->
+    <p>
+        <a href="/auth/google"><button type="button">Registrati con Google</button></a>
+    </p>
+
     <script>
         document.getElementById('registerForm').addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -48,15 +53,19 @@
             const ruolo = document.getElementById('registerRuolo').value;
             const password = document.getElementById('registerPassword').value;
 
-            const response = await fetch('/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, telefono, data_nascita, citta, ruolo, password }),
-            });
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, telefono, data_nascita, citta, ruolo, password }),
+                });
 
-            const message = await response.text();
-            alert(message);
+                const message = await response.text();
+                alert(message);
+            } catch (error) {
+                console.error('Errore durante la registrazione:', error);
+                alert('Errore durante la registrazione. Riprova più tardi.');
+            }
         });
     </script>
-</body>
-</html>
+</body></html>
