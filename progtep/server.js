@@ -10,9 +10,162 @@ const http = require('http');
 const { Server } = require('socket.io');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+// Swagger dependencies
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const app = express();
 const port = 3000;
+
+// Imposta la cartella dei template e il view engine
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'hbs');
+
+// Swagger definition
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'API Documentazione',
+      version: '1.0.0',
+      description: 'Documentazione delle API del server',
+      contact: {
+        name: 'Supporto',
+        url: 'https://example.com',
+        email: 'support@example.com'
+      },
+    },
+    servers: [
+      {
+        url: 'http://localhost:3000',
+        description: 'Server di sviluppo'
+      }
+    ],
+    components: {
+      securitySchemes: {
+        sessionAuth: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'connect.sid'
+        }
+      },
+      schemas: {
+        User: {
+          type: 'object',
+          required: ['email', 'password'],
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID utente generato automaticamente'
+            },
+            email: {
+              type: 'string',
+              description: 'Email dell\'utente'
+            },
+            telefono: {
+              type: 'string',
+              description: 'Numero di telefono dell\'utente'
+            },
+            data_nascita: {
+              type: 'string',
+              description: 'Data di nascita dell\'utente'
+            },
+            citta: {
+              type: 'string',
+              description: 'Città dell\'utente'
+            },
+            ruolo: {
+              type: 'string',
+              description: 'Ruolo dell\'utente'
+            },
+            password: {
+              type: 'string',
+              description: 'Password dell\'utente'
+            }
+          }
+        },
+        Preference: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID preferenza generato automaticamente'
+            },
+            user_id: {
+              type: 'integer',
+              description: 'ID utente di riferimento'
+            },
+            country: {
+              type: 'string',
+              description: 'Paese selezionato'
+            },
+            start_date: {
+              type: 'string',
+              description: 'Data di inizio'
+            },
+            end_date: {
+              type: 'string',
+              description: 'Data di fine'
+            },
+            job_type: {
+              type: 'string',
+              description: 'Tipo di lavoro'
+            },
+            restaurant_type: {
+              type: 'string',
+              description: 'Tipo di ristorante'
+            }
+          }
+        },
+        LoginRequest: {
+          type: 'object',
+          required: ['email', 'password'],
+          properties: {
+            email: {
+              type: 'string',
+              description: 'Email dell\'utente'
+            },
+            password: {
+              type: 'string',
+              description: 'Password dell\'utente'
+            }
+          }
+        },
+        RegisterRequest: {
+          type: 'object',
+          required: ['email', 'password'],
+          properties: {
+            email: {
+              type: 'string',
+              description: 'Email dell\'utente'
+            },
+            telefono: {
+              type: 'string',
+              description: 'Numero di telefono dell\'utente'
+            },
+            data_nascita: {
+              type: 'string',
+              description: 'Data di nascita dell\'utente'
+            },
+            citta: {
+              type: 'string',
+              description: 'Città dell\'utente'
+            },
+            ruolo: {
+              type: 'string',
+              description: 'Ruolo dell\'utente'
+            },
+            password: {
+              type: 'string',
+              description: 'Password dell\'utente'
+            }
+          }
+        }
+      }
+    }
+  },
+  apis: ['./server.js'], // Percorso allo stesso file per leggere i commenti JSDoc
+};
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -38,6 +191,10 @@ app.use(
 // Initialize Passport.js
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Swagger init after all middleware
+const specs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
 // Configurazione per il login tramite Google
 passport.use(new GoogleStrategy({
@@ -71,9 +228,30 @@ passport.deserializeUser((user, done) => {
     done(null, user);
 });
 
-// Rotte per il login tramite Google
+/**
+ * @swagger
+ * /auth/google:
+ *   get:
+ *     summary: Inizia l'autenticazione tramite Google
+ *     description: Reindirizza l'utente alla pagina di autenticazione di Google
+ *     tags: [Autenticazione]
+ *     responses:
+ *       302:
+ *         description: Reindirizza alla pagina di Google per autenticazione
+ */
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
+/**
+ * @swagger
+ * /auth/google/callback:
+ *   get:
+ *     summary: Callback per l'autenticazione di Google
+ *     description: Endpoint di callback dopo l'autenticazione tramite Google
+ *     tags: [Autenticazione]
+ *     responses:
+ *       302:
+ *         description: Reindirizza alla dashboard in caso di successo o alla pagina di login in caso di fallimento
+ */
 app.get('/auth/google/callback', passport.authenticate('google', {
     failureRedirect: '/login'
 }), (req, res) => {
@@ -121,7 +299,30 @@ const db = new sqlite3.Database('database.db', (err) => {
     }
 });
 
-// Registration endpoint
+/**
+ * @swagger
+ * /register:
+ *   post:
+ *     summary: Registra un nuovo utente
+ *     description: Registra un nuovo utente nel sistema
+ *     tags: [Utenti]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RegisterRequest'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/RegisterRequest'
+ *     responses:
+ *       201:
+ *         description: Registrazione completata con successo
+ *       400:
+ *         description: Utente già registrato
+ *       500:
+ *         description: Errore del server
+ */
 app.post('/register', (req, res) => {
     const { email, telefono, data_nascita, citta, ruolo, password } = req.body;
 
@@ -138,7 +339,38 @@ app.post('/register', (req, res) => {
     });
 });
 
-// Login endpoint
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Effettua il login
+ *     description: Autentica un utente tramite email e password
+ *     tags: [Autenticazione]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login avvenuto con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 redirect:
+ *                   type: string
+ *                   description: URL di reindirizzamento
+ *       401:
+ *         description: Credenziali non valide
+ *       500:
+ *         description: Errore del server
+ */
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
@@ -162,7 +394,21 @@ app.post('/login', (req, res) => {
     });
 });
 
-// Logout endpoint
+/**
+ * @swagger
+ * /logout:
+ *   post:
+ *     summary: Effettua il logout
+ *     description: Termina la sessione dell'utente
+ *     tags: [Autenticazione]
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       302:
+ *         description: Reindirizza alla home page dopo il logout
+ *       500:
+ *         description: Errore del server
+ */
 app.post('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -174,7 +420,25 @@ app.post('/logout', (req, res) => {
     });
 });
 
-// Dashboard route
+/**
+ * @swagger
+ * /dashboard:
+ *   get:
+ *     summary: Pagina dashboard
+ *     description: Restituisce la pagina dashboard dell'utente
+ *     tags: [Pagine]
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Pagina dashboard
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ *       401:
+ *         description: Accesso non autorizzato
+ */
 app.get('/dashboard', (req, res) => {
     if (!req.session.user) {
         return res.status(401).send('Accesso non autorizzato');
@@ -182,16 +446,59 @@ app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, '/views/dashboard.html'));
 });
 
-// Chat route
+/**
+ * @swagger
+ * /chat:
+ *   get:
+ *     summary: Pagina chat
+ *     description: Restituisce la pagina della chat
+ *     tags: [Pagine]
+ *     responses:
+ *       200:
+ *         description: Pagina della chat
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 app.get('/chat', (req, res) => {
     res.sendFile(path.join(__dirname, '/views/chat.html'));
 });
 
-// Serve index and registration pages
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Home page
+ *     description: Restituisce la pagina principale
+ *     tags: [Pagine]
+ *     responses:
+ *       200:
+ *         description: Home page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '/views/index.html'));
 });
 
+/**
+ * @swagger
+ * /register:
+ *   get:
+ *     summary: Pagina di registrazione
+ *     description: Restituisce la pagina di registrazione utente
+ *     tags: [Pagine]
+ *     responses:
+ *       200:
+ *         description: Pagina di registrazione
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, '/views/registra.html'));
 });
@@ -209,11 +516,11 @@ io.on('connection', (socket) => {
     });
 });
 
-// Start server
 server.listen(port, 'localhost', (err) => {
     if (err) {
         console.error('Errore durante l\'avvio del server:', err);
     } else {
         console.log(`Server in esecuzione su http://localhost:${port}`);
+        console.log(`Documentazione Swagger disponibile su https://super-duper-capybara-9px67vxggjj2x96g-3000.app.github.dev/api-docs`);
     }
 });
