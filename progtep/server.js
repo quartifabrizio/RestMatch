@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
-const SQLiteStore = require('connect-sqlite3')(session);
+//const SQLiteStore = require('connect-sqlite3')(session);
 const path = require('path');
 const serveStatic = require('serve-static');
 const http = require('http');
@@ -13,6 +13,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 // Swagger dependencies
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const hbs = require('hbs');
 
 const app = express();
 const port = 3000;
@@ -20,6 +21,21 @@ const port = 3000;
 // Imposta la cartella dei template e il view engine
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
+
+// Register Handlebars helpers
+hbs.registerHelper('equals', function(a, b) {
+    return a === b;
+});
+
+hbs.registerHelper('eq', function(a, b, options) {
+    if (arguments.length === 3) {
+        // Block usage: {{#eq a b}}...{{/eq}}
+        return a === b ? options.fn(this) : options.inverse(this);
+    } else {
+        // Non-block usage: {{eq a b}} or (eq a b)
+        return a === b;
+    }
+});
 
 // Swagger definition
 const swaggerOptions = {
@@ -175,19 +191,20 @@ const io = new Server(server);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(serveStatic(path.join(__dirname, 'views')));
+app.use(serveStatic(path.join(__dirname, 'public'))); // Modificato per utilizzare una cartella public per gli asset statici
 
-// Configure sessions
+// Configure sessions - MODIFICATO per sessioni persistenti
 app.use(
-    session({
-        store: new SQLiteStore(),
-        secret: 'ilTuoSegretoSuperSegreto123',
-        resave: false,
-        saveUninitialized: true,
-        cookie: { secure: false, maxAge: 60000 }, // Set secure: true if using HTTPS
-    })
+  session({
+      secret: 'ilTuoSegretoSuperSegreto123',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+          secure: false, // Cambiare a true se si usa HTTPS
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 giorni in millisecondi
+      }
+  })
 );
-
 // Initialize Passport.js
 app.use(passport.initialize());
 app.use(passport.session());
@@ -196,10 +213,16 @@ app.use(passport.session());
 const specs = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
+// Middleware per verificare l'autenticazione
+function requireAuth(req, res, next) {
+    if (!req.session.user) {
+        return res.redirect('/');
+    }
+    next();
+}
+
 // Configurazione per il login tramite Google
 passport.use(new GoogleStrategy({
-    clientID: '13892389865-r5k64i2d6s5rkjg2nstafvq7husg13nh.apps.googleusercontent.com',
-    clientSecret: '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',
     callbackURL: 'https://studious-spork-v6gq6wq7jj6hx9p4.github.dev/auth/google/callback'
 }, (accessToken, refreshToken, profile, done) => {
     const email = profile.emails[0].value;
@@ -255,6 +278,12 @@ app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'em
 app.get('/auth/google/callback', passport.authenticate('google', {
     failureRedirect: '/login'
 }), (req, res) => {
+    // Salva i dati dell'utente nella sessione
+    req.session.user = {
+        id: req.user.id,
+        email: req.user.email,
+        ruolo: req.user.ruolo || 'google',
+    };
     // Reindirizza dopo il successo del login tramite Google
     res.redirect('/dashboard');
 });
@@ -397,7 +426,7 @@ app.post('/login', (req, res) => {
 /**
  * @swagger
  * /logout:
- *   post:
+ *   get:
  *     summary: Effettua il logout
  *     description: Termina la sessione dell'utente
  *     tags: [Autenticazione]
@@ -409,7 +438,7 @@ app.post('/login', (req, res) => {
  *       500:
  *         description: Errore del server
  */
-app.post('/logout', (req, res) => {
+app.get('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
             console.error('Errore durante il logout:', err);
@@ -439,11 +468,12 @@ app.post('/logout', (req, res) => {
  *       401:
  *         description: Accesso non autorizzato
  */
-app.get('/dashboard', (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).send('Accesso non autorizzato');
-    }
-    res.sendFile(path.join(__dirname, '/views/dashboard.html'));
+app.get('/dashboard', requireAuth, (req, res) => {
+    // Modificato per utilizzare il template HBS
+    res.render('dashboard', {
+        user: req.session.user,
+        year: new Date().getFullYear()
+    });
 });
 
 /**
@@ -462,7 +492,11 @@ app.get('/dashboard', (req, res) => {
  *               type: string
  */
 app.get('/chat', (req, res) => {
-    res.sendFile(path.join(__dirname, '/views/chat.html'));
+    // Modificato per utilizzare il template HBS
+    res.render('chat', {
+        user: req.session.user,
+        year: new Date().getFullYear()
+    });
 });
 
 /**
@@ -481,7 +515,14 @@ app.get('/chat', (req, res) => {
  *               type: string
  */
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '/views/index.html'));
+    // Se l'utente è già autenticato, reindirizza alla dashboard
+    if (req.session.user) {
+        return res.redirect('/dashboard');
+    }
+    // Altrimenti mostra la pagina di login
+    res.render('index', {
+        year: new Date().getFullYear()
+    });
 });
 
 /**
@@ -499,8 +540,82 @@ app.get('/', (req, res) => {
  *             schema:
  *               type: string
  */
-app.get('/register', (req, res) => {
-    res.sendFile(path.join(__dirname, '/views/registra.html'));
+app.get('/registra', (req, res) => {
+    // Modificato per utilizzare il template HBS
+    res.render('registra', {
+        year: new Date().getFullYear()
+    });
+});
+
+/**
+ * @swagger
+ * /save-preferences:
+ *   post:
+ *     summary: Salva le preferenze utente
+ *     description: Salva le preferenze dell'utente nel database
+ *     tags: [Utenti]
+ *     security:
+ *       - sessionAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               region:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               startDate:
+ *                 type: string
+ *               endDate:
+ *                 type: string
+ *               jobType:
+ *                 type: string
+ *               restaurantType:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Preferenze salvate con successo
+ *       401:
+ *         description: Utente non autenticato
+ *       500:
+ *         description: Errore del server
+ */
+app.post('/save-preferences', requireAuth, (req, res) => {
+    const { region, city, startDate, endDate, jobType, restaurantType } = req.body;
+    const userId = req.session.user.id;
+
+    const checkQuery = `SELECT * FROM preferences WHERE user_id = ?`;
+    db.get(checkQuery, [userId], (err, row) => {
+        if (err) {
+            console.error('Errore durante il controllo delle preferenze:', err);
+            return res.status(500).send('Errore del server');
+        }
+
+        if (row) {
+            // Update existing preferences
+            const updateQuery = `UPDATE preferences SET country = ?, start_date = ?, end_date = ?, job_type = ?, restaurant_type = ? WHERE user_id = ?`;
+            db.run(updateQuery, [region, startDate, endDate, jobType, restaurantType, userId], function(err) {
+                if (err) {
+                    console.error('Errore durante l\'aggiornamento delle preferenze:', err);
+                    return res.status(500).send('Errore del server');
+                }
+                res.status(200).send('Preferenze aggiornate con successo');
+            });
+        } else {
+            // Insert new preferences
+            const insertQuery = `INSERT INTO preferences (user_id, country, start_date, end_date, job_type, restaurant_type) VALUES (?, ?, ?, ?, ?, ?)`;
+            db.run(insertQuery, [userId, region, startDate, endDate, jobType, restaurantType], function(err) {
+                if (err) {
+                    console.error('Errore durante l\'inserimento delle preferenze:', err);
+                    return res.status(500).send('Errore del server');
+                }
+                res.status(200).send('Preferenze salvate con successo');
+            });
+        }
+    });
 });
 
 // WebSocket events
@@ -521,6 +636,6 @@ server.listen(port, 'localhost', (err) => {
         console.error('Errore durante l\'avvio del server:', err);
     } else {
         console.log(`Server in esecuzione su http://localhost:${port}`);
-        console.log(`Documentazione Swagger disponibile su https://super-duper-capybara-9px67vxggjj2x96g-3000.app.github.dev/api-docs`);
+        console.log(`Documentazione Swagger disponibile su http://localhost:${port}/api-docs`);
     }
 });

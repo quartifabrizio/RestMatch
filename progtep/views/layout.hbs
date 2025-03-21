@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - RestMatch</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    {{#if extraStyles}}
+        {{{extraStyles}}}
+    {{/if}}
+</head>
+<body>
+    {{#if showHeader}}
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <h1>RestMatch</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                {{#if isLoggedIn}}
+                    {{#if isRistoratore}}
+                        <li><a href="/dashboard">Dashboard</a></li>
+                    {{else}}
+                        <li><a href="/lavoratore">Area Personale</a></li>
+                    {{/if}}
+                    <li><a href="/logout">Logout</a></li>
+                {{else}}
+                    <li><a href="/login">Accedi</a></li>
+                    <li><a href="/register">Registrati</a></li>
+                {{/if}}
+            </ul>
+        </nav>
+    </header>
+    {{/if}}
+    
+    <main class="container">
+        {{{body}}}
+    </main>
+
+    <footer>
+        <p>&copy; {{currentYear}} RestMatch - Tutti i diritti riservati</p>
+    </footer>
+
+    {{#if extraScripts}}
+        {{{extraScripts}}}
+    {{/if}}
+</body>
+</html>

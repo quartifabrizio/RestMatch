@@ -1,0 +1,109 @@
+<div class="worker-container">
+    <h1>Area Lavoratore</h1>
+    <p class="welcome-message">Benvenuto, {{user.email}}!</p>
+
+    <div class="split-layout">
+        <section class="left">
+            <h2>Il tuo profilo</h2>
+            <form id="profileForm" action="/update-profile" method="POST">
+                <div class="form-group">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" name="nome" placeholder="Il tuo nome" value="{{profile.nome}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cognome">Cognome</label>
+                    <input type="text" id="cognome" name="cognome" placeholder="Il tuo cognome" value="{{profile.cognome}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="esperienza">Anni di esperienza</label>
+                    <input type="number" id="esperienza" name="esperienza" placeholder="Anni di esperienza" value="{{profile.esperienza}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ruoli">Ruoli ricercati</label>
+                    <select id="ruoli" name="ruoli" multiple required>
+                        <option value="cuoco" {{#if (includes profile.ruoli "cuoco")}}selected{{/if}}>Cuoco</option>
+                        <option value="cameriere" {{#if (includes profile.ruoli "cameriere")}}selected{{/if}}>Cameriere</option>
+                        <option value="barista" {{#if (includes profile.ruoli "barista")}}selected{{/if}}>Barista</option>
+                        <option value="pizzaiolo" {{#if (includes profile.ruoli "pizzaiolo")}}selected{{/if}}>Pizzaiolo</option>
+                        <option value="lavapiatti" {{#if (includes profile.ruoli "lavapiatti")}}selected{{/if}}>Lavapiatti</option>
+                    </select>
+                    <small>Tieni premuto Ctrl/Cmd per selezionare più opzioni</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="disponibilita">Disponibilità</label>
+                    <input type="date" id="disponibilita" name="disponibilita" value="{{profile.disponibilita}}" required>
+                </div>
+                
+                <button type="submit" class="btn-primary">Aggiorna Profilo</button>
+            </form>
+        </section>
+
+        <section class="right">
+            <h2>Offerte di lavoro disponibili</h2>
+            <div class="job-list">
+                {{#if jobs.length}}
+                    {{#each jobs}}
+                        <div class="job-card">
+                            <div class="job-image">
+                                <img src="{{this.imageUrl}}" alt="{{this.title}}">
+                            </div>
+                            <div class="job-info">
+                                <h3 class="job-title">{{this.title}}</h3>
+                                <p class="job-role">Ruolo: {{this.role}}</p>
+                                <p class="job-description">{{this.description}}</p>
+                                <p class="job-period">Periodo: {{this.startDate}} - {{this.endDate}}</p>
+                                <a href="/apply/{{this.id}}" class="btn btn-sm">Candidati</a>
+                            </div>
+                        </div>
+                    {{/each}}
+                {{else}}
+                    <p class="no-jobs">Nessuna offerta di lavoro disponibile al momento.</p>
+                {{/if}}
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    document.getElementById('profileForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        const formData = new FormData(event.target);
+        const formDataObject = {};
+        
+        for (const [key, value] of formData.entries()) {
+            // Handle multiple select values
+            if (key === 'ruoli') {
+                if (!formDataObject[key]) {
+                    formDataObject[key] = [];
+                }
+                formDataObject[key].push(value);
+            } else {
+                formDataObject[key] = value;
+            }
+        }
+        
+        try {
+            const response = await fetch('/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formDataObject),
+            });
+            
+            if (response.ok) {
+                alert('Profilo aggiornato con successo!');
+                window.location.reload();
+            } else {
+                const errorText = await response.text();
+                alert(`Errore: ${errorText}`);
+            }
+        } catch (error) {
+            console.error('Errore durante l\'aggiornamento del profilo:', error);
+            alert('Si è verificato un errore. Riprova più tardi.');
+        }
+    });
+</script>

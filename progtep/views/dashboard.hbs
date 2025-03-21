@@ -1,4 +1,79 @@
-:root {
+<div class="dashboard-container">
+    <h1>Dashboard Ristoratore</h1>
+    <p class="welcome-message">Benvenuto, {{user.email}}!</p>
+
+    <div class="split-layout">
+        <section class="left">
+            <h2>Salva le tue preferenze</h2>
+            <form id="preferencesForm" action="/save-preferences" method="POST">
+                <div class="form-group">
+                    <label for="region">Regione</label>
+                    <input type="text" id="region" name="region" placeholder="Inserisci una regione" required value="{{preferences.region}}">
+                </div>
+
+                <div class="form-group">
+                    <label for="city">Città</label>
+                    <input type="text" id="city" name="city" placeholder="Inserisci una città" required value="{{preferences.city}}">
+                </div>
+
+                <div class="form-group">
+                    <label for="startDate">Data Inizio</label>
+                    <input type="date" id="startDate" name="startDate" required value="{{preferences.startDate}}">
+                </div>
+
+                <div class="form-group">
+                    <label for="endDate">Data Fine</label>
+                    <input type="date" id="endDate" name="endDate" required value="{{preferences.endDate}}">
+                </div>
+
+                <div class="form-group">
+                    <label for="jobType">Lavoro Richiesto</label>
+                    <input type="text" id="jobType" name="jobType" placeholder="Inserisci il lavoro richiesto" required value="{{preferences.jobType}}">
+                </div>
+
+                <div class="form-group">
+                    <label for="restaurantType">Tipologia di Ristorante</label>
+                    <select id="restaurantType" name="restaurantType" required>
+                        <option value="" disabled {{#unless preferences.restaurantType}}selected{{/unless}}>Seleziona una tipologia</option>
+                        <option value="Trattoria" {{#if (equals preferences.restaurantType "Trattoria")}}selected{{/if}}>Trattoria</option>
+                        <option value="Ristorante Cinese" {{#if (equals preferences.restaurantType "Ristorante Cinese")}}selected{{/if}}>Ristorante Cinese</option>
+                        <option value="Ristorante Italiano" {{#if (equals preferences.restaurantType "Ristorante Italiano")}}selected{{/if}}>Ristorante Italiano</option>
+                        <option value="Sushi" {{#if (equals preferences.restaurantType "Sushi")}}selected{{/if}}>Sushi</option>
+                        <option value="Fast Food" {{#if (equals preferences.restaurantType "Fast Food")}}selected{{/if}}>Fast Food</option>
+                        <option value="Pizzeria" {{#if (equals preferences.restaurantType "Pizzeria")}}selected{{/if}}>Pizzeria</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary">Salva Preferenze</button>
+            </form>
+        </section>
+
+        <section class="right">
+            <h2>Offerte di lavoro</h2>
+            <div class="job-list">
+                {{#if jobs.length}}
+                    {{#each jobs}}
+                        <div class="job-card">
+                            <div class="job-image">
+                                <img src="{{this.imageUrl}}" alt="{{this.title}}">
+                            </div>
+                            <div class="job-info">
+                                <h3 class="job-title">{{this.title}}</h3>
+                                <p class="job-role">Ruolo: {{this.role}}</p>
+                                <p class="job-description">{{this.description}}</p>
+                                <p class="job-period">Periodo: {{this.startDate}} - {{this.endDate}}</p>
+                                <a href="/contact/{{this.id}}" class="btn btn-sm">Contatta</a>
+                            </div>
+                        </div>
+                    {{/each}}
+                {{else}}
+                    <p class="no-jobs">Nessuna offerta di lavoro disponibile al momento.</p>
+                {{/if}}
+            </div>
+        </section>
+    </div>
+</div>
+<style >:root {
     --primary-color: #3498db;
     --secondary-color: #2c3e50;
     --accent-color: #e74c3c;
@@ -346,4 +421,33 @@ footer {
         margin-left: 1rem;
         margin-right: 1rem;
     }
-}
+}</style>
+
+<script>
+    document.getElementById('preferencesForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        const formData = new FormData(event.target);
+        const formDataObject = Object.fromEntries(formData.entries());
+        
+        try {
+            const response = await fetch('/save-preferences', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formDataObject),
+            });
+            
+            if (response.ok) {
+                alert('Preferenze salvate con successo!');
+                // Reload to show updated data
+                window.location.reload();
+            } else {
+                const errorText = await response.text();
+                alert(`Errore: ${errorText}`);
+            }
+        } catch (error) {
+            console.error('Errore durante il salvataggio:', error);
+            alert('Si è verificato un errore. Riprova più tardi.');
+        }
+    });
+</script>

@@ -1,0 +1,85 @@
+<div id="chat-container">
+    <div id="chat-header">
+        <h2>Chat con {{recipient.name}}</h2>
+    </div>
+    
+    <div id="messages">
+        {{#each messages}}
+            <div class="message {{#if this.isSelf}}self{{else}}other{{/if}}">
+                {{this.content}}
+            </div>
+        {{/each}}
+    </div>
+    
+    <div id="input-container">
+        <input id="message-input" type="text" placeholder="Scrivi un messaggio...">
+        <button id="send-button">Invia</button>
+    </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    
+    const messages = document.getElementById('messages');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    
+    // ID dell'utente corrente
+    const userId = "{{currentUser.id}}";
+    const conversationId = "{{conversation.id}}";
+    
+    // Scorri alla fine della chat all'apertura
+    messages.scrollTop = messages.scrollHeight;
+    
+    function addMessage(msg, isSelf) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        messageElement.classList.add(isSelf ? 'self' : 'other');
+        messageElement.textContent = msg;
+        messages.appendChild(messageElement);
+        messages.scrollTop = messages.scrollHeight;
+    }
+    
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+    
+    function sendMessage() {
+        const message = messageInput.value;
+        if (message.trim() !== '') {
+            // Mostra il messaggio nel client che lo invia
+            addMessage(message, true);
+            
+            // Invia il messaggio al server
+            socket.emit('send message', { 
+                senderId: userId,
+                conversationId: conversationId,
+                message: message 
+            });
+            
+            // Salva il messaggio nel database tramite AJAX
+            fetch('/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    conversationId: conversationId,
+                    message: message 
+                })
+            });
+            
+            // Resetta il campo di input
+            messageInput.value = '';
+        }
+    }
+    
+    // Ascolta i messaggi in arrivo
+    socket.on('receive message', (data) => {
+        if (data.conversationId === conversationId && data.senderId !== userId) {
+            addMessage(data.message, false);
+        }
+    });
+</script>

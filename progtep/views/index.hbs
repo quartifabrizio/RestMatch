@@ -1,0 +1,63 @@
+<div class="auth-container">
+    <h1 id="main-title">RestMatch</h1>
+    
+    <form id="loginForm" action="/login" method="POST">
+        <h2>Accedi</h2>
+        
+        {{#if errorMessage}}
+        <div class="alert alert-error">
+            {{errorMessage}}
+        </div>
+        {{/if}}
+        
+        <div class="form-group">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" name="email" placeholder="Inserisci la tua email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" name="password" placeholder="Inserisci la tua password" required>
+        </div>
+
+        <button type="submit" class="btn-primary">Accedi</button>
+        
+        <p class="auth-redirect">Non hai un account? <a href="/register">Registrati qui</a></p>
+    </form>
+
+    <div class="social-login">
+        <a href="/auth/google" class="btn btn-google">
+            Accedi con Google
+        </a>
+    </div>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
+            } else {
+                const message = await response.text();
+                alert(message);
+            }
+        } catch (error) {
+            console.error('Errore durante il login:', error);
+            alert('Errore durante il login. Riprova più tardi.');
+        }
+    });
+</script>
