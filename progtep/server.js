@@ -21,6 +21,7 @@ const port = 3000;
 // Imposta la cartella dei template e il view engine
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
+app.use(express.static('public'));
 
 // Register Handlebars helpers
 hbs.registerHelper('equals', function(a, b) {
@@ -223,7 +224,9 @@ function requireAuth(req, res, next) {
 
 // Configurazione per il login tramite Google
 passport.use(new GoogleStrategy({
-    callbackURL: 'https://studious-spork-v6gq6wq7jj6hx9p4.github.dev/auth/google/callback'
+    clientID: '<api>',
+    clientSecret: '<api>',
+    callbackURL: 'http://localhost:3000/auth/google/callback'
 }, (accessToken, refreshToken, profile, done) => {
     const email = profile.emails[0].value;
     const query = `SELECT * FROM userss WHERE email = ?`;
@@ -330,7 +333,7 @@ const db = new sqlite3.Database('database.db', (err) => {
 
 /**
  * @swagger
- * /register:
+ * /registra:
  *   post:
  *     summary: Registra un nuovo utente
  *     description: Registra un nuovo utente nel sistema
@@ -352,7 +355,7 @@ const db = new sqlite3.Database('database.db', (err) => {
  *       500:
  *         description: Errore del server
  */
-app.post('/register', (req, res) => {
+app.post('/registra', (req, res) => {
     const { email, telefono, data_nascita, citta, ruolo, password } = req.body;
 
     const query = `INSERT INTO userss (email, telefono, data_nascita, citta, ruolo, password) VALUES (?, ?, ?, ?, ?, ?)`;
@@ -527,7 +530,7 @@ app.get('/', (req, res) => {
 
 /**
  * @swagger
- * /register:
+ * /registra:
  *   get:
  *     summary: Pagina di registrazione
  *     description: Restituisce la pagina di registrazione utente
