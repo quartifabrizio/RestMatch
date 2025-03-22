@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Preferenze AJAX</title>
+    <link rel="stylesheet" href="styles.css">
+    
+</head>
+<body>
+    <h1>Gestione Preferenze con AJAX</h1>
+    
+    <div class="container">
+        <button id="btnGetAllPreferences" class="btn">Mostra Tutte le Preferenze</button>
+        <button id="btnGetBergamoPreferences" class="btn">Mostra Preferenze di Bergamo</button>
+    </div>
+    
+    <div id="results">
+        <p>I risultati appariranno qui...</p>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Riferimenti agli elementi DOM
+            const btnGetAllPreferences = document.getElementById('btnGetAllPreferences');
+            const btnGetBergamoPreferences = document.getElementById('btnGetBergamoPreferences');
+            const resultsDiv = document.getElementById('results');
+            
+            // Funzione per effettuare richieste AJAX
+            function makeAjaxRequest(url, method, callback) {
+                // Mostra stato di caricamento
+                resultsDiv.innerHTML = '<p class="loading">Caricamento in corso...</p>';
+                
+                // Crea l'oggetto XMLHttpRequest
+                const xhr = new XMLHttpRequest();
+                
+                // Configura la richiesta
+                xhr.open(method, url, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                
+                // Gestione della risposta
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        // Chiamata al callback con i dati ricevuti
+                        callback(null, JSON.parse(xhr.responseText));
+                    } else {
+                        // Chiamata al callback con l'errore
+                        callback('Errore nella richiesta: ' + xhr.statusText, null);
+                    }
+                };
+                
+                // Gestione degli errori di rete
+                xhr.onerror = function() {
+                    callback('Errore di rete', null);
+                };
+                
+                // Invia la richiesta
+                xhr.send();
+            }
+            
+            // Funzione per visualizzare le preferenze
+            function displayPreferences(preferences) {
+                if (preferences.length === 0) {
+                    resultsDiv.innerHTML = '<p>Nessuna preferenza trovata.</p>';
+                    return;
+                }
+                
+                let html = '<h2>Elenco Preferenze</h2>';
+                
+                preferences.forEach(pref => {
+                    html += `
+                        <div class="preference-item">
+                            <p><strong>Utente ID:</strong> ${pref.user_id}</p>
+                            <p><strong>Paese:</strong> ${pref.country}</p>
+                            <p><strong>Data Inizio:</strong> ${pref.start_date}</p>
+                            <p><strong>Data Fine:</strong> ${pref.end_date}</p>
+                            <p><strong>Tipo Lavoro:</strong> ${pref.job_type}</p>
+                            <p><strong>Tipo Ristorante:</strong> ${pref.restaurant_type}</p>
+                        </div>
+                    `;
+                });
+                
+                resultsDiv.innerHTML = html;
+            }
+            
+            // Gestione del click per tutte le preferenze
+            btnGetAllPreferences.addEventListener('click', function() {
+                makeAjaxRequest('/api/preferences', 'GET', function(err, data) {
+                    if (err) {
+                        resultsDiv.innerHTML = `<p class="error">${err}</p>`;
+                        return;
+                    }
+                    displayPreferences(data);
+                });
+            });
+            
+            // Gestione del click per preferenze filtrate per Bergamo
+            btnGetBergamoPreferences.addEventListener('click', function() {
+                makeAjaxRequest('/api/preferences/filter?city=Bergamo', 'GET', function(err, data) {
+                    if (err) {
+                        resultsDiv.innerHTML = `<p class="error">${err}</p>`;
+                        return;
+                    }
+                    displayPreferences(data);
+                });
+            });
+        });
+    </script>
+
+    <footer>
+        <p>&copy; {{year}} Gestione Preferenze</p>
+    </footer>
+</body>
+</html>

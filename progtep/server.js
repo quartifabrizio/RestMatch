@@ -473,11 +473,24 @@ app.get('/logout', (req, res) => {
  *         description: Accesso non autorizzato
  */
 app.get('/dashboard', requireAuth, (req, res) => {
-    // Modificato per utilizzare il template HBS
-    res.render('dashboard', {
-        user: req.session.user,
-        year: new Date().getFullYear()
-    });
+  // Recupera le preferenze dell'utente
+  const queryPreferences = `SELECT * FROM preferences WHERE user_id = ?`;
+  db.get(queryPreferences, [req.session.user.id], (err, preferences) => {
+      if (err) {
+          console.error('Errore durante il recupero delle preferenze:', err);
+      }
+      
+      // Esempio di recupero delle offerte di lavoro (puoi personalizzare questa logica)
+      const jobs = []; // Array vuoto per ora, puoi popolarlo con dati dal database
+      
+      // Modificato per utilizzare il template HBS con le preferenze
+      res.render('dashboard', {
+          user: req.session.user,
+          preferences: preferences || {},
+          jobs: jobs,
+          year: new Date().getFullYear()
+      });
+  });
 });
 
 /**
@@ -621,6 +634,153 @@ app.post('/save-preferences', requireAuth, (req, res) => {
         }
     });
 });
+
+/**
+ * @swagger
+ * /api/preferences:
+ *   get:
+ *     summary: Ottieni tutte le preferenze
+ *     description: Restituisce l'elenco completo delle preferenze di tutti gli utenti
+ *     tags: [Preferenze]
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Elenco di preferenze
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Preference'
+ *       401:
+ *         description: Utente non autenticato
+ *       500:
+ *         description: Errore del server
+ */
+app.get('/api/preferences', requireAuth, (req, res) => {
+  const query = `SELECT * FROM preferences`;
+  
+  db.all(query, [], (err, rows) => {
+      if (err) {
+          console.error('Errore durante il recupero delle preferenze:', err);
+          return res.status(500).json({ error: 'Errore del server' });
+      }
+      
+      res.status(200).json(rows);
+  });
+});
+
+/**
+* @swagger
+* /api/preferences/filter:
+*   get:
+*     summary: Ottieni preferenze filtrate
+*     description: Restituisce l'elenco delle preferenze filtrate in base ai parametri specificati
+*     tags: [Preferenze]
+*     security:
+*       - sessionAuth: []
+*     parameters:
+*       - in: query
+*         name: city
+*         schema:
+*           type: string
+*         description: Filtra per città
+*     responses:
+*       200:
+*         description: Elenco di preferenze filtrate
+*         content:
+*           application/json:
+*             schema:
+*               type: array
+*               items:
+*                 $ref: '#/components/schemas/Preference'
+*       401:
+*         description: Utente non autenticato
+*       500:
+*         description: Errore del server
+*/
+app.get('/api/preferences/filter', requireAuth, (req, res) => {
+  const city = req.query.city;
+  
+  // Costruisci la query in base al filtro città
+  let query = `
+      SELECT p.* 
+      FROM preferences p
+      JOIN userss u ON p.user_id = u.id
+      WHERE u.citta = ?
+  `;
+  
+  db.all(query, [city], (err, rows) => {
+      if (err) {
+          console.error('Errore durante il recupero delle preferenze filtrate:', err);
+          return res.status(500).json({ error: 'Errore del server' });
+      }
+      
+      res.status(200).json(rows);
+  });
+});
+
+/**
+* @swagger
+* /ajax:
+*   get:
+*     summary: Pagina AJAX
+*     description: Restituisce la pagina per test AJAX delle preferenze
+*     tags: [Pagine]
+*     responses:
+*       200:
+*         description: Pagina AJAX
+*         content:
+*           text/html:
+*             schema:
+*               type: string
+*/
+app.get('/ajax', (req, res) => {
+  res.render('ajax', {
+      user: req.session.user,
+      year: new Date().getFullYear()
+  });
+});
+
+/**
+ * @swagger
+ * /profile:
+ *   get:
+ *     summary: Pagina profilo utente
+ *     description: Restituisce la pagina del profilo dell'utente
+ *     tags: [Pagine]
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Pagina profilo
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ *       401:
+ *         description: Accesso non autorizzato
+ */
+app.get('/profile', requireAuth, (req, res) => {
+  // Recupera le informazioni dell'utente dal database
+  const query = `SELECT * FROM userss WHERE id = ?`;
+  db.get(query, [req.session.user.id], (err, user) => {
+      if (err) {
+          console.error('Errore durante il recupero del profilo:', err);
+          return res.status(500).send('Errore del server');
+      }
+      
+      res.render('profile', {
+          user: req.session.user,
+          userProfile: user,
+          year: new Date().getFullYear()
+      });
+  });
+});
+
+
+
 
 // WebSocket events
 io.on('connection', (socket) => {

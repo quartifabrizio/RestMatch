@@ -69,7 +69,7 @@
         const password = document.getElementById('registerPassword').value;
 
         try {
-            const response = await fetch('/register', {
+            const response = await fetch('/registra', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, telefono, data_nascita, citta, ruolo, password }),
@@ -79,7 +79,7 @@
             alert(message);
             
             if (response.ok) {
-                window.location.href = '/login';
+                window.location.href = '/index';
             }
         } catch (error) {
             console.error('Errore durante la registrazione:', error);
