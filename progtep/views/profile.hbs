@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilo - Gestione profilo utente</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+       /* Base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Variables */
+:root {
+    --primary-color: #ff5722;
+    --secondary-color: #222831;
+    --light-bg: #f5f7fa;
+    --dark-text: #333;
+    --border-radius: 8px;
+    --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    --transition: all 0.3s ease;
+    --success: #1e8e3e;
+    --warning: #f39c12;
+}
+
+/* Navbar styles */
+.navbar {
+    background-color: var(--secondary-color);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo i {
+    color: var(--primary-color);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem;
+}
+
+.nav-links li a {
+    color: #ddd;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.nav-links li a:hover, 
+.nav-links li a.active {
+    color: var(--primary-color);
+}
+
+.logout-btn {
+    background-color: transparent;
+    color: #ddd;
+    border: 1px solid var(--primary-color);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.logout-btn:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.mobile-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Dashboard container */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+h1 {
+    font-size: 2rem;
+    color: var(--dark-text);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+h1 i, h1::after {
+    color: var(--primary-color);
+}
+
+h1::after {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 3px;
+    background: var(--primary-color);
+    bottom: -5px;
+    left: 0;
+}
+
+.welcome-message {
+    color: #666;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.welcome-message i {
+    color: var(--primary-color);
+}
+
+/* Alert styles */
+.alert {
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+    display: none;
+    transition: var(--transition);
+}
+
+.alert.success {
+    background-color: rgba(30, 142, 62, 0.1);
+    border-left: 4px solid var(--success);
+    color: #155724;
+}
+
+.alert.error {
+    background-color: rgba(255, 87, 34, 0.1);
+    border-left: 4px solid var(--primary-color);
+    color: #721c24;
+}
+
+/* Layout styles */
+.split-layout {
+    display: flex;
+    gap: 2rem;
+}
+
+.left, .right {
+    flex: 1;
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 1.5rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: var(--dark-text);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+h2 i {
+    color: var(--primary-color);
+}
+
+/* Form styles */
+.form-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--dark-text);
+}
+
+.form-group i {
+    position: absolute;
+    left: 1rem;
+    top: 2.3rem;
+    color: #aaa;
+}
+
+.form-group input, 
+.form-group select, 
+.form-group input[type="date"] {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 2.5rem;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    height: 48px;
+    transition: var(--transition);
+}
+
+.form-group input:focus, 
+.form-group select:focus,
+.form-group input[type="date"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
+}
+
+input[readonly] {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background-color: #e64a19;
+    transform: translateY(-2px);
+}
+
+/* Account info styles */
+.account-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    border: 1px solid #f0f0f0;
+    transition: var(--transition);
+}
+
+.account-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow);
+}
+
+.account-icon {
+    margin-right: 1rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: rgba(255, 87, 34, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.account-icon i {
+    color: var(--primary-color) !important;
+    font-size: 2rem;
+}
+
+.account-details h3 {
+    font-size: 1.1rem;
+    margin: 0 0 0.5rem 0;
+    color: var(--dark-text);
+}
+
+.account-details p {
+    margin: 0;
+    color: #555;
+}
+
+/* Profile stats */
+.profile-stats {
+    margin-top: 2rem;
+    background-color: #f9f9f9;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+}
+
+.profile-stats h3 {
+    margin-bottom: 1rem;
+    color: var(--dark-text);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    transition: var(--transition);
+}
+
+.stat-item:hover {
+    transform: translateX(5px);
+}
+
+.stat-item > div:first-child {
+    background-color: rgba(255, 87, 34, 0.1);
+    padding: 12px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.stat-item:nth-child(2) > div:first-child {
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+.stat-item:nth-child(3) > div:first-child {
+    background-color: rgba(46, 204, 113, 0.1);
+}
+
+.stat-item i {
+    color: var(--primary-color);
+}
+
+.stat-item:nth-child(2) i {
+    color: #e74c3c;
+}
+
+.stat-item:nth-child(3) i {
+    color: var(--success);
+}
+
+.stat-item h4 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.stat-item p {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+/* Data actions */
+.data-actions {
+    margin-top: 2rem;
+}
+
+.data-actions h3 {
+    margin-bottom: 1rem;
+    color: var(--dark-text);
+}
+
+.data-actions .btn-primary {
+    margin-bottom: 1rem;
+}
+
+.data-actions .btn-primary:last-child {
+    background-color: #e74c3c;
+}
+
+.data-actions .btn-primary:last-child:hover {
+    background-color: #c0392b;
+}
+
+/* Footer */
+footer {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 1.5rem 0;
+    margin-top: 3rem;
+    text-align: center;
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+    .split-layout {
+        flex-direction: column;
+    }
+    
+    .left, .right {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .mobile-toggle {
+        display: block;
+        position: absolute;
+        right: 1rem;
+    }
+    
+    .navbar-container {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.8rem 1rem;
+    }
+    
+    .nav-links {
+        flex-direction: column;
+        width: 100%;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        margin-top: 1rem;
+    }
+    
+    .nav-links.active {
+        max-height: 300px;
+    }
+    
+    .nav-links li {
+        width: 100%;
+        padding: 0.5rem 0;
+    }
+    
+    .logout-btn {
+        margin-top: 0.5rem;
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .dashboard-container {
+        padding: 0 1rem;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    .account-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .account-icon {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+}
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="logo">
+                <i class="fas fa-utensils"></i> RestMatch
+            </a>
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/dashboard" class="{{#eq activeTab 'dashboard'}}active{{/eq}}">
+                    <i class="fas fa-home"></i> Dashboard
+                </a></li>
+                <li><a href="/profile" class="{{#eq activeTab 'profile'}}active{{/eq}}">
+                    <i class="fas fa-user"></i> Profilo
+                </a></li>
+                <li><a href="/chat" class="{{#eq activeTab 'chat'}}active{{/eq}}">
+                    <i class="fas fa-comments"></i> Chat
+                </a></li>
+            </ul>
+            <a href="/logout" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Profile Container -->
+    <div class="dashboard-container">
+        <h1>Profilo Utente</h1>
+        <p class="welcome-message">
+            <i class="fas fa-id-card"></i> Gestisci il tuo profilo e le tue informazioni personali
+        </p>
+
+        <div class="split-layout">
+            <!-- Left side - User Information -->
+            <div class="left">
+                <h2><i class="fas fa-user-circle"></i> Informazioni Personali</h2>
+                
+                <!-- Success/Error Alert -->
+                <div class="alert success" id="successAlert">
+                    <i class="fas fa-check-circle"></i> Profilo aggiornato con successo!
+                </div>
+                <div class="alert error" id="errorAlert">
+                    <i class="fas fa-exclamation-circle"></i> Si è verificato un errore durante l'aggiornamento.
+                </div>
+                
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <i class="fas fa-envelope"></i>
+                        <input type="text" id="email" name="email" value="{{userProfile.email}}" {{#eq userProfile.ruolo 'google'}}readonly{{/eq}}>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telefono">Numero di Telefono</label>
+                        <i class="fas fa-phone"></i>
+                        <input type="text" id="telefono" name="telefono" value="{{userProfile.telefono}}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="data_nascita">Data di Nascita</label>
+                        <i class="fas fa-calendar"></i>
+                        <input type="date" id="data_nascita" name="data_nascita" value="{{userProfile.data_nascita}}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="citta">Città</label>
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" id="citta" name="citta" value="{{userProfile.citta}}">
+                    </div>
+
+                    {{#unless (eq userProfile.ruolo 'google')}}
+                    <div class="form-group">
+                        <label for="password">Nuova Password (lascia vuoto per mantenere l'attuale)</label>
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Conferma Nuova Password</label>
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="confirmPassword" name="confirmPassword">
+                    </div>
+                    {{/unless}}
+
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Salva Modifiche
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right side - Account Overview -->
+            <div class="right">
+                <h2><i class="fas fa-chart-pie"></i> Riepilogo Account</h2>
+                
+                <div class="account-info">
+                    <div class="account-item">
+                        <div class="account-icon">
+                            <i class="fas fa-user-shield" style="color: var(--primary-color); font-size: 2rem;"></i>
+                        </div>
+                        <div class="account-details">
+                            <h3>Tipo Account</h3>
+                            <p>
+                                {{#eq userProfile.ruolo 'google'}}
+                                <span style="background-color: #4285F4; color: white; padding: 3px 8px; border-radius: 4px;">
+                                    <i class="fab fa-google"></i> Google
+                                </span>
+                                {{else}}
+                                <span style="background-color: var(--secondary-color); color: white; padding: 3px 8px; border-radius: 4px;">
+                                    <i class="fas fa-user"></i> Standard
+                                </span>
+                                {{/eq}}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="account-item" style="margin-top: 1.5rem;">
+                        <div class="account-icon">
+                            <i class="fas fa-calendar-check" style="color: var(--primary-color); font-size: 2rem;"></i>
+                        </div>
+                        <div class="account-details">
+                            <h3>Data Registrazione</h3>
+                            <p><i class="fas fa-clock"></i> <span id="registrationDate">{{userProfile.registration_date}}</span></p>
+                        </div>
+                    </div>
+
+                    <div class="profile-stats" style="margin-top: 2rem; background-color: #f9f9f9; border-radius: var(--border-radius); padding: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Attività Account</h3>
+                        
+                        <div class="stat-item" style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <div style="background-color: rgba(74, 111, 165, 0.1); padding: 12px; border-radius: 50%; margin-right: 15px;">
+                                <i class="fas fa-briefcase" style="color: var(--primary-color);"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1rem;">Candidature Inviate</h4>
+                                <p style="margin: 0; font-size: 1.2rem; font-weight: 600; color: var(--secondary-color);">0</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item" style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <div style="background-color: rgba(231, 76, 60, 0.1); padding: 12px; border-radius: 50%; margin-right: 15px;">
+                                <i class="fas fa-heart" style="color: var(--accent-color);"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1rem;">Offerte Salvate</h4>
+                                <p style="margin: 0; font-size: 1.2rem; font-weight: 600; color: var(--secondary-color);">0</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item" style="display: flex; align-items: center;">
+                            <div style="background-color: rgba(46, 204, 113, 0.1); padding: 12px; border-radius: 50%; margin-right: 15px;">
+                                <i class="fas fa-comments" style="color: var(--success);"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1rem;">Messaggi Inviati</h4>
+                                <p style="margin: 0; font-size: 1.2rem; font-weight: 600; color: var(--secondary-color);">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="data-actions" style="margin-top: 2rem;">
+                        <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Azioni Account</h3>
+                        
+                        <button id="downloadData" class="btn-primary" style="background-color: var(--secondary-color); margin-bottom: 1rem;">
+                            <i class="fas fa-download"></i> Scarica i tuoi dati
+                        </button>
+                        
+                        <button id="deleteAccount" class="btn-primary" style="background-color: var(--accent-color);">
+                            <i class="fas fa-trash-alt"></i> Elimina account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Toggle mobile menu
+        document.getElementById('mobileToggle').addEventListener('click', function() {
+            document.getElementById('navLinks').classList.toggle('active');
+        });
+
+        // Form submission handling
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate password match if provided
+            const password = document.getElementById('password');
+            const confirmPassword = document.getElementById('confirmPassword');
+            
+            if (password && confirmPassword && 
+                password.value !== '' && 
+                password.value !== confirmPassword.value) {
+                document.getElementById('errorAlert').textContent = 'Le password non corrispondono';
+                document.getElementById('errorAlert').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('errorAlert').style.display = 'none';
+                }, 3000);
+                return;
+            }
+            
+            // Get form data
+            const formData = new FormData(this);
+            const userData = {};
+            formData.forEach((value, key) => {
+                // Only include password if it's not empty
+                if (key === 'password' && value === '') return;
+                if (key === 'confirmPassword') return; // Don't include confirmation
+                userData[key] = value;
+            });
+            
+            // Send update request
+            fetch('/update-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Errore durante l\'aggiornamento del profilo');
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('successAlert').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('successAlert').style.display = 'none';
+                }, 3000);
+            })
+            .catch(error => {
+                document.getElementById('errorAlert').textContent = error.message;
+                document.getElementById('errorAlert').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('errorAlert').style.display = 'none';
+                }, 3000);
+            });
+        });
+
+        // Account deletion confirmation
+        document.getElementById('deleteAccount').addEventListener('click', function() {
+            if (confirm('Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata.')) {
+                fetch('/delete-account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Errore durante l\'eliminazione dell\'account');
+                    }
+                    window.location.href = '/logout'; // Redirect to logout after deletion
+                })
+                .catch(error => {
+                    document.getElementById('errorAlert').textContent = error.message;
+                    document.getElementById('errorAlert').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('errorAlert').style.display = 'none';
+                    }, 3000);
+                });
+            }
+        });
+
+        // Download user data
+        document.getElementById('downloadData').addEventListener('click', function() {
+            fetch('/download-user-data')
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'miei-dati-utente.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch(error => {
+                    document.getElementById('errorAlert').textContent = 'Errore durante il download dei dati';
+                    document.getElementById('errorAlert').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('errorAlert').style.display = 'none';
+                    }, 3000);
+                });
+        });
+
+        // Format registration date if present
+        const registrationDate = document.getElementById('registrationDate');
+        if (registrationDate && registrationDate.textContent) {
+            try {
+                const date = new Date(registrationDate.textContent);
+                if (!isNaN(date)) {
+                    registrationDate.textContent = date.toLocaleDateString('it-IT', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    });
+                }
+            } catch (e) {
+                console.error('Errore nel parsing della data', e);
+            }
+        }
+    </script>
+
+    <style>
+        /* Additional styles for profile page */
+        .account-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            border: 1px solid #f0f0f0;
+        }
+        
+        .account-icon {
+            margin-right: 1rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: rgba(74, 111, 165, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .account-details h3 {
+            font-size: 1.1rem;
+            margin: 0 0 0.5rem 0;
+            color: var(--secondary-color);
+        }
+        
+        .account-details p {
+            margin: 0;
+            color: #555;
+        }
+
+        /* Password strength meter */
+        .password-strength {
+            height: 5px;
+            transition: var(--transition);
+            margin-top: 5px;
+            border-radius: 2px;
+        }
+        
+        /* Style for readonly fields */
+        input[readonly] {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+    </style>
+</body>
+</html>

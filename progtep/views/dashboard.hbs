@@ -3,445 +3,364 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Ristoratore</title>
+    <title>Home Ristoratore</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #4a6fa5;
-            --secondary-color: #2c3e50;
-            --accent-color: #e74c3c;
-            --light-bg: #f8f9fa;
-            --dark-bg: #333;
-            --success: #2ecc71;
-            --warning: #f39c12;
-            --border-radius: 8px;
-            --box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-            --transition: all 0.3s ease;
-        }
-
+        /* Base styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        body {
             font-family: 'Poppins', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: var(--light-bg);
         }
-
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
         /* Navbar styles */
         .navbar {
-            background-color: var(--secondary-color);
-            padding: 1rem 2rem;
+            background-color: #222831;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 100;
         }
-
+        
         .navbar-container {
-            max-width: 1300px;
-            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0.8rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
         }
-
+        
         .logo {
-            color: white;
+            color: #fff;
             font-size: 1.5rem;
             font-weight: 700;
             text-decoration: none;
             display: flex;
             align-items: center;
+            gap: 0.5rem;
         }
-
+        
         .logo i {
-            margin-right: 10px;
-            color: var(--accent-color);
+            color: #ff5722;
         }
-
+        
         .nav-links {
             display: flex;
             list-style: none;
             gap: 1.5rem;
         }
-
+        
         .nav-links li a {
-            color: white;
+            color: #ddd;
             text-decoration: none;
-            padding: 0.5rem 0.8rem;
-            border-radius: var(--border-radius);
-            transition: var(--transition);
             font-weight: 500;
+            transition: color 0.3s;
             display: flex;
             align-items: center;
+            gap: 0.4rem;
         }
-
-        .nav-links li a i {
-            margin-right: 8px;
+        
+        .nav-links li a:hover, .nav-links li a.active {
+            color: #ff5722;
         }
-
-        .nav-links li a:hover,
-        .nav-links li a.active {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
+        
         .logout-btn {
-            color: white;
-            text-decoration: none;
+            background-color: transparent;
+            color: #ddd;
+            border: 1px solid #ff5722;
             padding: 0.5rem 1rem;
-            border-radius: var(--border-radius);
-            background-color: var(--accent-color);
-            transition: var(--transition);
+            border-radius: 4px;
+            text-decoration: none;
             font-weight: 500;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
+            gap: 0.4rem;
         }
-
-        .logout-btn i {
-            margin-right: 8px;
-        }
-
+        
         .logout-btn:hover {
-            background-color: #c0392b;
+            background-color: #ff5722;
+            color: #fff;
         }
-
-        /* Mobile navbar toggle */
+        
         .mobile-toggle {
             display: none;
-            color: white;
-            font-size: 1.5rem;
             background: none;
             border: none;
+            color: #fff;
+            font-size: 1.5rem;
             cursor: pointer;
         }
-
+        
+        /* Online users counter */
+        .online-users {
+            background-color: #1e8e3e;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-left: 1rem;
+        }
+        
+        .online-users i {
+            color: #6effbe;
+        }
+        
+        /* Dashboard container */
         .dashboard-container {
-            width: 95%;
-            max-width: 1300px;
+            max-width: 1200px;
             margin: 2rem auto;
-            padding: 0;
+            padding: 0 1rem;
         }
-
+        
         h1 {
-            color: var(--secondary-color);
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
-            position: relative;
-            display: inline-block;
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-
-        h1::after {
-            content: '';
-            position: absolute;
-            width: 50%;
-            height: 3px;
-            background: var(--primary-color);
-            bottom: -5px;
-            left: 0;
+        
+        h1 i {
+            color: #ff5722;
         }
-
+        
         .welcome-message {
             color: #666;
             margin-bottom: 2rem;
-            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-
-        .welcome-message i {
-            color: var(--primary-color);
-            margin-right: 8px;
+        
+        /* Alert styles */
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            display: none;
         }
-
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Layout styles */
         .split-layout {
             display: flex;
             gap: 2rem;
-            margin-top: 1.5rem;
         }
-
+        
         .left, .right {
             flex: 1;
-            background-color: white;
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            box-shadow: var(--box-shadow);
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
         }
-
+        
         h2 {
-            color: var(--secondary-color);
+            font-size: 1.5rem;
+            color: #333;
             margin-bottom: 1.5rem;
-            font-size: 1.6rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0.5rem;
         }
-
+        
         h2 i {
-            color: var(--primary-color);
+            color: #ff5722;
         }
-
+        
+        /* Form styles */
         .form-group {
-            margin-bottom: 1.2rem;
             position: relative;
+            margin-bottom: 1.5rem;
         }
-
-        .form-group i {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
-            z-index: 1;
-        }
-
-        /* Adjust icon position for elements with labels */
-        .form-group i {
-            top: calc(50% + 10px); /* Adjusted to center vertically in the input field */
-        }
-
-        label {
+        
+        .form-group label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 500;
-            color: var(--secondary-color);
         }
-
-        input[type="text"],
-        input[type="date"],
-        select {
+        
+        .form-group i {
+            position: absolute;
+            left: 1rem;
+            top: 2.3rem;
+            color: #aaa;
+        }
+        
+        .form-group input, .form-group select {
             width: 100%;
-            padding: 0.8rem 0.8rem 0.8rem 2.5rem;
-            border: 1px solid #e1e1e1;
-            border-radius: var(--border-radius);
-            font-family: inherit;
-            font-size: 0.95rem;
-            transition: var(--transition);
-            height: 48px; /* Fixed height for better icon alignment */
-            line-height: 1.2;
+            padding: 0.8rem 1rem 0.8rem 2.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
         }
-
-        input:focus,
-        select:focus {
+        
+        .form-group input:focus, .form-group select:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.1);
+            border-color: #ff5722;
         }
-
+        
         .btn-primary {
-            display: inline-block;
-            background-color: var(--primary-color);
-            color: white;
+            background-color: #ff5722;
+            color: #fff;
             border: none;
-            padding: 0.9rem 1.5rem;
-            border-radius: var(--border-radius);
-            cursor: pointer;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
             font-size: 1rem;
             font-weight: 500;
-            transition: var(--transition);
-            text-align: center;
-            text-decoration: none;
-            margin-top: 0.5rem;
-            width: 100%;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-
+        
         .btn-primary:hover {
-            background-color: #3a5a8c;
-            transform: translateY(-2px);
+            background-color: #e64a19;
         }
-
-        .btn-primary i {
-            margin-right: 8px;
-        }
-
+        
+        /* Job list styles */
         .job-list {
-            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
         }
-
+        
         .job-card {
             display: flex;
-            background-color: white;
-            border-radius: var(--border-radius);
-            padding: 1.2rem;
-            margin-bottom: 1.2rem;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-            transition: var(--transition);
-            border: 1px solid #f0f0f0;
-        }
-
-        .job-card:hover {
-            box-shadow: var(--box-shadow);
-            transform: translateY(-3px);
-            border-color: #e1e1e1;
-        }
-
-        .job-image {
-            width: 110px;
-            height: 110px;
-            margin-right: 1.2rem;
-            flex-shrink: 0;
-            border-radius: var(--border-radius);
+            gap: 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.08);
         }
-
+        
+        .job-image {
+            width: 150px;
+            height: 150px;
+            overflow: hidden;
+        }
+        
         .job-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-
+        
         .job-info {
-            flex-grow: 1;
+            padding: 1rem;
+            flex: 1;
         }
-
+        
         .job-title {
-            font-weight: 600;
-            color: var(--secondary-color);
-            margin-bottom: 0.5rem;
             font-size: 1.2rem;
-        }
-
-        .job-role, 
-        .job-description, 
-        .job-period {
             margin-bottom: 0.5rem;
-            font-size: 0.95rem;
-            color: #555;
+        }
+        
+        .job-role, .job-description, .job-period {
+            margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
+            gap: 0.5rem;
         }
-
-        .job-role i,
-        .job-description i,
-        .job-period i {
-            color: var(--primary-color);
-            margin-right: 8px;
-            font-size: 0.9rem;
-            width: 16px;
+        
+        .job-role i, .job-description i, .job-period i {
+            color: #ff5722;
         }
-
+        
         .btn {
-            display: inline-block;
-            background-color: var(--primary-color);
-            color: white;
+            background-color: #ff5722;
+            color: #fff;
             border: none;
-            padding: 0.6rem 1rem;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: var(--transition);
-            text-align: center;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
             text-decoration: none;
-            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: background-color 0.3s;
         }
-
+        
         .btn:hover {
-            background-color: #3a5a8c;
+            background-color: #e64a19;
         }
-
-        .btn i {
-            margin-right: 5px;
-        }
-
+        
         .no-jobs {
-            text-align: center;
-            color: #777;
-            margin: 2rem 0;
+            color: #666;
             font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-
-        /* Alert style */
-        .alert {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: var(--border-radius);
-            display: none;
-            transition: var(--transition);
-        }
-
-        .alert.success {
-            background-color: rgba(46, 204, 113, 0.1);
-            border-left: 4px solid var(--success);
-            color: #27ae60;
-        }
-
-        .alert.error {
-            background-color: rgba(231, 76, 60, 0.1);
-            border-left: 4px solid var(--accent-color);
-            color: #c0392b;
-        }
-
-        /* Responsive */
-        @media (max-width: 992px) {
+        
+        /* Responsive styles */
+        @media (max-width: 900px) {
             .split-layout {
                 flex-direction: column;
             }
             
-            .left, .right {
-                width: 100%;
-            }
-
-            .dashboard-container {
-                width: 90%;
+            .navbar-container {
+                padding: 0.8rem 1rem;
             }
         }
-
+        
         @media (max-width: 768px) {
-            .navbar-container {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
             .mobile-toggle {
                 display: block;
-                position: absolute;
-                top: 1rem;
-                right: 2rem;
             }
             
             .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background-color: #222831;
                 flex-direction: column;
-                width: 100%;
-                max-height: 0;
-                overflow: hidden;
-                transition: max-height 0.3s ease;
-                margin-top: 1rem;
+                padding: 1rem;
             }
             
             .nav-links.active {
-                max-height: 300px;
-            }
-            
-            .nav-links li {
-                width: 100%;
-            }
-            
-            .nav-links li a {
-                display: block;
-                padding: 0.8rem 0;
+                display: flex;
             }
             
             .logout-btn {
-                margin-top: 0.5rem;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .job-card {
-                flex-direction: column;
+                display: none;
             }
             
-            .job-image {
-                width: 100%;
-                height: 150px;
-                margin-right: 0;
-                margin-bottom: 1rem;
+            .nav-links li:last-child {
+                margin-top: 0.5rem;
+                padding-top: 0.5rem;
+                border-top: 1px solid #444;
+            }
+            
+            .nav-links li:last-child a {
+                color: #ff5722;
             }
         }
     </style>
@@ -451,7 +370,7 @@
     <nav class="navbar">
         <div class="navbar-container">
             <a href="/dashboard" class="logo">
-                <i class="fas fa-utensils"></i> RistoJobs
+                <i class="fas fa-utensils"></i> RestMatch
             </a>
             <button class="mobile-toggle">
                 <i class="fas fa-bars"></i>
@@ -461,6 +380,7 @@
                 <li><a href="/chat"><i class="fas fa-comments"></i> Chat</a></li>
                 <li><a href="/ajax"><i class="fas fa-filter"></i> Ricerca</a></li>
                 <li><a href="/profile"><i class="fas fa-user"></i> Profilo</a></li>
+                <li><div class="online-users"><i class="fas fa-circle"></i> <span id="online-counter">1</span> online</div></li>
             </ul>
             <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
@@ -549,8 +469,30 @@
             </section>
         </div>
     </div>
+    
+    <footer style="background-color: var(--secondary-color); color: white; padding: 1.5rem 0; margin-top: 3rem; text-align: center;">
+        <div style="max-width: 1300px; margin: 0 auto; padding: 0 2rem;">
+            <p>&copy; {{year}} RestMatch. Tutti i diritti riservati.</p>
+        </div>
+    </footer>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+        // Connessione al WebSocket server
+        const socket = io();
+        
+        // Gestione del contatore utenti online
+        socket.on('connect', () => {
+            console.log('Connesso al server WebSocket');
+            // Invia evento di connessione all'utente
+            socket.emit('user connected');
+        });
+        
+        // Aggiorna il contatore utenti quando ricevi l'aggiornamento dal server
+        socket.on('update online users', (count) => {
+            document.getElementById('online-counter').textContent = count;
+        });
+        
         // Mobile navigation toggle
         const mobileToggle = document.querySelector('.mobile-toggle');
         const navLinks = document.querySelector('.nav-links');

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat - Piattaforma di Lavoro</title>
+    <title>{{room.name}} - Chat</title>
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <style>
@@ -361,77 +361,46 @@ h3::before {
 }
 </style>
 <body>
-  <nav class="navbar">
-        <div class="navbar-container">
-            <a href="/chat" class="logo">
-                <i class="fas fa-utensils"></i> RestMatch
-            </a>
-            <button class="mobile-toggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            <ul class="nav-links">
-                <li><a href="/chat" class="active"><i class="fas fa-tachometer-alt"></i> Chat</a></li>
-                <li><a href="/Dashboard"><i class="fas fa-comments"></i> Dashboard</a></li>
-                <li><a href="/ajax"><i class="fas fa-filter"></i> Ricerca</a></li>
-                <li><a href="/profile"><i class="fas fa-user"></i> Profilo</a></li>
-                <li><div class="online-users"><i class="fas fa-circle"></i> <span id="online-counter">1</span> online</div></li>
-            </ul>
-            <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
-        </div>
-    </nav>
     <div class="container">
         <div class="row">
             <div class="col-md-3">
-                <h3>Chat Rooms</h3>
-                <ul id="rooms-list">
-                    {{#each rooms}}
-                    <li>
-                        <a href="/chat/{{id}}">
-                            {{name}} ({{participant_count}}) 
-                            {{#if unread_count}}
-                            <span class="badge">{{unread_count}}</span>
-                            {{/if}}
-                        </a>
+                <h3>Partecipanti</h3>
+                <ul id="participants-list">
+                    {{#each participants}}
+                    <li data-user-id="{{id}}">
+                        {{email}} <span class="status-badge offline">Offline</span>
                     </li>
                     {{/each}}
                 </ul>
                 
-                <h4>Crea nuova chat</h4>
-                <form id="create-room-form">
-                    <div class="form-group">
-                        <label for="room-name">Nome Chat</label>
-                        <input type="text" id="room-name" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="room-type">Tipo</label>
-                        <select id="room-type" class="form-control">
-                            <option value="private">Privata</option>
-                            <option value="group">Gruppo</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Partecipanti</label>
-                        <div id="participants-container">
-                            {{#each users}}
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" name="participants" value="{{id}}"> {{email}}
-                                </label>
-                            </div>
-                            {{/each}}
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Crea Chat</button>
-                </form>
+                <a href="/chat" class="btn btn-secondary">Torna alla lista chat</a>
             </div>
             
             <div class="col-md-9">
                 <div id="chat-container">
-                    <h3>Seleziona una chat per iniziare</h3>
-                    <p>Online users: <span id="online-users-count">0</span></p>
+                    <h3>{{room.name}}</h3>
+                    <div id="messages-container">
+                        {{#each messages}}
+                        <div class="message {{#if isSelf}}message-self{{else}}message-other{{/if}}">
+                            <div class="message-header">
+                                <span class="message-sender">{{sender}}</span>
+                                <span class="message-time">{{timestamp}}</span>
+                            </div>
+                            <div class="message-content">{{content}}</div>
+                        </div>
+                        {{/each}}
+                    </div>
+                    
+                    <div id="typing-indicator" style="display: none;">
+                        <em>Qualcuno sta scrivendo...</em>
+                    </div>
+                    
+                    <form id="message-form">
+                        <div class="form-group">
+                            <textarea id="message-input" class="form-control" placeholder="Scrivi un messaggio..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Invia</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -442,56 +411,128 @@ h3::before {
             // Connessione WebSocket
             const socket = io();
             
-            // Aggiornamento contatore utenti online
-            socket.on('update online users', function(count) {
-                document.getElementById('online-users-count').textContent = count;
-            });
+            // Riferimenti DOM
+            const messagesContainer = document.getElementById('messages-container');
+            const messageForm = document.getElementById('message-form');
+            const messageInput = document.getElementById('message-input');
+            const typingIndicator = document.getElementById('typing-indicator');
             
-            // Autenticazione socket con l'ID utente dalla sessione
+            // ID della room corrente
+            const roomId = "{{roomId}}";
+            
+            // Autenticazione socket
             socket.emit('authenticate', {
                 userId: {{user.id}}
             });
             
-            // Form per la creazione di una nuova chat room
-            const createRoomForm = document.getElementById('create-room-form');
-            if (createRoomForm) {
-                createRoomForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const roomName = document.getElementById('room-name').value;
-                    const roomType = document.getElementById('room-type').value;
-                    
-                    // Raccolta dei partecipanti selezionati
-                    const participantCheckboxes = document.querySelectorAll('input[name="participants"]:checked');
-                    const participants = Array.from(participantCheckboxes).map(checkbox => checkbox.value);
-                    
-                    // Invio della richiesta AJAX
-                    fetch('/api/rooms', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            name: roomName,
-                            type: roomType,
-                            participants: participants
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Redirect alla nuova chat room
-                            window.location.href = `/chat/${data.roomId}`;
-                        } else {
-                            alert('Errore durante la creazione della chat: ' + data.error);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Errore:', error);
-                        alert('Si è verificato un errore durante la creazione della chat');
-                    });
-                });
+            // Unisciti alla room corrente
+            socket.emit('join room', roomId);
+            
+            // Scroll dei messaggi in fondo
+            function scrollToBottom() {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
+            
+            // Scroll iniziale
+            scrollToBottom();
+            
+            // Aggiunta di un nuovo messaggio
+            function addMessage(message) {
+                const messageDiv = document.createElement('div');
+                const isSelf = parseInt(message.senderId) === {{user.id}};
+                messageDiv.className = `message ${isSelf ? 'message-self' : 'message-other'}`;
+                
+                const messageHeader = document.createElement('div');
+                messageHeader.className = 'message-header';
+                
+                const senderSpan = document.createElement('span');
+                senderSpan.className = 'message-sender';
+                senderSpan.textContent = message.sender;
+                
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'message-time';
+                timeSpan.textContent = message.timestamp;
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.textContent = message.content;
+                
+                messageHeader.appendChild(senderSpan);
+                messageHeader.appendChild(timeSpan);
+                
+                messageDiv.appendChild(messageHeader);
+                messageDiv.appendChild(messageContent);
+                
+                messagesContainer.appendChild(messageDiv);
+                scrollToBottom();
+            }
+            
+            // Gestione invio messaggi
+            messageForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const message = messageInput.value.trim();
+                if (!message) return;
+                
+                // Invio al server
+                fetch('/api/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        roomId: roomId,
+                        message: message
+                    })
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                    alert('Si è verificato un errore durante l\'invio del messaggio');
+                });
+                
+                // Pulisci l'input
+                messageInput.value = '';
+                
+                // Disattiva l'indicatore di digitazione
+                typingTimeout = null;
+                socket.emit('typing', { roomId: roomId, isTyping: false });
+            });
+            
+            // Gestione indicatore di digitazione
+            let typingTimeout = null;
+            messageInput.addEventListener('input', function() {
+                // Cancella il timeout precedente
+                if (typingTimeout) {
+                    clearTimeout(typingTimeout);
+                } else {
+                    // Se non c'era un timeout, comunica che l'utente sta digitando
+                    socket.emit('typing', { roomId: roomId, isTyping: true });
+                }
+                
+                // Imposta un nuovo timeout
+                typingTimeout = setTimeout(function() {
+                    socket.emit('typing', { roomId: roomId, isTyping: false });
+                    typingTimeout = null;
+                }, 1000);
+            });
+            
+            // Ricezione messaggi
+            socket.on('chat message', function(message) {
+                if (message.roomId === roomId) {
+                    addMessage(message);
+                }
+            });
+            
+            // Indicatore di digitazione
+            socket.on('user typing', function(data) {
+                if (data.roomId === roomId && data.userId !== {{user.id}}) {
+                    if (data.isTyping) {
+                        typingIndicator.style.display = 'block';
+                    } else {
+                        typingIndicator.style.display = 'none';
+                    }
+                }
+            });
             
             // Gestione stato utenti online/offline
             socket.on('user status', function(data) {
@@ -510,6 +551,11 @@ h3::before {
                         }
                     }
                 });
+            });
+            
+            // Pulizia alla chiusura
+            window.addEventListener('beforeunload', function() {
+                socket.emit('leave room', roomId);
             });
         });
     </script>
