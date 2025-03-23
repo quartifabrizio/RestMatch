@@ -395,6 +395,459 @@ db.run(
   }
 );
 
+// Add this after your existing table creations in the server.js file
+
+// Create offers table
+db.run(
+    `CREATE TABLE IF NOT EXISTS offerte (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        role TEXT NOT NULL,
+        description TEXT NOT NULL,
+        city TEXT NOT NULL,
+        region TEXT NOT NULL,
+        restaurant_type TEXT NOT NULL,
+        job_type TEXT NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        salary TEXT,
+        imageUrl TEXT,
+        user_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES userss(id)
+    )`, (err) => {
+        if (err) console.error('Errore durante la creazione della tabella offerte:', err);
+        else {
+            console.log('Tabella offerte creata con successo');
+            // Fetch initial job offers from external API and populate database
+            fetchAndStoreJobOffers();
+        }
+    }
+  );
+  
+  // Function to fetch job offers from external API and store in database
+  // Modifica la funzione fetchAndStoreJobOffers:
+// Modified fetchAndStoreJobOffers function to include restaurant titles and assign users
+function fetchAndStoreJobOffers() {
+    fetch('https://remotive.com/api/remote-jobs?category=restaurants')
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.jobs && data.jobs.length > 0) {
+                const jobsToInsert = data.jobs.slice(0, 40);
+                
+                // Remove existing offers not created by users
+                db.run('DELETE FROM offerte WHERE user_id IS NULL', [], (err) => {
+                    if (err) {
+                        console.error('Errore durante la pulizia delle offerte esistenti:', err);
+                        return;
+                    }
+                    
+                    // Get list of restaurant users to assign to offers
+                    db.all('SELECT id, email AS nome FROM userss WHERE ruolo = "ristoratore"', [], (err, restaurantUsers) => {
+                        if (err) {
+                            console.error('Errore durante il recupero degli utenti ristoratori:', err);
+                            return;
+                        }
+                        
+                        
+                        
+                        if (restaurantUsers.length === 0) {
+                            console.error('Nessun ristoratore trovato nel database');
+                            return;
+                        }
+                        
+                        const restaurantTypes = ['Trattoria', 'Ristorante Cinese', 'Ristorante Italiano', 'Sushi', 'Fast Food', 'Pizzeria'];
+                        const italianCities = ['Roma', 'Milano', 'Napoli', 'Torino', 'Firenze', 'Bologna', 'Venezia', 'Palermo'];
+                        const italianRegions = ['Lazio', 'Lombardia', 'Campania', 'Piemonte', 'Toscana', 'Emilia-Romagna', 'Veneto', 'Sicilia'];
+                        const jobTypes = ['Chef', 'Cameriere', 'Barista', 'Lavapiatti', 'Responsabile Sala', 'Aiuto Cuoco'];
+                        
+                        const insertStmt = db.prepare('INSERT INTO offerte (title, role, description, city, region, restaurant_type, job_type, start_date, end_date, salary, imageUrl, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                        
+                        jobsToInsert.forEach((job, index) => {
+                            // Assign a random restaurant user to each offer
+                            const randomUserIndex = Math.floor(Math.random() * restaurantUsers.length);
+                            const restaurantUser = restaurantUsers[randomUserIndex];
+                            
+                            const randomCity = italianCities[Math.floor(Math.random() * italianCities.length)];
+                            const randomRegion = italianRegions[Math.floor(Math.random() * italianRegions.length)];
+                            const randomRestaurantType = restaurantTypes[Math.floor(Math.random() * restaurantTypes.length)];
+                            const randomJobType = jobTypes[Math.floor(Math.random() * jobTypes.length)];
+                            
+                            const today = new Date();
+                            const startDate = new Date(today);
+                            startDate.setDate(today.getDate() + Math.floor(Math.random() * 30) + 1);
+                            
+                            const endDate = new Date(startDate);
+                            endDate.setDate(startDate.getDate() + Math.floor(Math.random() * 90) + 30);
+                            
+                            const formattedStartDate = startDate.toISOString().split('T')[0];
+                            const formattedEndDate = endDate.toISOString().split('T')[0];
+                            
+                            const imageUrl = `/images/restaurant-${(index % 5) + 1}.jpg`;
+                            
+                            // Use restaurant name as part of the title
+                            const title = `${restaurantUser.nome}: ${job.title.substring(0, 30)}`;
+                            
+                            insertStmt.run(
+                                title,
+                                randomJobType,
+                                job.description.substring(0, 200),
+                                randomCity,
+                                randomRegion,
+                                randomRestaurantType,
+                                randomJobType,
+                                formattedStartDate,
+                                formattedEndDate,
+                                `${1200 + Math.floor(Math.random() * 1800)}€/mese`,
+                                imageUrl,
+                                restaurantUser.id
+                            );
+                        });
+                        
+                        insertStmt.finalize();
+                        console.log('Offerte di lavoro importate con successo');
+                    });
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Errore durante il recupero delle offerte di lavoro:', error);
+        });
+}
+  
+  // Schedule a daily update of job offers
+  setInterval(fetchAndStoreJobOffers, 24 * 60 * 60 * 1000); // 24 hours
+  
+  // Add an endpoint to allow restaurateurs to create job offers
+  app.post('/create-offer', requireAuth, (req, res) => {
+      // Check if user is a restaurant
+      if (req.session.user.ruolo !== 'ristorante') {
+          return res.status(403).send('Solo i ristoratori possono creare offerte di lavoro');
+      }
+      
+      const { title, role, description, city, region, restaurant_type, job_type, start_date, end_date, salary } = req.body;
+      
+      // Basic validation
+      if (!title || !role || !description || !city || !region || !restaurant_type || !job_type || !start_date || !end_date) {
+          return res.status(400).send('Tutti i campi sono obbligatori');
+      }
+      
+      // Generate random image for the job posting
+      const imageUrl = `/images/restaurant-${Math.floor(Math.random() * 5) + 1}.jpg`;
+      
+      // Insert the job offer into the database
+      const query = `
+          INSERT INTO offerte 
+          (title, role, description, city, region, restaurant_type, job_type, start_date, end_date, salary, imageUrl, user_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      
+      db.run(query, [
+          title, role, description, city, region, restaurant_type, job_type, start_date, end_date, 
+          salary || `${1200 + Math.floor(Math.random() * 1800)}€/mese`, imageUrl, req.session.user.id
+      ], function(err) {
+          if (err) {
+              console.error('Errore durante la creazione dell\'offerta:', err);
+              return res.status(500).send('Errore del server');
+          }
+          
+          res.status(200).json({ success: true, message: 'Offerta creata con successo', id: this.lastID });
+      });
+  });
+
+  // Add this endpoint to handle contacting the restaurant owner
+app.post('/api/contact-restaurateur', requireAuth, (req, res) => {
+    const userId = req.session.user.id;
+    const { offerId } = req.body;
+    
+    if (!offerId) {
+        return res.status(400).json({ success: false, error: 'ID offerta mancante' });
+    }
+    
+    // Get the offer details to find the restaurant owner
+    db.get('SELECT user_id FROM offerte WHERE id = ?', [offerId], (err, offer) => {
+        if (err) {
+            console.error('Errore durante il recupero dell\'offerta:', err);
+            return res.status(500).json({ success: false, error: 'Errore del server' });
+        }
+        
+        if (!offer) {
+            return res.status(404).json({ success: false, error: 'Offerta non trovata' });
+        }
+        
+        const restaurateurId = offer.user_id;
+        
+        // Check if a chat room already exists between these users
+        db.get(
+            `SELECT cr.id
+            FROM chat_rooms cr
+            JOIN room_participants rp1 ON cr.id = rp1.room_id
+            JOIN room_participants rp2 ON cr.id = rp2.room_id
+            WHERE cr.type = 'private'
+            AND rp1.user_id = ?
+            AND rp2.user_id = ?`,
+            [userId, restaurateurId],
+            (err, room) => {
+                if (err) {
+                    console.error('Errore durante la ricerca della chat room:', err);
+                    return res.status(500).json({ success: false, error: 'Errore del server' });
+                }
+                
+                if (room) {
+                    // Chat room already exists, redirect to it
+                    return res.json({ success: true, roomId: room.id });
+                }
+                
+                // Create a new chat room between the user and restaurateur
+                db.run(
+                    'INSERT INTO chat_rooms (name, type) VALUES (?, ?)',
+                    ['Private Chat', 'private'],
+                    function(err) {
+                        if (err) {
+                            console.error('Errore durante la creazione della chat room:', err);
+                            return res.status(500).json({ success: false, error: 'Errore del server' });
+                        }
+                        
+                        const roomId = this.lastID;
+                        
+                        // Add both users as participants
+                        const stmt = db.prepare('INSERT INTO room_participants (room_id, user_id) VALUES (?, ?)');
+                        stmt.run(roomId, userId);
+                        stmt.run(roomId, restaurateurId);
+                        stmt.finalize();
+                        
+                        // Create initial message about the job offer
+                        db.get('SELECT title FROM offerte WHERE id = ?', [offerId], (err, offer) => {
+                            if (!err && offer) {
+                                db.run(
+                                    'INSERT INTO chat_messages (sender_id, room_id, message) VALUES (?, ?, ?)',
+                                    [userId, roomId, `Ciao, sono interessato all'offerta di lavoro: "${offer.title}"`]
+                                );
+                            }
+                            
+                            res.json({ success: true, roomId: roomId });
+                        });
+                    }
+                );
+            }
+        );
+    });
+});
+  
+  // Modify the save-preferences route to also return matching job offers
+  app.post('/save-preferences', requireAuth, (req, res) => {
+    const { region, city, startDate, endDate, jobType, restaurantType, preferenceName } = req.body;
+    
+    // Basic validation
+    if (!region || !city || !startDate || !endDate || !jobType || !restaurantType) {
+        return res.status(400).json({ success: false, message: 'Tutti i campi sono obbligatori' });
+    }
+    
+    // Check if preference with this name already exists for this user
+    const checkExistingPreference = `
+        SELECT id FROM preferences 
+        WHERE user_id = ? AND preference_name = ?
+    `;
+    
+    db.get(checkExistingPreference, [req.session.user.id, preferenceName || 'Default'], (err, existing) => {
+        if (err) {
+            console.error('Errore durante il controllo delle preferenze esistenti:', err);
+            return res.status(500).json({ success: false, message: 'Errore del server' });
+        }
+        
+        let query, params;
+        
+        if (existing) {
+            // Update existing preference
+            query = `
+                UPDATE preferences 
+                SET country = ?, city = ?, start_date = ?, end_date = ?, job_type = ?, restaurant_type = ?
+                WHERE id = ?
+            `;
+            params = [region, city, startDate, endDate, jobType, restaurantType, existing.id];
+        } else {
+            // Insert new preference
+            query = `
+                INSERT INTO preferences 
+                (user_id, country, city, start_date, end_date, job_type, restaurant_type, preference_name)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+            params = [req.session.user.id, region, city, startDate, endDate, jobType, restaurantType, preferenceName || 'Default'];
+        }
+        
+        db.run(query, params, function(err) {
+            if (err) {
+                console.error('Errore durante il salvataggio delle preferenze:', err);
+                return res.status(500).json({ success: false, message: 'Errore del server' });
+            }
+            
+            // Fetch filtered job offers based on the saved preferences
+            const getFilteredOffers = `
+                SELECT o.*, u.email as restaurant_name
+                FROM offerte o
+                LEFT JOIN userss u ON o.user_id = u.id
+                WHERE o.region = ? 
+                    AND o.city = ? 
+                    AND o.job_type = ?
+                    AND o.restaurant_type = ?
+                    AND o.start_date >= ?
+                    AND o.end_date <= ?
+                ORDER BY o.created_at DESC
+            `;
+            
+            db.all(getFilteredOffers, [region, city, jobType, restaurantType, startDate, endDate], (err, offers) => {
+                if (err) {
+                    console.error('Errore durante il recupero delle offerte filtrate:', err);
+                    return res.status(500).json({ success: false, message: 'Errore del server' });
+                }
+                
+                return res.status(200).json({ 
+                    success: true, 
+                    message: 'Preferenze salvate con successo', 
+                    offers: offers 
+                });
+            });
+        });
+    });
+});
+
+app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
+    const preferenceId = req.params.preferenceId;
+    
+    // First, get the preference details
+    const getPreference = `SELECT * FROM preferences WHERE id = ? AND user_id = ?`;
+    
+    db.get(getPreference, [preferenceId, req.session.user.id], (err, preference) => {
+        if (err) {
+            console.error('Errore durante il recupero della preferenza:', err);
+            return res.status(500).json({ success: false, message: 'Errore del server' });
+        }
+        
+        if (!preference) {
+            return res.status(404).json({ success: false, message: 'Preferenza non trovata' });
+        }
+        
+        // Get filtered offers
+        const getFilteredOffers = `
+            SELECT o.*, u.email as restaurant_name
+            FROM offerte o
+            LEFT JOIN userss u ON o.user_id = u.id
+            WHERE o.region = ? 
+                AND o.city = ? 
+                AND o.job_type = ?
+                AND o.restaurant_type = ?
+                AND o.start_date >= ?
+                AND o.end_date <= ?
+            ORDER BY o.created_at DESC
+        `;
+        
+        db.all(getFilteredOffers, [
+            preference.country, 
+            preference.city, 
+            preference.job_type, 
+            preference.restaurant_type, 
+            preference.start_date, 
+            preference.end_date
+        ], (err, offers) => {
+            if (err) {
+                console.error('Errore durante il recupero delle offerte filtrate:', err);
+                return res.status(500).json({ success: false, message: 'Errore del server' });
+            }
+            
+            return res.status(200).json({ 
+                success: true, 
+                offers: offers,
+                preference: preference
+            });
+        });
+    });
+});
+
+// Update database schema to add preference_name column
+db.run(
+    `ALTER TABLE preferences ADD COLUMN preference_name TEXT DEFAULT 'Default'`,
+    (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Errore durante l\'aggiunta della colonna preference_name:', err);
+        }
+    }
+);
+  
+  // Update the dashboard route to include job offers based on preferences
+  app.get('/dashboard', requireAuth, (req, res) => {
+      const userId = req.session.user.id;
+      
+      // Get user preferences
+      const preferencesQuery = 'SELECT * FROM preferences WHERE user_id = ?';
+      db.get(preferencesQuery, [userId], (err, preferences) => {
+          if (err) {
+              console.error('Errore durante il recupero delle preferenze:', err);
+              return res.status(500).send('Errore del server');
+          }
+          
+          // If preferences exist, get matching job offers
+          if (preferences) {
+              const offersQuery = `
+                  SELECT * FROM offerte
+                  WHERE (region = ? OR city = ?) 
+                  AND job_type = ?
+                  AND restaurant_type = ?
+                  AND (
+                      (start_date BETWEEN ? AND ?) OR
+                      (end_date BETWEEN ? AND ?) OR
+                      (start_date <= ? AND end_date >= ?)
+                  )
+                  ORDER BY created_at DESC
+                  LIMIT 20
+              `;
+              
+              db.all(offersQuery, [
+                  preferences.country, preferences.country, preferences.job_type, preferences.restaurant_type,
+                  preferences.start_date, preferences.end_date, preferences.start_date, preferences.end_date,
+                  preferences.start_date, preferences.end_date
+              ], (err, jobs) => {
+                  if (err) {
+                      console.error('Errore durante il recupero delle offerte di lavoro:', err);
+                      return res.status(500).send('Errore del server');
+                  }
+                  
+                  // Map preferences to the expected format in the template
+                  const mappedPreferences = {
+                      region: preferences.country,
+                      city: preferences.country, // Using country for city as well for simplicity
+                      startDate: preferences.start_date,
+                      endDate: preferences.end_date,
+                      jobType: preferences.job_type,
+                      restaurantType: preferences.restaurant_type
+                  };
+                  
+                  res.render('dashboard', {
+                      user: req.session.user,
+                      preferences: mappedPreferences,
+                      jobs: jobs,
+                      year: new Date().getFullYear()
+                  });
+              });
+          } else {
+              // If no preferences, get random job offers
+              const randomJobsQuery = 'SELECT * FROM offerte ORDER BY RANDOM() LIMIT 10';
+              db.all(randomJobsQuery, [], (err, jobs) => {
+                  if (err) {
+                      console.error('Errore durante il recupero delle offerte di lavoro casuali:', err);
+                      return res.status(500).send('Errore del server');
+                  }
+                  
+                  res.render('dashboard', {
+                      user: req.session.user,
+                      preferences: {},
+                      jobs: jobs,
+                      year: new Date().getFullYear()
+                  });
+              });
+          }
+      });
+  });
+
 /**
  * @swagger
  * /chat:
@@ -842,24 +1295,42 @@ app.get('/logout', (req, res) => {
  *         description: Accesso non autorizzato
  */
 app.get('/dashboard', requireAuth, (req, res) => {
-  // Recupera le preferenze dell'utente
-  const queryPreferences = `SELECT * FROM preferences WHERE user_id = ?`;
-  db.get(queryPreferences, [req.session.user.id], (err, preferences) => {
-      if (err) {
-          console.error('Errore durante il recupero delle preferenze:', err);
-      }
-      
-      // Esempio di recupero delle offerte di lavoro (puoi personalizzare questa logica)
-      const jobs = []; // Array vuoto per ora, puoi popolarlo con dati dal database
-      
-      // Modificato per utilizzare il template HBS con le preferenze
-      res.render('dashboard', {
-          user: req.session.user,
-          preferences: preferences || {},
-          jobs: jobs,
-          year: new Date().getFullYear()
-      });
-  });
+    // First, fetch all user preferences
+    const getUserPreferences = `SELECT * FROM preferences WHERE user_id = ?`;
+    
+    // Then fetch all job offers initially (without filtering)
+    const getAllOffers = `
+        SELECT o.*, u.email as restaurant_name
+        FROM offerte o
+        LEFT JOIN userss u ON o.user_id = u.id
+        ORDER BY o.created_at DESC
+        LIMIT 50
+    `;
+    
+    db.all(getUserPreferences, [req.session.user.id], (err, preferences) => {
+        if (err) {
+            console.error('Errore durante il recupero delle preferenze:', err);
+            return res.status(500).send('Errore del server');
+        }
+        
+        // Get all offers by default when first loading the dashboard
+        db.all(getAllOffers, [], (err, jobs) => {
+            if (err) {
+                console.error('Errore durante il recupero delle offerte:', err);
+                return res.status(500).send('Errore del server');
+            }
+            
+            res.render('dashboard', {
+                user: req.session.user,
+                preferences: preferences.length > 0 ? preferences[0] : {}, // We'll modify this to handle multiple preferences
+                allPreferences: preferences, // Pass all preferences to the template
+                jobs: jobs,
+                helpers: {
+                    equals: function(a, b) { return a === b; }
+                }
+            });
+        });
+    });
 });
 
 /**

@@ -1,12 +1,13 @@
+<!-- dashboard.hbs -->
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Ristoratore</title>
+    <title>Dashboard RestMatch</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
+   <style>
         /* Base styles */
         * {
             margin: 0;
@@ -387,7 +388,11 @@
     </nav>
 
     <div class="dashboard-container">
-        <h1><i class="fas fa-utensils"></i> Dashboard Ristoratore</h1>
+        {{#if (equals user.ruolo "ristorante")}}
+            <h1><i class="fas fa-utensils"></i> Dashboard Ristoratore</h1>
+        {{else}}
+            <h1><i class="fas fa-utensils"></i> Dashboard Lavoratore</h1>
+        {{/if}}
         <p class="welcome-message"><i class="fas fa-user-circle"></i> Benvenuto, {{user.email}}!</p>
         
         <div id="alert" class="alert"></div>
@@ -423,7 +428,15 @@
                     <div class="form-group">
                         <label for="jobType">Lavoro Richiesto</label>
                         <i class="fas fa-briefcase"></i>
-                        <input type="text" id="jobType" name="jobType" placeholder="Inserisci il lavoro richiesto" required value="{{preferences.jobType}}">
+                        <select id="jobType" name="jobType" required>
+                            <option value="" disabled {{#unless preferences.jobType}}selected{{/unless}}>Seleziona un tipo di lavoro</option>
+                            <option value="Chef" {{#if (equals preferences.jobType "Chef")}}selected{{/if}}>Chef</option>
+                            <option value="Cameriere" {{#if (equals preferences.jobType "Cameriere")}}selected{{/if}}>Cameriere</option>
+                            <option value="Barista" {{#if (equals preferences.jobType "Barista")}}selected{{/if}}>Barista</option>
+                            <option value="Lavapiatti" {{#if (equals preferences.jobType "Lavapiatti")}}selected{{/if}}>Lavapiatti</option>
+                            <option value="Responsabile Sala" {{#if (equals preferences.jobType "Responsabile Sala")}}selected{{/if}}>Responsabile Sala</option>
+                            <option value="Aiuto Cuoco" {{#if (equals preferences.jobType "Aiuto Cuoco")}}selected{{/if}}>Aiuto Cuoco</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -442,127 +455,322 @@
 
                     <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salva Preferenze</button>
                 </form>
+
+                {{#if (equals user.ruolo "ristorante")}}
+                <div class="create-offer-toggle">
+                    <h2><i class="fas fa-plus-circle"></i> Crea un'offerta di lavoro</h2>
+                    <button id="toggleOfferForm" class="btn-primary"><i class="fas fa-plus"></i> Nuova Offerta</button>
+                </div>
+                
+                <form id="createOfferForm" action="/create-offer" method="POST">
+                    <div class="form-group">
+                        <label for="title">Titolo Offerta</label>
+                        <i class="fas fa-heading"></i>
+                        <input type="text" id="title" name="title" placeholder="Inserisci un titolo per l'offerta" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="role">Ruolo</label>
+                        <i class="fas fa-user-tag"></i>
+                        <select id="role" name="role" required>
+                            <option value="" disabled selected>Seleziona un ruolo</option>
+                            <option value="Chef">Chef</option>
+                            <option value="Cameriere">Cameriere</option>
+                            <option value="Barista">Barista</option>
+                            <option value="Lavapiatti">Lavapiatti</option>
+                            <option value="Responsabile Sala">Responsabile Sala</option>
+                            <option value="Aiuto Cuoco">Aiuto Cuoco</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Descrizione</label>
+                        <i class="fas fa-align-left"></i>
+                        <input type="text" id="description" name="description" placeholder="Descrivi l'offerta di lavoro" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="city">Città</label>
+                        <i class="fas fa-city"></i>
+                        <input type="text" id="city" name="city" placeholder="Inserisci la città" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="region">Regione</label>
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" id="region" name="region" placeholder="Inserisci la regione" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="restaurant_type">Tipologia Ristorante</label>
+                        <i class="fas fa-store"></i>
+                        <select id="restaurant_type" name="restaurant_type" required>
+                            <option value="" disabled selected>Seleziona una tipologia</option>
+                            <option value="Trattoria">Trattoria</option>
+                            <option value="Ristorante Cinese">Ristorante Cinese</option>
+                            <option value="Ristorante Italiano">Ristorante Italiano</option>
+                            <option value="Sushi">Sushi</option>
+                            <option value="Fast Food">Fast Food</option>
+                            <option value="Pizzeria">Pizzeria</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="job_type">Tipo di Lavoro</label>
+                        <i class="fas fa-briefcase"></i>
+                        <select id="job_type" name="job_type" required>
+                            <option value="" disabled selected>Seleziona un tipo</option>
+                            <option value="Chef">Chef</option>
+                            <option value="Cameriere">Cameriere</option>
+                            <option value="Barista">Barista</option>
+                            <option value="Lavapiatti">Lavapiatti</option>
+                            <option value="Responsabile Sala">Responsabile Sala</option>
+                            <option value="Aiuto Cuoco">Aiuto Cuoco</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="start_date">Data Inizio</label>
+                        <i class="fas fa-calendar-alt"></i>
+                        <input type="date" id="start_date" name="start_date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="end_date">Data Fine</label>
+                        <i class="fas fa-calendar-check"></i>
+                        <input type="date" id="end_date" name="end_date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="salary">Stipendio (opzionale)</label>
+                        <i class="fas fa-euro-sign"></i>
+                        <input type="text" id="salary" name="salary" placeholder="Es: 1500€/mese">
+                    </div>
+                    
+                    <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Crea Offerta</button>
+                </form>
+                {{/if}}
             </section>
 
             <section class="right">
-                <h2><i class="fas fa-clipboard-list"></i> Offerte di lavoro</h2>
+                <h2><i class="fas fa-briefcase"></i> Offerte di Lavoro{{#if preferences.jobType}} per {{preferences.jobType}}{{/if}}</h2>
+                
                 <div class="job-list">
                     {{#if jobs.length}}
                         {{#each jobs}}
-                            <div class="job-card">
-                                <div class="job-image">
-                                    <img src="{{this.imageUrl}}" alt="{{this.title}}">
-                                </div>
-                                <div class="job-info">
-                                    <h3 class="job-title">{{this.title}}</h3>
-                                    <p class="job-role"><i class="fas fa-user-tie"></i> Ruolo: {{this.role}}</p>
-                                    <p class="job-description"><i class="fas fa-info-circle"></i> {{this.description}}</p>
-                                    <p class="job-period"><i class="fas fa-calendar-day"></i> Periodo: {{this.startDate}} - {{this.endDate}}</p>
-                                    <a href="/contact/{{this.id}}" class="btn"><i class="fas fa-envelope"></i> Contatta</a>
-                                </div>
+                        <div class="job-card">
+                            <div class="job-image">
+                                <img src="{{imageUrl}}" alt="{{title}}">
                             </div>
+                            <div class="job-info">
+                                <h3 class="job-title">{{title}}</h3>
+                                <p class="job-role"><i class="fas fa-user-tag"></i> {{role}}</p>
+                                <p class="job-description"><i class="fas fa-align-left"></i> {{description}}</p>
+                                <p class="job-period"><i class="fas fa-calendar-alt"></i> Dal {{start_date}} al {{end_date}}</p>
+                                <p class="job-role"><i class="fas fa-map-marker-alt"></i> {{city}}, {{region}}</p>
+                                <p class="job-role"><i class="fas fa-store"></i> {{restaurant_type}}</p>
+                                {{#if salary}}
+                                <p class="job-role"><i class="fas fa-euro-sign"></i> {{salary}}</p>
+                                {{/if}}
+                                <button class="btn contact-restaurateur" data-offer-id="{{id}}"><i class="fas fa-paper-plane"></i> Contatta Ristoratore</button>
+                            </div>
+                        </div>
                         {{/each}}
                     {{else}}
-                        <p class="no-jobs"><i class="fas fa-info-circle"></i> Nessuna offerta di lavoro disponibile al momento.</p>
+                        <p class="no-jobs"><i class="fas fa-exclamation-circle"></i> Nessuna offerta di lavoro disponibile.</p>
                     {{/if}}
                 </div>
             </section>
         </div>
     </div>
-    
-    <footer style="background-color: var(--secondary-color); color: white; padding: 1.5rem 0; margin-top: 3rem; text-align: center;">
-        <div style="max-width: 1300px; margin: 0 auto; padding: 0 2rem;">
-            <p>&copy; {{year}} RestMatch. Tutti i diritti riservati.</p>
-        </div>
-    </footer>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Connessione al WebSocket server
-        const socket = io();
-        
-        // Gestione del contatore utenti online
-        socket.on('connect', () => {
-            console.log('Connesso al server WebSocket');
-            // Invia evento di connessione all'utente
-            socket.emit('user connected');
+        // Toggle mobile menu
+        document.querySelector('.mobile-toggle').addEventListener('click', function() {
+            document.querySelector('.nav-links').classList.toggle('active');
         });
-        
-        // Aggiorna il contatore utenti quando ricevi l'aggiornamento dal server
-        socket.on('update online users', (count) => {
-            document.getElementById('online-counter').textContent = count;
-        });
-        
-        // Mobile navigation toggle
-        const mobileToggle = document.querySelector('.mobile-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        
-        mobileToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-        });
-        
-        document.getElementById('preferencesForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
+
+        // Handle preferences form submission
+        document.getElementById('preferencesForm').addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            const formData = new FormData(event.target);
-            const formDataObject = Object.fromEntries(formData.entries());
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
             
-            try {
-                const response = await fetch('/save-preferences', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formDataObject),
-                });
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="spinner"></div> Salvataggio...';
+            submitBtn.disabled = true;
+            
+            fetch('/save-preferences', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
                 
                 const alertEl = document.getElementById('alert');
+                alertEl.textContent = data.message;
+                alertEl.className = 'alert ' + (data.success ? 'success' : 'error');
+                alertEl.style.display = 'block';
                 
-                if (response.ok) {
-                    alertEl.textContent = 'Preferenze salvate con successo!';
-                    alertEl.className = 'alert success';
+                // If successful and offers received, update job listings
+                if(data.success && data.offers) {
+                    updateJobListings(data.offers);
+                }
+                
+                // Hide alert after 3 seconds
+                setTimeout(() => {
+                    alertEl.style.display = 'none';
+                }, 3000);
+            })
+            .catch(error => {
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+                
+                const alertEl = document.getElementById('alert');
+                alertEl.textContent = 'Errore durante il salvataggio: ' + error.message;
+                alertEl.className = 'alert error';
+                alertEl.style.display = 'block';
+            });
+        });
+        
+        // Function to update job listings
+        function updateJobListings(offers) {
+            const jobList = document.querySelector('.job-list');
+            
+            if(offers.length === 0) {
+                jobList.innerHTML = '<p class="no-jobs"><i class="fas fa-exclamation-circle"></i> Nessuna offerta di lavoro disponibile.</p>';
+                return;
+            }
+            
+            jobList.innerHTML = '';
+            
+            offers.forEach(job => {
+                const jobCard = document.createElement('div');
+                jobCard.className = 'job-card';
+                
+                jobCard.innerHTML = `
+                    <div class="job-image">
+                        <img src="${job.imageUrl}" alt="${job.title}">
+                    </div>
+                    <div class="job-info">
+                        <h3 class="job-title">${job.title}</h3>
+                        <p class="job-role"><i class="fas fa-user-tag"></i> ${job.role}</p>
+                        <p class="job-description"><i class="fas fa-align-left"></i> ${job.description}</p>
+                        <p class="job-period"><i class="fas fa-calendar-alt"></i> Dal ${job.start_date} al ${job.end_date}</p>
+                        <p class="job-role"><i class="fas fa-map-marker-alt"></i> ${job.city}, ${job.region}</p>
+                        <p class="job-role"><i class="fas fa-store"></i> ${job.restaurant_type}</p>
+                        ${job.salary ? `<p class="job-role"><i class="fas fa-euro-sign"></i> ${job.salary}</p>` : ''}
+                        <button class="btn contact-restaurateur" data-offer-id="${job.id}"><i class="fas fa-paper-plane"></i> Contatta Ristoratore</button>
+                    </div>
+                `;
+                
+                jobList.appendChild(jobCard);
+            });
+        }
+        
+        // Toggle offer creation form
+        if (document.getElementById('toggleOfferForm')) {
+            document.getElementById('toggleOfferForm').addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = document.getElementById('createOfferForm');
+                form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
+                this.innerHTML = form.style.display === 'none' ? '<i class="fas fa-plus"></i> Nuova Offerta' : '<i class="fas fa-minus"></i> Nascondi Form';
+            });
+        }
+        
+        // Handle offer creation form submission
+        if (document.getElementById('createOfferForm')) {
+            document.getElementById('createOfferForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+                
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<div class="spinner"></div> Creazione...';
+                submitBtn.disabled = true;
+                
+                fetch('/create-offer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                    
+                    const alertEl = document.getElementById('alert');
+                    alertEl.textContent = data.message;
+                    alertEl.className = 'alert ' + (data.success ? 'success' : 'error');
                     alertEl.style.display = 'block';
                     
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    const errorText = await response.text();
-                    alertEl.textContent = `Errore: ${errorText}`;
-                    alertEl.className = 'alert error';
-                    alertEl.style.display = 'block';
+                    if(data.success) {
+                        document.getElementById('createOfferForm').reset();
+                        // Refresh the page to show the new offer
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    }
                     
+                    // Hide alert after 3 seconds
                     setTimeout(() => {
                         alertEl.style.display = 'none';
                     }, 3000);
-                }
-            } catch (error) {
-                console.error('Errore durante il salvataggio:', error);
-                const alertEl = document.getElementById('alert');
-                alertEl.textContent = 'Si è verificato un errore. Riprova più tardi.';
-                alertEl.className = 'alert error';
-                alertEl.style.display = 'block';
-                
-                setTimeout(() => {
-                    alertEl.style.display = 'none';
-                }, 3000);
-            }
-        });
+                })
+                .catch(error => {
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                    
+                    const alertEl = document.getElementById('alert');
+                    alertEl.textContent = 'Errore durante la creazione: ' + error.message;
+                    alertEl.className = 'alert error';
+                    alertEl.style.display = 'block';
+                });
+            });
+        }
 
-        // Validate date inputs
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-
-        endDateInput.addEventListener('change', function() {
-            if (startDateInput.value && this.value && this.value < startDateInput.value) {
-                const alertEl = document.getElementById('alert');
-                alertEl.textContent = 'La data di fine deve essere successiva alla data di inizio';
-                alertEl.className = 'alert error';
-                alertEl.style.display = 'block';
-                this.value = '';
+        // Handle contact restaurateur button click
+        document.querySelectorAll('.contact-restaurateur').forEach(button => {
+            button.addEventListener('click', function() {
+                const offerId = this.getAttribute('data-offer-id');
                 
-                setTimeout(() => {
-                    alertEl.style.display = 'none';
-                }, 3000);
-            }
+                fetch('/api/contact-restaurateur', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ offerId: offerId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = `/chat/${data.roomId}`;
+                    } else {
+                        alert('Errore durante il contatto del ristoratore: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                    alert('Si è verificato un errore durante il contatto del ristoratore');
+                });
+            });
         });
     </script>
 </body>

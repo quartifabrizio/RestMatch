@@ -8,14 +8,15 @@
 </head>
 <style>
     /* Main Colors and Variables */
+/* Main Colors and Variables */
 :root {
-  --primary-color: #ff8a00;
-  --primary-dark: #e67e00;
+  --primary-color: #ff5722;
+  --primary-dark: #e64a19;
   --text-color: #333333;
-  --bg-color: #ffffff;
-  --secondary-bg: #f8f8f8;
-  --border-color: #e0e0e0;
-  --success-color: #4CAF50;
+  --bg-color: #f5f7fa;
+  --secondary-bg: #ffffff;
+  --border-color: #eee;
+  --success-color: #1e8e3e;
   --danger-color: #f44336;
 }
 
@@ -24,7 +25,104 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Navbar styles */
+.navbar {
+  background-color: #222831;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo i {
+  color: var(--primary-color);
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 1.5rem;
+}
+
+.nav-links li a {
+  color: #ddd;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nav-links li a:hover, .nav-links li a.active {
+  color: var(--primary-color);
+}
+
+.logout-btn {
+  background-color: transparent;
+  color: #ddd;
+  border: 1px solid var(--primary-color);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.logout-btn:hover {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Online users counter */
+.online-users {
+  background-color: var(--success-color);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 1rem;
+}
+
+.online-users i {
+  color: #6effbe;
 }
 
 body {
@@ -35,57 +133,78 @@ body {
 
 .container {
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
 .row {
   display: flex;
   flex-wrap: wrap;
-  margin: 0 -15px;
+  gap: 2rem;
 }
 
 .col-md-3 {
-  flex: 0 0 25%;
-  max-width: 25%;
-  padding: 0 15px;
+  flex: 0 0 calc(25% - 1rem);
+  max-width: calc(25% - 1rem);
 }
 
 .col-md-9 {
-  flex: 0 0 75%;
-  max-width: 75%;
-  padding: 0 15px;
+  flex: 0 0 calc(75% - 1rem);
+  max-width: calc(75% - 1rem);
 }
 
 /* Typography */
 h3, h4 {
-  margin-bottom: 20px;
-  color: #222;
-  font-weight: 500;
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+h3 i, h4 i {
+  color: var(--primary-color);
 }
 
 /* Forms */
 .form-group {
-  margin-bottom: 15px;
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-group i {
+  position: absolute;
+  left: 1rem;
+  top: 2.3rem;
+  color: #aaa;
 }
 
 .form-control {
   width: 100%;
-  padding: 10px;
-  border: 1px solid var(--border-color);
+  padding: 0.8rem 1rem 0.8rem 2.5rem;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  background-color: var(--bg-color);
+  font-size: 1rem;
   transition: border-color 0.3s;
 }
 
 .form-control:focus {
-  border-color: var(--primary-color);
   outline: none;
+  border-color: var(--primary-color);
 }
 
 .btn {
-  display: inline-block;
-  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 4px;
   border: none;
   cursor: pointer;
@@ -115,16 +234,22 @@ h3, h4 {
 /* Lists */
 #rooms-list, #participants-list {
   list-style-type: none;
-  margin-bottom: 30px;
+  margin-bottom: 2rem;
   background-color: var(--secondary-bg);
   border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 #rooms-list li, #participants-list li {
-  padding: 12px 15px;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border-color);
   position: relative;
+  transition: background-color 0.3s;
+}
+
+#rooms-list li:hover, #participants-list li:hover {
+  background-color: #f8f8f8;
 }
 
 #rooms-list li:last-child, #participants-list li:last-child {
@@ -136,6 +261,9 @@ h3, h4 {
   color: var(--text-color);
   text-decoration: none;
   transition: color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 #rooms-list a:hover {
@@ -147,17 +275,23 @@ h3, h4 {
   color: white;
   border-radius: 50%;
   padding: 2px 6px;
-  font-size: 12px;
+  font-size: 0.8rem;
   position: absolute;
   right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: bold;
 }
 
 /* Status Indicators */
 .status-badge {
-  padding: 3px 6px;
-  border-radius: 3px;
-  font-size: 12px;
-  margin-left: 5px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .online {
@@ -176,14 +310,14 @@ h3, h4 {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  height: calc(100vh - 120px);
+  height: calc(100vh - 150px);
   display: flex;
   flex-direction: column;
 }
 
 #chat-container h3 {
-  padding: 15px;
-  background-color: #222;
+  padding: 1rem 1.5rem;
+  background-color: #222831;
   color: white;
   margin-bottom: 0;
   border-bottom: 2px solid var(--primary-color);
@@ -193,14 +327,16 @@ h3, h4 {
 #messages-container {
   flex: 1;
   overflow-y: auto;
-  padding: 15px;
+  padding: 1.5rem;
   background-color: var(--bg-color);
 }
 
 .message {
-  margin-bottom: 15px;
+  margin-bottom: 1.5rem;
   max-width: 75%;
   clear: both;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .message-self {
@@ -212,13 +348,21 @@ h3, h4 {
 
 .message-other {
   float: left;
-  background-color: #eee;
+  background-color: #fff;
   border-radius: 15px 15px 15px 0;
+  border: 1px solid #eee;
 }
 
 .message-header {
-  padding: 8px 15px 0;
-  font-size: 12px;
+  padding: 0.8rem 1.5rem 0;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.message-header i {
+  color: rgba(255,255,255,0.8);
 }
 
 .message-self .message-header {
@@ -229,93 +373,112 @@ h3, h4 {
   color: #777;
 }
 
+.message-other .message-header i {
+  color: var(--primary-color);
+}
+
 .message-content {
-  padding: 5px 15px 10px;
+  padding: 0.5rem 1.5rem 1rem;
   word-wrap: break-word;
 }
 
 #typing-indicator {
-  padding: 5px 15px;
+  padding: 0.5rem 1.5rem;
   color: #777;
-  font-size: 14px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#typing-indicator i {
+  color: var(--primary-color);
 }
 
 /* Message Form */
 #message-form {
-  background-color: var(--secondary-bg);
-  padding: 10px 15px;
+  background-color: #f8f8f8;
+  padding: 1rem 1.5rem;
   border-top: 1px solid var(--border-color);
   display: flex;
   align-items: center;
+  gap: 1rem;
 }
 
 #message-input {
   flex: 1;
   resize: none;
+  padding: 0.8rem 1rem 0.8rem 2.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
   max-height: 100px;
-  margin-right: 10px;
+  position: relative;
 }
 
-/* Footer */
-footer {
-  text-align: center;
-  padding: 20px 0;
-  margin-top: 30px;
-  color: #777;
-  font-size: 14px;
+#message-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-  .col-md-3, .col-md-9 {
-    flex: 0 0 100%;
-    max-width: 100%;
-  }
-  
-  .col-md-3 {
-    margin-bottom: 20px;
-  }
-  
-  .message {
-    max-width: 85%;
-  }
+.message-input-icon {
+  position: absolute;
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
 }
 
-/* Checkbox Styling */
+/* Checkboxes styling */
 .checkbox {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 0.8rem;
 }
 
 .checkbox label {
   display: flex;
   align-items: center;
   cursor: pointer;
+  font-weight: normal;
+  gap: 0.5rem;
 }
 
 .checkbox input[type="checkbox"] {
-  margin-right: 8px;
+  margin-right: 0.5rem;
   accent-color: var(--primary-color);
+  width: 1rem;
+  height: 1rem;
 }
 
-/* Icons using Font Awesome (You'll need to include this in your HTML) */
-/* Add before your closing </head> tag:
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-*/
+/* Footer */
+footer {
+  text-align: center;
+  padding: 2rem 0;
+  margin-top: 2rem;
+  color: #777;
+  font-size: 0.9rem;
+  border-top: 1px solid var(--border-color);
+}
 
-/* Icon styles */
-.icon-prefix::before {
+/* Icon styles for FontAwesome */
+h3[id="chat-rooms"]::before {
+  content: "\f086";
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
-  margin-right: 8px;
+  color: var(--primary-color);
 }
 
-/* Apply icons to elements */
+h4::before {
+  content: "\f067";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  color: var(--primary-color);
+}
+
 #rooms-list li a::before {
   content: "\f086";
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
-  margin-right: 8px;
   color: var(--primary-color);
 }
 
@@ -323,41 +486,92 @@ footer {
   content: "\f007";
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
-  margin-right: 8px;
   color: #666;
-}
-
-h3::before {
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
-  margin-right: 10px;
-}
-
-#chat-container h3::before {
-  content: "\f4ad";
-  color: var(--primary-color);
-}
-
-#messages-container h3::before {
-  content: "\f0e6";
-}
-
-#participants-list + h3::before {
-  content: "\f500";
 }
 
 .btn-primary::before {
   content: "\f1d8";
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
-  margin-right: 5px;
 }
 
-.btn-secondary::before {
-  content: "\f053";
+.form-group label[for="room-name"]::before {
+  content: "\f1d8";
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
-  margin-right: 5px;
+  margin-right: 0.5rem;
+  color: var(--primary-color);
+}
+
+.form-group label[for="room-type"]::before {
+  content: "\f0b0";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  margin-right: 0.5rem;
+  color: var(--primary-color);
+}
+
+.form-group label:contains("Partecipanti")::before {
+  content: "\f500";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  margin-right: 0.5rem;
+  color: var(--primary-color);
+}
+
+/* Responsive styles */
+@media (max-width: 900px) {
+  .row {
+    flex-direction: column;
+  }
+  
+  .col-md-3, .col-md-9 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  .navbar-container {
+    padding: 0.8rem 1rem;
+  }
+  
+  #chat-container {
+    height: calc(100vh - 300px);
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-toggle {
+    display: block;
+  }
+  
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #222831;
+    flex-direction: column;
+    padding: 1rem;
+  }
+  
+  .nav-links.active {
+    display: flex;
+  }
+  
+  .logout-btn {
+    display: none;
+  }
+  
+  .nav-links li:last-child {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #444;
+  }
+  
+  .message {
+    max-width: 85%;
+  }
 }
 </style>
 <body>

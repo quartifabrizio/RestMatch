@@ -12,8 +12,9 @@
   --primary-color: #ff8a00;
   --primary-dark: #e67e00;
   --text-color: #333333;
-  --bg-color: #ffffff;
-  --secondary-bg: #f8f8f8;
+  --bg-color: #f5f7fa;
+  --secondary-bg: #ffffff;
+  --navbar-bg: #222831;
   --border-color: #e0e0e0;
   --success-color: #4CAF50;
   --danger-color: #f44336;
@@ -24,7 +25,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 body {
@@ -33,49 +34,151 @@ body {
   line-height: 1.6;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+/* Navbar styles */
+.navbar {
+  background-color: var(--navbar-bg);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo i {
+  color: var(--primary-color);
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 1.5rem;
+}
+
+.nav-links li a {
+  color: #ddd;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nav-links li a:hover, .nav-links li a.active {
+  color: var(--primary-color);
+}
+
+.logout-btn {
+  background-color: transparent;
+  color: #ddd;
+  border: 1px solid var(--primary-color);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.logout-btn:hover {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* Layout */
 .row {
   display: flex;
   flex-wrap: wrap;
-  margin: 0 -15px;
+  gap: 30px;
 }
 
 .col-md-3 {
-  flex: 0 0 25%;
-  max-width: 25%;
-  padding: 0 15px;
+  flex: 0 0 calc(25% - 30px);
+  max-width: calc(25% - 30px);
 }
 
 .col-md-9 {
-  flex: 0 0 75%;
-  max-width: 75%;
-  padding: 0 15px;
+  flex: 0 0 calc(75% - 30px);
+  max-width: calc(75% - 30px);
 }
 
 /* Typography */
-h3, h4 {
-  margin-bottom: 20px;
-  color: #222;
-  font-weight: 500;
+h1, h2, h3, h4 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+h1 i, h2 i, h3 i, h4 i {
+  color: var(--primary-color);
 }
 
 /* Forms */
 .form-group {
-  margin-bottom: 15px;
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
 }
 
 .form-control {
   width: 100%;
-  padding: 10px;
+  padding: 0.8rem 1rem;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  background-color: var(--bg-color);
+  background-color: var(--secondary-bg);
   transition: border-color 0.3s;
+  font-size: 1rem;
+}
+
+.form-group i {
+  position: absolute;
+  left: 1rem;
+  top: 2.3rem;
+  color: #aaa;
 }
 
 .form-control:focus {
@@ -84,14 +187,17 @@ h3, h4 {
 }
 
 .btn {
-  display: inline-block;
-  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 4px;
   border: none;
   cursor: pointer;
   font-weight: 500;
   transition: all 0.3s;
   text-decoration: none;
+  font-size: 1rem;
 }
 
 .btn-primary {
@@ -119,12 +225,15 @@ h3, h4 {
   background-color: var(--secondary-bg);
   border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 #rooms-list li, #participants-list li {
   padding: 12px 15px;
   border-bottom: 1px solid var(--border-color);
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 #rooms-list li:last-child, #participants-list li:last-child {
@@ -136,6 +245,7 @@ h3, h4 {
   color: var(--text-color);
   text-decoration: none;
   transition: color 0.3s;
+  width: 100%;
 }
 
 #rooms-list a:hover {
@@ -148,16 +258,18 @@ h3, h4 {
   border-radius: 50%;
   padding: 2px 6px;
   font-size: 12px;
-  position: absolute;
-  right: 15px;
+  margin-left: auto;
 }
 
 /* Status Indicators */
 .status-badge {
-  padding: 3px 6px;
-  border-radius: 3px;
+  padding: 3px 8px;
+  border-radius: 20px;
   font-size: 12px;
-  margin-left: 5px;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .online {
@@ -170,20 +282,33 @@ h3, h4 {
   color: #666;
 }
 
+/* Online users counter */
+.online-users {
+  background-color: var(--success-color);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 1rem;
+}
+
 /* Chat Container */
 #chat-container {
   background-color: var(--secondary-bg);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  height: calc(100vh - 120px);
+  height: calc(100vh - 180px);
   display: flex;
   flex-direction: column;
 }
 
 #chat-container h3 {
   padding: 15px;
-  background-color: #222;
+  background-color: var(--navbar-bg);
   color: white;
   margin-bottom: 0;
   border-bottom: 2px solid var(--primary-color);
@@ -201,6 +326,9 @@ h3, h4 {
   margin-bottom: 15px;
   max-width: 75%;
   clear: both;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 12px 15px;
 }
 
 .message-self {
@@ -212,48 +340,65 @@ h3, h4 {
 
 .message-other {
   float: left;
-  background-color: #eee;
+  background-color: var(--secondary-bg);
   border-radius: 15px 15px 15px 0;
 }
 
 .message-header {
-  padding: 8px 15px 0;
-  font-size: 12px;
+  padding: 0 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .message-self .message-header {
-  color: rgba(255,255,255,0.8);
+  color: rgba(255,255,255,0.9);
 }
 
 .message-other .message-header {
-  color: #777;
+  color: #666;
 }
 
 .message-content {
-  padding: 5px 15px 10px;
   word-wrap: break-word;
+  line-height: 1.5;
 }
 
 #typing-indicator {
-  padding: 5px 15px;
+  padding: 8px 15px;
   color: #777;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Message Form */
 #message-form {
   background-color: var(--secondary-bg);
-  padding: 10px 15px;
+  padding: 15px;
   border-top: 1px solid var(--border-color);
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
 #message-input {
   flex: 1;
   resize: none;
   max-height: 100px;
-  margin-right: 10px;
+  padding: 12px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  transition: border-color 0.3s;
+  font-size: 15px;
+}
+
+#message-input:focus {
+  border-color: var(--primary-color);
+  outline: none;
 }
 
 /* Footer */
@@ -265,45 +410,47 @@ footer {
   font-size: 14px;
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-  .col-md-3, .col-md-9 {
-    flex: 0 0 100%;
-    max-width: 100%;
-  }
-  
-  .col-md-3 {
-    margin-bottom: 20px;
-  }
-  
-  .message {
-    max-width: 85%;
-  }
+/* Alert styles */
+.alert {
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 
 /* Checkbox Styling */
 .checkbox {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .checkbox label {
   display: flex;
   align-items: center;
   cursor: pointer;
+  font-weight: normal;
+  gap: 8px;
 }
 
 .checkbox input[type="checkbox"] {
-  margin-right: 8px;
   accent-color: var(--primary-color);
 }
 
-/* Icons using Font Awesome (You'll need to include this in your HTML) */
-/* Add before your closing </head> tag:
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-*/
-
-/* Icon styles */
+/* Icons using Font Awesome */
 .icon-prefix::before {
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
@@ -358,6 +505,48 @@ h3::before {
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
   margin-right: 5px;
+}
+
+/* Responsive Styles */
+@media (max-width: 900px) {
+  .row {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .col-md-3, .col-md-9 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-toggle {
+    display: block;
+  }
+  
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--navbar-bg);
+    flex-direction: column;
+    padding: 1rem;
+  }
+  
+  .nav-links.active {
+    display: flex;
+  }
+  
+  .message {
+    max-width: 85%;
+  }
+  
+  .navbar-container {
+    padding: 0.8rem 1rem;
+  }
 }
 </style>
 <body>
