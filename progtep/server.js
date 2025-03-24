@@ -274,6 +274,68 @@ app.get('/auth/google/callback', passport.authenticate('google', {
     res.redirect('/dashboard');
 });
 
+app.get('/ajax', requireAuth, (req, res) => {
+    res.render('ajax', {
+        user: req.session.user,
+        year: new Date().getFullYear()
+    });
+});
+
+// FIXED API endpoint to get all preferences
+app.get('/api/preferences', requireAuth, (req, res) => {
+    const query = `
+        SELECT 
+            id, 
+            user_id, 
+            country, 
+            city, 
+            start_date, 
+            end_date, 
+            job_type, 
+            restaurant_type, 
+            preference_name
+        FROM preferences 
+        WHERE user_id = ?
+    `;
+    db.all(query, [req.session.user.id], (err, rows) => {
+        if (err) {
+            console.error('Errore nel recupero delle preferenze:', err);
+            return res.status(500).json({ error: 'Errore del server' });
+        }
+        res.json(rows);
+    });
+});
+
+// FIXED endpoint to get preferences filtered by city
+app.get('/api/preferences/filter', requireAuth, (req, res) => {
+    const { city } = req.query;
+    if (!city) {
+        return res.status(400).json({ error: 'Parametro city mancante' });
+    }
+
+    const query = `
+        SELECT 
+            id, 
+            user_id, 
+            country, 
+            city, 
+            start_date, 
+            end_date, 
+            job_type, 
+            restaurant_type, 
+            preference_name
+        FROM preferences 
+        WHERE user_id = ? AND city = ?
+    `;
+    db.all(query, [req.session.user.id, city], (err, rows) => {
+        if (err) {
+            console.error('Errore nel recupero delle preferenze filtrate:', err);
+            return res.status(500).json({ error: 'Errore del server' });
+        }
+        res.json(rows);
+    });
+});
+
 // Connect to the database
 const db = new sqlite3.Database('database.db', (err) => {
     if (err) {
@@ -315,7 +377,7 @@ const db = new sqlite3.Database('database.db', (err) => {
           }
       );
 
-        // Create preferences table with city column
+        // Create preferences table with city column (keeping the column name as 'city')
         db.run(
             `CREATE TABLE IF NOT EXISTS preferences (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -691,19 +753,13 @@ app.post('/api/contact-restaurateur', requireAuth, (req, res) => {
     });
 });
 
-// Modify the save-preferences route to include city
+// FIXED save-preferences route
 app.post('/save-preferences', requireAuth, (req, res) => {
     const { region, city, startDate, endDate, jobType, restaurantType, preferenceName } = req.body;
     
     // Basic validation
-    if (!region || !city || !startDate || !endDate || !jobType || !restaurantType) {
-        return res.status(400).json({ success: false, message: 'Tutti i campi sono obbligatori' });
-    }
-    
-    // Validate that city belongs to the selected region
-    const citiesInRegion = regionCityMapping[region] || [];
-    if (!citiesInRegion.includes(city)) {
-        return res.status(400).json({ success: false, message: 'La città selezionata non appartiene alla regione selezionata' });
+    if (!city || !startDate || !endDate || !jobType || !restaurantType) {
+        return res.status(400).json({ success: false, message: 'Tutti i campi sono obbligatori eccetto la regione' });
     }
     
     // Check if preference with this name already exists for this user
@@ -727,7 +783,7 @@ app.post('/save-preferences', requireAuth, (req, res) => {
                 SET country = ?, city = ?, start_date = ?, end_date = ?, job_type = ?, restaurant_type = ?
                 WHERE id = ?
             `;
-            params = [region, city, startDate, endDate, jobType, restaurantType, existing.id];
+            params = [region || '', city, startDate, endDate, jobType, restaurantType, existing.id];
         } else {
             // Insert new preference
             query = `
@@ -735,22 +791,21 @@ app.post('/save-preferences', requireAuth, (req, res) => {
                 (user_id, country, city, start_date, end_date, job_type, restaurant_type, preference_name)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `;
-            params = [req.session.user.id, region, city, startDate, endDate, jobType, restaurantType, preferenceName || 'Default'];
+            params = [req.session.user.id, region || '', city, startDate, endDate, jobType, restaurantType, preferenceName || 'Default'];
         }
         
         db.run(query, params, function(err) {
             if (err) {
                 console.error('Errore durante il salvataggio delle preferenze:', err);
-                return res.status(500).json({ success: false, message: 'Errore del server' });
+                return res.status(500).json({ success: false, message: 'Errore del server durante il salvataggio' });
             }
             
-            // Fetch filtered job offers based on the saved preferences
+            // Fetch filtered job offers based on the saved preferences - with independent city/region filtering
             const getFilteredOffers = `
                 SELECT o.*, u.email as restaurant_name
                 FROM offerte o
                 LEFT JOIN userss u ON o.user_id = u.id
-                WHERE o.region = ? 
-                    AND o.city = ? 
+                WHERE o.city = ?
                     AND o.job_type = ?
                     AND o.restaurant_type = ?
                     AND o.start_date >= ?
@@ -758,7 +813,13 @@ app.post('/save-preferences', requireAuth, (req, res) => {
                 ORDER BY o.created_at DESC
             `;
             
-            db.all(getFilteredOffers, [region, city, jobType, restaurantType, startDate, endDate], (err, offers) => {
+            db.all(getFilteredOffers, [
+                city, 
+                jobType, 
+                restaurantType, 
+                startDate, 
+                endDate
+            ], (err, offers) => {
                 if (err) {
                     console.error('Errore durante il recupero delle offerte filtrate:', err);
                     return res.status(500).json({ success: false, message: 'Errore del server' });
@@ -774,11 +835,15 @@ app.post('/save-preferences', requireAuth, (req, res) => {
     });
 });
 
+// FIXED API to get filtered offers by preference ID
 app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
     const preferenceId = req.params.preferenceId;
     
     // First, get the preference details
-    const getPreference = `SELECT * FROM preferences WHERE id = ? AND user_id = ?`;
+    const getPreference = `
+        SELECT id, user_id, country, city, start_date, end_date, job_type, restaurant_type, preference_name 
+        FROM preferences 
+        WHERE id = ? AND user_id = ?`;
     
     db.get(getPreference, [preferenceId, req.session.user.id], (err, preference) => {
         if (err) {
@@ -790,13 +855,12 @@ app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
             return res.status(404).json({ success: false, message: 'Preferenza non trovata' });
         }
         
-        // Get filtered offers
+        // Get filtered offers with independent filtering
         const getFilteredOffers = `
             SELECT o.*, u.email as restaurant_name
             FROM offerte o
             LEFT JOIN userss u ON o.user_id = u.id
-            WHERE o.region = ? 
-                AND o.city = ? 
+            WHERE o.city = ? 
                 AND o.job_type = ?
                 AND o.restaurant_type = ?
                 AND o.start_date >= ?
@@ -805,7 +869,6 @@ app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
         `;
         
         db.all(getFilteredOffers, [
-            preference.country, 
             preference.city, 
             preference.job_type, 
             preference.restaurant_type, 
@@ -826,12 +889,20 @@ app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
     });
 });
 
-// API to get all regions
 app.get('/api/regions', (req, res) => {
     res.json(Object.keys(regionCityMapping));
 });
 
-// API to get cities for a region
+// Keep API to get cities but modify to not require region
+app.get('/api/cities', (req, res) => {
+    // Flatten all cities from all regions
+    const allCities = [].concat(...Object.values(regionCityMapping));
+    // Remove duplicates
+    const uniqueCities = [...new Set(allCities)].sort();
+    res.json(uniqueCities);
+});
+
+// Optional: get cities for a specific region if still useful
 app.get('/api/cities/:region', (req, res) => {
     const region = req.params.region;
     res.json(regionCityMapping[region] || []);
@@ -879,8 +950,27 @@ app.get('/dashboard', requireAuth, (req, res) => {
 });
 
 
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
-
+// Add profile route
+app.get('/profile', requireAuth, (req, res) => {
+    const query = `SELECT * FROM userss WHERE id = ?`;
+    db.get(query, [req.session.user.id], (err, user) => {
+        if (err) {
+            console.error('Errore durante il recupero del profilo:', err);
+            return res.status(500).send('Errore del server');
+        }
+        
+        if (!user) {
+            return res.redirect('/logout');
+        }
+        
+        res.render('profile', {
+            user: user,
+            year: new Date().getFullYear()
+        });
+    });
+});
 
 // Routes for chat
 app.get('/chat', requireAuth, (req, res) => {
@@ -986,6 +1076,38 @@ app.get('/chat/:roomId', requireAuth, (req, res) => {
                     });
                 });
             });
+        });
+    });
+});
+
+// Add profile update endpoint
+app.post('/update-profile', requireAuth, (req, res) => {
+    const { telefono, data_nascita, citta, password } = req.body;
+    const userId = req.session.user.id;
+    
+    // If password is provided, update it too, otherwise just update other fields
+    let query, params;
+    if (password && password.trim() !== '') {
+        query = `UPDATE userss SET telefono = ?, data_nascita = ?, citta = ?, password = ? WHERE id = ?`;
+        params = [telefono, data_nascita, citta, password, userId];
+    } else {
+        query = `UPDATE userss SET telefono = ?, data_nascita = ?, citta = ? WHERE id = ?`;
+        params = [telefono, data_nascita, citta, userId];
+    }
+    
+    db.run(query, params, function(err) {
+        if (err) {
+            console.error('Errore durante l\'aggiornamento del profilo:', err);
+            return res.status(500).json({ success: false, message: 'Errore durante l\'aggiornamento del profilo' });
+        }
+        
+        // Get updated user data
+        db.get(`SELECT * FROM userss WHERE id = ?`, [userId], (err, user) => {
+            if (err) {
+                return res.status(200).json({ success: true, message: 'Profilo aggiornato con successo' });
+            }
+            
+            return res.status(200).json({ success: true, message: 'Profilo aggiornato con successo', user: user });
         });
     });
 });
