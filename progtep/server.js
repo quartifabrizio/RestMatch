@@ -479,6 +479,8 @@ app.get('/api/preferences/filter', requireAuth, (req, res) => {
     });
 });
 
+
+
 // Sample job types and restaurant types for random generation
 const restaurantTypes = ['Trattoria', 'Ristorante Cinese', 'Ristorante Italiano', 'Sushi', 'Fast Food', 'Pizzeria'];
 const jobTypes = ['Chef', 'Cameriere', 'Barista', 'Lavapiatti', 'Responsabile Sala', 'Aiuto Cuoco'];
@@ -712,6 +714,47 @@ app.post('/api/contact-restaurateur', requireAuth, (req, res) => {
                 );
             }
         );
+    });
+});
+
+// API endpoint to get public user profiles
+app.get('/api/public-profiles', requireAuth, (req, res) => {
+    const { city, role } = req.query;
+    
+    // Start building the query with only public information
+    let query = `
+        SELECT 
+            id, 
+            email, 
+            citta, 
+            ruolo
+        FROM userss 
+        WHERE 1=1
+    `;
+    
+    // Add parameters to the array
+    const params = [];
+    
+    // Add filters if provided
+    if (city) {
+        query += ` AND citta = ?`;
+        params.push(city);
+    }
+    
+    if (role) {
+        query += ` AND ruolo = ?`;
+        params.push(role);
+    }
+    
+    query += ` ORDER BY id DESC`;
+    
+    db.all(query, params, (err, rows) => {
+        if (err) {
+            console.error('Errore nel recupero dei profili pubblici:', err);
+            return res.status(500).json({ error: 'Errore del server' });
+        }
+        
+        res.json(rows);
     });
 });
 
