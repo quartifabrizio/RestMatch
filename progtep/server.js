@@ -878,6 +878,10 @@ app.get('/dashboard', requireAuth, (req, res) => {
     });
 });
 
+
+
+
+
 // Routes for chat
 app.get('/chat', requireAuth, (req, res) => {
     const query = `
