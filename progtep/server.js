@@ -4,17 +4,16 @@ const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
-//const SQLiteStore = require('connect-sqlite3')(session);
 const path = require('path');
 const serveStatic = require('serve-static');
 const http = require('http');
 const { Server } = require('socket.io');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-// Swagger dependencies
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const hbs = require('hbs');
+const fs = require('fs');
 
 const app = express();
 const port = 3000;
@@ -117,7 +116,11 @@ const swaggerOptions = {
             },
             country: {
               type: 'string',
-              description: 'Paese selezionato'
+              description: 'Regione selezionata'
+            },
+            city: {
+              type: 'string',
+              description: 'Città selezionata'
             },
             start_date: {
               type: 'string',
@@ -184,7 +187,7 @@ const swaggerOptions = {
       }
     }
   },
-  apis: ['./server.js'], // Percorso allo stesso file per leggere i commenti JSDoc
+  apis: ['./server.js'],
 };
 
 // Create HTTP server
@@ -195,20 +198,21 @@ const io = new Server(server);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(serveStatic(path.join(__dirname, 'public'))); // Modificato per utilizzare una cartella public per gli asset statici
+app.use(serveStatic(path.join(__dirname, 'public')));
 
-// Configure sessions - MODIFICATO per sessioni persistenti
+// Configure sessions
 app.use(
   session({
       secret: 'ilTuoSegretoSuperSegreto123',
       resave: false,
       saveUninitialized: false,
       cookie: {
-          secure: false, // Cambiare a true se si usa HTTPS
-          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 giorni in millisecondi
+          secure: false,
+          maxAge: 7 * 24 * 60 * 60 * 1000
       }
   })
 );
+
 // Initialize Passport.js
 app.use(passport.initialize());
 app.use(passport.session());
@@ -257,40 +261,16 @@ passport.deserializeUser((user, done) => {
     done(null, user);
 });
 
-/**
- * @swagger
- * /auth/google:
- *   get:
- *     summary: Inizia l'autenticazione tramite Google
- *     description: Reindirizza l'utente alla pagina di autenticazione di Google
- *     tags: [Autenticazione]
- *     responses:
- *       302:
- *         description: Reindirizza alla pagina di Google per autenticazione
- */
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-/**
- * @swagger
- * /auth/google/callback:
- *   get:
- *     summary: Callback per l'autenticazione di Google
- *     description: Endpoint di callback dopo l'autenticazione tramite Google
- *     tags: [Autenticazione]
- *     responses:
- *       302:
- *         description: Reindirizza alla dashboard in caso di successo o alla pagina di login in caso di fallimento
- */
 app.get('/auth/google/callback', passport.authenticate('google', {
     failureRedirect: '/login'
 }), (req, res) => {
-    // Salva i dati dell'utente nella sessione
     req.session.user = {
         id: req.user.id,
         email: req.user.email,
         ruolo: req.user.ruolo || 'google',
     };
-    // Reindirizza dopo il successo del login tramite Google
     res.redirect('/dashboard');
 });
 
@@ -335,99 +315,156 @@ const db = new sqlite3.Database('database.db', (err) => {
           }
       );
 
-        // Create preferences table
+        // Create preferences table with city column
         db.run(
             `CREATE TABLE IF NOT EXISTS preferences (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
                 country TEXT NOT NULL,
+                city TEXT NOT NULL,
                 start_date TEXT NOT NULL,
                 end_date TEXT NOT NULL,
                 job_type TEXT NOT NULL,
                 restaurant_type TEXT NOT NULL,
+                preference_name TEXT DEFAULT 'Default',
                 FOREIGN KEY (user_id) REFERENCES userss(id)
             )`, (err) => {
                 if (err) console.error('Errore durante la creazione della tabella preferenze:', err);
             }
         );
+        
+        // Create chat messages table
+        db.run(
+          `CREATE TABLE IF NOT EXISTS chat_messages (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              sender_id INTEGER NOT NULL,
+              recipient_id INTEGER,
+              room_id TEXT,
+              message TEXT NOT NULL,
+              timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+              is_read INTEGER DEFAULT 0,
+              FOREIGN KEY (sender_id) REFERENCES userss(id)
+          )`, (err) => {
+              if (err) console.error('Errore durante la creazione della tabella chat_messages:', err);
+          }
+        );
+        
+        // Create chat rooms table
+        db.run(
+          `CREATE TABLE IF NOT EXISTS chat_rooms (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL,
+              type TEXT NOT NULL,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )`, (err) => {
+              if (err) console.error('Errore durante la creazione della tabella chat_rooms:', err);
+          }
+        );
+        
+        // Create room participants table
+        db.run(
+          `CREATE TABLE IF NOT EXISTS room_participants (
+              room_id INTEGER NOT NULL,
+              user_id INTEGER NOT NULL,
+              joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (room_id, user_id),
+              FOREIGN KEY (room_id) REFERENCES chat_rooms(id),
+              FOREIGN KEY (user_id) REFERENCES userss(id)
+          )`, (err) => {
+              if (err) console.error('Errore durante la creazione della tabella room_participants:', err);
+          }
+        );
+        
+        // Create offers table
+        db.run(
+            `CREATE TABLE IF NOT EXISTS offerte (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                role TEXT NOT NULL,
+                description TEXT NOT NULL,
+                city TEXT NOT NULL,
+                region TEXT NOT NULL,
+                restaurant_type TEXT NOT NULL,
+                job_type TEXT NOT NULL,
+                start_date TEXT NOT NULL,
+                end_date TEXT NOT NULL,
+                salary TEXT,
+                imageUrl TEXT,
+                user_id INTEGER,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES userss(id)
+            )`, (err) => {
+                if (err) console.error('Errore durante la creazione della tabella offerte:', err);
+                else {
+                    console.log('Tabella offerte creata con successo');
+                    // Fetch initial job offers from external API and populate database
+                    fetchAndStoreJobOffers();
+                }
+            }
+        );
     }
 });
 
-// Create chat messages table in the database
-db.run(
-  `CREATE TABLE IF NOT EXISTS chat_messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sender_id INTEGER NOT NULL,
-      recipient_id INTEGER,
-      room_id TEXT,
-      message TEXT NOT NULL,
-      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-      is_read INTEGER DEFAULT 0,
-      FOREIGN KEY (sender_id) REFERENCES userss(id)
-  )`, (err) => {
-      if (err) console.error('Errore durante la creazione della tabella chat_messages:', err);
-  }
-);
+// Mappatura delle regioni italiane con le relative città
+const regionCityMapping = {
+    "Abruzzo": ["L'Aquila", "Pescara", "Chieti", "Teramo"],
+    "Basilicata": ["Potenza", "Matera"],
+    "Calabria": ["Reggio Calabria", "Catanzaro", "Cosenza", "Crotone", "Vibo Valentia"],
+    "Campania": ["Napoli", "Salerno", "Caserta", "Avellino", "Benevento"],
+    "Emilia-Romagna": ["Bologna", "Modena", "Parma", "Reggio Emilia", "Ravenna", "Ferrara", "Forlì-Cesena", "Rimini", "Piacenza"],
+    "Friuli-Venezia Giulia": ["Trieste", "Udine", "Pordenone", "Gorizia"],
+    "Lazio": ["Roma", "Latina", "Frosinone", "Viterbo", "Rieti"],
+    "Liguria": ["Genova", "La Spezia", "Savona", "Imperia"],
+    "Lombardia": ["Milano", "Brescia", "Bergamo", "Monza", "Como", "Varese", "Pavia", "Cremona", "Mantova", "Lecco", "Lodi", "Sondrio"],
+    "Marche": ["Ancona", "Pesaro e Urbino", "Macerata", "Ascoli Piceno", "Fermo"],
+    "Molise": ["Campobasso", "Isernia"],
+    "Piemonte": ["Torino", "Cuneo", "Alessandria", "Novara", "Asti", "Vercelli", "Biella", "Verbano-Cusio-Ossola"],
+    "Puglia": ["Bari", "Taranto", "Lecce", "Foggia", "Brindisi", "Barletta-Andria-Trani"],
+    "Sardegna": ["Cagliari", "Sassari", "Nuoro", "Oristano", "Sud Sardegna"],
+    "Sicilia": ["Palermo", "Catania", "Messina", "Siracusa", "Trapani", "Agrigento", "Ragusa", "Caltanissetta", "Enna"],
+    "Toscana": ["Firenze", "Pisa", "Livorno", "Siena", "Lucca", "Arezzo", "Pistoia", "Massa-Carrara", "Grosseto", "Prato"],
+    "Trentino-Alto Adige": ["Trento", "Bolzano"],
+    "Umbria": ["Perugia", "Terni"],
+    "Valle d'Aosta": ["Aosta"],
+    "Veneto": ["Venezia", "Verona", "Padova", "Vicenza", "Treviso", "Rovigo", "Belluno"]
+};
 
-// Create chat rooms table
-db.run(
-  `CREATE TABLE IF NOT EXISTS chat_rooms (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      type TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`, (err) => {
-      if (err) console.error('Errore durante la creazione della tabella chat_rooms:', err);
-  }
-);
+// Crea il file di mapping nella cartella public per l'uso client-side
+const regionsFilePath = path.join(__dirname, 'public', 'js', 'region-city-mapping.js');
+const regionsFileContent = `
+// Mappatura regioni-città per l'Italia
+const regionCityMapping = ${JSON.stringify(regionCityMapping, null, 2)};
 
-// Create room participants table
-db.run(
-  `CREATE TABLE IF NOT EXISTS room_participants (
-      room_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
-      joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (room_id, user_id),
-      FOREIGN KEY (room_id) REFERENCES chat_rooms(id),
-      FOREIGN KEY (user_id) REFERENCES userss(id)
-  )`, (err) => {
-      if (err) console.error('Errore durante la creazione della tabella room_participants:', err);
-  }
-);
+// Funzioni di utility
+function getAllRegions() {
+    return Object.keys(regionCityMapping);
+}
 
-// Add this after your existing table creations in the server.js file
+function getCitiesForRegion(region) {
+    return regionCityMapping[region] || [];
+}
 
-// Create offers table
-db.run(
-    `CREATE TABLE IF NOT EXISTS offerte (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        role TEXT NOT NULL,
-        description TEXT NOT NULL,
-        city TEXT NOT NULL,
-        region TEXT NOT NULL,
-        restaurant_type TEXT NOT NULL,
-        job_type TEXT NOT NULL,
-        start_date TEXT NOT NULL,
-        end_date TEXT NOT NULL,
-        salary TEXT,
-        imageUrl TEXT,
-        user_id INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES userss(id)
-    )`, (err) => {
-        if (err) console.error('Errore durante la creazione della tabella offerte:', err);
-        else {
-            console.log('Tabella offerte creata con successo');
-            // Fetch initial job offers from external API and populate database
-            fetchAndStoreJobOffers();
-        }
-    }
-  );
-  
-  // Function to fetch job offers from external API and store in database
-  // Modifica la funzione fetchAndStoreJobOffers:
-// Modified fetchAndStoreJobOffers function to include restaurant titles and assign users
+function getRandomRegion() {
+    const regions = getAllRegions();
+    return regions[Math.floor(Math.random() * regions.length)];
+}
+
+function getRandomCityFromRegion(region) {
+    const cities = getCitiesForRegion(region);
+    return cities[Math.floor(Math.random() * cities.length)];
+}
+`;
+
+// Assicurati che la directory esista
+if (!fs.existsSync(path.join(__dirname, 'public', 'js'))) {
+    fs.mkdirSync(path.join(__dirname, 'public', 'js'), { recursive: true });
+}
+
+// Scrivi il file
+fs.writeFileSync(regionsFilePath, regionsFileContent);
+console.log('File di mappatura regioni-città creato con successo');
+
+// Improved function to fetch and store job offers with proper region-city mapping
 function fetchAndStoreJobOffers() {
     fetch('https://remotive.com/api/remote-jobs?category=restaurants')
         .then(response => response.json())
@@ -449,63 +486,22 @@ function fetchAndStoreJobOffers() {
                             return;
                         }
                         
-                        
-                        
                         if (restaurantUsers.length === 0) {
                             console.error('Nessun ristoratore trovato nel database');
-                            return;
+                            // Insert a default restaurateur if none exist
+                            db.run(`INSERT INTO userss (email, telefono, data_nascita, citta, ruolo, password) 
+                                   VALUES ('ristoratore@example.com', '123456789', '1980-01-01', 'Milano', 'ristoratore', 'password123')`, 
+                                   function(err) {
+                                if (err) {
+                                    console.error('Errore durante la creazione del ristoratore di default:', err);
+                                    return;
+                                }
+                                const restaurantUsers = [{ id: this.lastID, nome: 'ristoratore@example.com' }];
+                                insertJobOffers(jobsToInsert, restaurantUsers);
+                            });
+                        } else {
+                            insertJobOffers(jobsToInsert, restaurantUsers);
                         }
-                        
-                        const restaurantTypes = ['Trattoria', 'Ristorante Cinese', 'Ristorante Italiano', 'Sushi', 'Fast Food', 'Pizzeria'];
-                        const italianCities = ['Roma', 'Milano', 'Napoli', 'Torino', 'Firenze', 'Bologna', 'Venezia', 'Palermo'];
-                        const italianRegions = ['Lazio', 'Lombardia', 'Campania', 'Piemonte', 'Toscana', 'Emilia-Romagna', 'Veneto', 'Sicilia'];
-                        const jobTypes = ['Chef', 'Cameriere', 'Barista', 'Lavapiatti', 'Responsabile Sala', 'Aiuto Cuoco'];
-                        
-                        const insertStmt = db.prepare('INSERT INTO offerte (title, role, description, city, region, restaurant_type, job_type, start_date, end_date, salary, imageUrl, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-                        
-                        jobsToInsert.forEach((job, index) => {
-                            // Assign a random restaurant user to each offer
-                            const randomUserIndex = Math.floor(Math.random() * restaurantUsers.length);
-                            const restaurantUser = restaurantUsers[randomUserIndex];
-                            
-                            const randomCity = italianCities[Math.floor(Math.random() * italianCities.length)];
-                            const randomRegion = italianRegions[Math.floor(Math.random() * italianRegions.length)];
-                            const randomRestaurantType = restaurantTypes[Math.floor(Math.random() * restaurantTypes.length)];
-                            const randomJobType = jobTypes[Math.floor(Math.random() * jobTypes.length)];
-                            
-                            const today = new Date();
-                            const startDate = new Date(today);
-                            startDate.setDate(today.getDate() + Math.floor(Math.random() * 30) + 1);
-                            
-                            const endDate = new Date(startDate);
-                            endDate.setDate(startDate.getDate() + Math.floor(Math.random() * 90) + 30);
-                            
-                            const formattedStartDate = startDate.toISOString().split('T')[0];
-                            const formattedEndDate = endDate.toISOString().split('T')[0];
-                            
-                            const imageUrl = `/images/restaurant-${(index % 5) + 1}.jpg`;
-                            
-                            // Use restaurant name as part of the title
-                            const title = `${restaurantUser.nome}: ${job.title.substring(0, 30)}`;
-                            
-                            insertStmt.run(
-                                title,
-                                randomJobType,
-                                job.description.substring(0, 200),
-                                randomCity,
-                                randomRegion,
-                                randomRestaurantType,
-                                randomJobType,
-                                formattedStartDate,
-                                formattedEndDate,
-                                `${1200 + Math.floor(Math.random() * 1800)}€/mese`,
-                                imageUrl,
-                                restaurantUser.id
-                            );
-                        });
-                        
-                        insertStmt.finalize();
-                        console.log('Offerte di lavoro importate con successo');
                     });
                 });
             }
@@ -514,48 +510,109 @@ function fetchAndStoreJobOffers() {
             console.error('Errore durante il recupero delle offerte di lavoro:', error);
         });
 }
-  
-  // Schedule a daily update of job offers
-  setInterval(fetchAndStoreJobOffers, 24 * 60 * 60 * 1000); // 24 hours
-  
-  // Add an endpoint to allow restaurateurs to create job offers
-  app.post('/create-offer', requireAuth, (req, res) => {
-      // Check if user is a restaurant
-      if (req.session.user.ruolo !== 'ristorante') {
-          return res.status(403).send('Solo i ristoratori possono creare offerte di lavoro');
-      }
-      
-      const { title, role, description, city, region, restaurant_type, job_type, start_date, end_date, salary } = req.body;
-      
-      // Basic validation
-      if (!title || !role || !description || !city || !region || !restaurant_type || !job_type || !start_date || !end_date) {
-          return res.status(400).send('Tutti i campi sono obbligatori');
-      }
-      
-      // Generate random image for the job posting
-      const imageUrl = `/images/restaurant-${Math.floor(Math.random() * 5) + 1}.jpg`;
-      
-      // Insert the job offer into the database
-      const query = `
-          INSERT INTO offerte 
-          (title, role, description, city, region, restaurant_type, job_type, start_date, end_date, salary, imageUrl, user_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      
-      db.run(query, [
-          title, role, description, city, region, restaurant_type, job_type, start_date, end_date, 
-          salary || `${1200 + Math.floor(Math.random() * 1800)}€/mese`, imageUrl, req.session.user.id
-      ], function(err) {
-          if (err) {
-              console.error('Errore durante la creazione dell\'offerta:', err);
-              return res.status(500).send('Errore del server');
-          }
-          
-          res.status(200).json({ success: true, message: 'Offerta creata con successo', id: this.lastID });
-      });
-  });
 
-  // Add this endpoint to handle contacting the restaurant owner
+function insertJobOffers(jobsToInsert, restaurantUsers) {
+    const restaurantTypes = ['Trattoria', 'Ristorante Cinese', 'Ristorante Italiano', 'Sushi', 'Fast Food', 'Pizzeria'];
+    const jobTypes = ['Chef', 'Cameriere', 'Barista', 'Lavapiatti', 'Responsabile Sala', 'Aiuto Cuoco'];
+    
+    const insertStmt = db.prepare('INSERT INTO offerte (title, role, description, city, region, restaurant_type, job_type, start_date, end_date, salary, imageUrl, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    
+    jobsToInsert.forEach((job, index) => {
+        // Assign a random restaurant user to each offer
+        const randomUserIndex = Math.floor(Math.random() * restaurantUsers.length);
+        const restaurantUser = restaurantUsers[randomUserIndex];
+        
+        // Get a random region and corresponding city
+        const regions = Object.keys(regionCityMapping);
+        const randomRegion = regions[Math.floor(Math.random() * regions.length)];
+        const citiesInRegion = regionCityMapping[randomRegion];
+        const randomCity = citiesInRegion[Math.floor(Math.random() * citiesInRegion.length)];
+        
+        const randomRestaurantType = restaurantTypes[Math.floor(Math.random() * restaurantTypes.length)];
+        const randomJobType = jobTypes[Math.floor(Math.random() * jobTypes.length)];
+        
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() + Math.floor(Math.random() * 30) + 1);
+        
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + Math.floor(Math.random() * 90) + 30);
+        
+        const formattedStartDate = startDate.toISOString().split('T')[0];
+        const formattedEndDate = endDate.toISOString().split('T')[0];
+        
+        const imageUrl = `/images/restaurant-${(index % 5) + 1}.jpg`;
+        
+        // Use restaurant name as part of the title
+        const title = `${restaurantUser.nome}: ${job.title.substring(0, 30)}`;
+        
+        insertStmt.run(
+            title,
+            randomJobType,
+            job.description.substring(0, 200),
+            randomCity,
+            randomRegion,
+            randomRestaurantType,
+            randomJobType,
+            formattedStartDate,
+            formattedEndDate,
+            `${1200 + Math.floor(Math.random() * 1800)}€/mese`,
+            imageUrl,
+            restaurantUser.id
+        );
+    });
+    
+    insertStmt.finalize();
+    console.log('Offerte di lavoro importate con successo');
+}
+
+// Schedule a daily update of job offers
+setInterval(fetchAndStoreJobOffers, 24 * 60 * 60 * 1000);
+
+// Add an endpoint to allow restaurateurs to create job offers
+app.post('/create-offer', requireAuth, (req, res) => {
+    // Check if user is a restaurant
+    if (req.session.user.ruolo !== 'ristoratore') {
+        return res.status(403).send('Solo i ristoratori possono creare offerte di lavoro');
+    }
+    
+    const { title, role, description, city, region, restaurant_type, job_type, start_date, end_date, salary } = req.body;
+    
+    // Basic validation
+    if (!title || !role || !description || !city || !region || !restaurant_type || !job_type || !start_date || !end_date) {
+        return res.status(400).send('Tutti i campi sono obbligatori');
+    }
+    
+    // Validate that city belongs to the selected region
+    const citiesInRegion = regionCityMapping[region] || [];
+    if (!citiesInRegion.includes(city)) {
+        return res.status(400).send('La città selezionata non appartiene alla regione selezionata');
+    }
+    
+    // Generate random image for the job posting
+    const imageUrl = `/images/restaurant-${Math.floor(Math.random() * 5) + 1}.jpg`;
+    
+    // Insert the job offer into the database
+    const query = `
+        INSERT INTO offerte 
+        (title, role, description, city, region, restaurant_type, job_type, start_date, end_date, salary, imageUrl, user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    db.run(query, [
+        title, role, description, city, region, restaurant_type, job_type, start_date, end_date, 
+        salary || `${1200 + Math.floor(Math.random() * 1800)}€/mese`, imageUrl, req.session.user.id
+    ], function(err) {
+        if (err) {
+            console.error('Errore durante la creazione dell\'offerta:', err);
+            return res.status(500).send('Errore del server');
+        }
+        
+        res.status(200).json({ success: true, message: 'Offerta creata con successo', id: this.lastID });
+    });
+});
+
+// Add this endpoint to handle contacting the restaurant owner
 app.post('/api/contact-restaurateur', requireAuth, (req, res) => {
     const userId = req.session.user.id;
     const { offerId } = req.body;
@@ -633,14 +690,20 @@ app.post('/api/contact-restaurateur', requireAuth, (req, res) => {
         );
     });
 });
-  
-  // Modify the save-preferences route to also return matching job offers
-  app.post('/save-preferences', requireAuth, (req, res) => {
+
+// Modify the save-preferences route to include city
+app.post('/save-preferences', requireAuth, (req, res) => {
     const { region, city, startDate, endDate, jobType, restaurantType, preferenceName } = req.body;
     
     // Basic validation
     if (!region || !city || !startDate || !endDate || !jobType || !restaurantType) {
         return res.status(400).json({ success: false, message: 'Tutti i campi sono obbligatori' });
+    }
+    
+    // Validate that city belongs to the selected region
+    const citiesInRegion = regionCityMapping[region] || [];
+    if (!citiesInRegion.includes(city)) {
+        return res.status(400).json({ success: false, message: 'La città selezionata non appartiene alla regione selezionata' });
     }
     
     // Check if preference with this name already exists for this user
@@ -763,537 +826,18 @@ app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
     });
 });
 
-// Update database schema to add preference_name column
-db.run(
-    `ALTER TABLE preferences ADD COLUMN preference_name TEXT DEFAULT 'Default'`,
-    (err) => {
-        if (err && !err.message.includes('duplicate column name')) {
-            console.error('Errore durante l\'aggiunta della colonna preference_name:', err);
-        }
-    }
-);
-  
-  // Update the dashboard route to include job offers based on preferences
-  app.get('/dashboard', requireAuth, (req, res) => {
-      const userId = req.session.user.id;
-      
-      // Get user preferences
-      const preferencesQuery = 'SELECT * FROM preferences WHERE user_id = ?';
-      db.get(preferencesQuery, [userId], (err, preferences) => {
-          if (err) {
-              console.error('Errore durante il recupero delle preferenze:', err);
-              return res.status(500).send('Errore del server');
-          }
-          
-          // If preferences exist, get matching job offers
-          if (preferences) {
-              const offersQuery = `
-                  SELECT * FROM offerte
-                  WHERE (region = ? OR city = ?) 
-                  AND job_type = ?
-                  AND restaurant_type = ?
-                  AND (
-                      (start_date BETWEEN ? AND ?) OR
-                      (end_date BETWEEN ? AND ?) OR
-                      (start_date <= ? AND end_date >= ?)
-                  )
-                  ORDER BY created_at DESC
-                  LIMIT 20
-              `;
-              
-              db.all(offersQuery, [
-                  preferences.country, preferences.country, preferences.job_type, preferences.restaurant_type,
-                  preferences.start_date, preferences.end_date, preferences.start_date, preferences.end_date,
-                  preferences.start_date, preferences.end_date
-              ], (err, jobs) => {
-                  if (err) {
-                      console.error('Errore durante il recupero delle offerte di lavoro:', err);
-                      return res.status(500).send('Errore del server');
-                  }
-                  
-                  // Map preferences to the expected format in the template
-                  const mappedPreferences = {
-                      region: preferences.country,
-                      city: preferences.country, // Using country for city as well for simplicity
-                      startDate: preferences.start_date,
-                      endDate: preferences.end_date,
-                      jobType: preferences.job_type,
-                      restaurantType: preferences.restaurant_type
-                  };
-                  
-                  res.render('dashboard', {
-                      user: req.session.user,
-                      preferences: mappedPreferences,
-                      jobs: jobs,
-                      year: new Date().getFullYear()
-                  });
-              });
-          } else {
-              // If no preferences, get random job offers
-              const randomJobsQuery = 'SELECT * FROM offerte ORDER BY RANDOM() LIMIT 10';
-              db.all(randomJobsQuery, [], (err, jobs) => {
-                  if (err) {
-                      console.error('Errore durante il recupero delle offerte di lavoro casuali:', err);
-                      return res.status(500).send('Errore del server');
-                  }
-                  
-                  res.render('dashboard', {
-                      user: req.session.user,
-                      preferences: {},
-                      jobs: jobs,
-                      year: new Date().getFullYear()
-                  });
-              });
-          }
-      });
-  });
-
-/**
- * @swagger
- * /chat:
- *   get:
- *     summary: Pagina chat
- *     description: Restituisce la pagina della chat
- *     tags: [Pagine]
- *     security:
- *       - sessionAuth: []
- *     responses:
- *       200:
- *         description: Pagina della chat
- */
-app.get('/chat', requireAuth, (req, res) => {
-    // Recupera le chat rooms dell'utente
-    const query = `
-        SELECT r.id, r.name, r.type, 
-            (SELECT COUNT(*) FROM room_participants WHERE room_id = r.id) as participant_count,
-            (SELECT COUNT(*) FROM chat_messages WHERE room_id = r.id AND recipient_id = ? AND is_read = 0) as unread_count
-        FROM chat_rooms r
-        JOIN room_participants p ON r.id = p.room_id
-        WHERE p.user_id = ?
-        ORDER BY r.created_at DESC
-    `;
-    
-    db.all(query, [req.session.user.id, req.session.user.id], (err, rooms) => {
-        if (err) {
-            console.error('Errore durante il recupero delle chat rooms:', err);
-            return res.status(500).send('Errore del server');
-        }
-        
-        // Recupera gli utenti online per mostrare lo stato
-        const userQuery = `SELECT id, email, ruolo FROM userss WHERE id != ?`;
-        db.all(userQuery, [req.session.user.id], (err, users) => {
-            if (err) {
-                console.error('Errore durante il recupero degli utenti:', err);
-                return res.status(500).send('Errore del server');
-            }
-            
-            res.render('chat', {
-                user: req.session.user,
-                rooms: rooms,
-                users: users,
-                year: new Date().getFullYear()
-            });
-        });
-    });
+// API to get all regions
+app.get('/api/regions', (req, res) => {
+    res.json(Object.keys(regionCityMapping));
 });
 
-/**
- * @swagger
- * /chat/{roomId}:
- *   get:
- *     summary: Pagina di una specifica chat room
- *     description: Mostra i messaggi di una specifica chat room
- *     tags: [Pagine]
- *     security:
- *       - sessionAuth: []
- *     parameters:
- *       - in: path
- *         name: roomId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID della chat room
- *     responses:
- *       200:
- *         description: Pagina della chat room
- *       404:
- *         description: Chat room non trovata
- */
-app.get('/chat/:roomId', requireAuth, (req, res) => {
-    const roomId = req.params.roomId;
-    const userId = req.session.user.id;
-    
-    // Verifica che l'utente sia un partecipante della room
-    const participantQuery = `SELECT * FROM room_participants WHERE room_id = ? AND user_id = ?`;
-    db.get(participantQuery, [roomId, userId], (err, participant) => {
-        if (err || !participant) {
-            return res.status(404).send('Chat room non trovata o accesso non autorizzato');
-        }
-        
-        // Recupera i dettagli della room
-        const roomQuery = `SELECT * FROM chat_rooms WHERE id = ?`;
-        db.get(roomQuery, [roomId], (err, room) => {
-            if (err || !room) {
-                return res.status(404).send('Chat room non trovata');
-            }
-            
-            // Recupera i messaggi della room
-            const messagesQuery = `
-                SELECT m.*, u.email as sender_email
-                FROM chat_messages m
-                JOIN userss u ON m.sender_id = u.id
-                WHERE m.room_id = ?
-                ORDER BY m.timestamp ASC
-            `;
-            
-            db.all(messagesQuery, [roomId], (err, messages) => {
-                if (err) {
-                    console.error('Errore durante il recupero dei messaggi:', err);
-                    return res.status(500).send('Errore del server');
-                }
-                
-                // Marca i messaggi come letti
-                db.run(`UPDATE chat_messages SET is_read = 1 WHERE room_id = ? AND recipient_id = ?`, 
-                    [roomId, userId], (err) => {
-                    if (err) {
-                        console.error('Errore durante l\'aggiornamento dello stato dei messaggi:', err);
-                    }
-                    
-                    // Recupera i partecipanti alla room
-                    const participantsQuery = `
-                        SELECT u.id, u.email
-                        FROM room_participants rp
-                        JOIN userss u ON rp.user_id = u.id
-                        WHERE rp.room_id = ?
-                    `;
-                    
-                    db.all(participantsQuery, [roomId], (err, participants) => {
-                        if (err) {
-                            console.error('Errore durante il recupero dei partecipanti:', err);
-                            return res.status(500).send('Errore del server');
-                        }
-                        
-                        // Formatta i messaggi per la visualizzazione
-                        const formattedMessages = messages.map(msg => {
-                            return {
-                                content: msg.message,
-                                sender: msg.sender_email,
-                                timestamp: new Date(msg.timestamp).toLocaleString(),
-                                isSelf: msg.sender_id === userId
-                            };
-                        });
-                        
-                        res.render('chat_room', {
-                            user: req.session.user,
-                            room: room,
-                            messages: formattedMessages,
-                            participants: participants,
-                            roomId: roomId,
-                            year: new Date().getFullYear()
-                        });
-                    });
-                });
-            });
-        });
-    });
+// API to get cities for a region
+app.get('/api/cities/:region', (req, res) => {
+    const region = req.params.region;
+    res.json(regionCityMapping[region] || []);
 });
 
-/**
- * @swagger
- * /api/rooms:
- *   post:
- *     summary: Crea una nuova chat room
- *     description: Crea una nuova chat room con i partecipanti specificati
- *     tags: [Chat]
- *     security:
- *       - sessionAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               type:
- *                 type: string
- *                 enum: [private, group]
- *               participants:
- *                 type: array
- *                 items:
- *                   type: integer
- *     responses:
- *       201:
- *         description: Chat room creata con successo
- *       500:
- *         description: Errore del server
- */
-app.post('/api/rooms', requireAuth, (req, res) => {
-    const { name, type, participants } = req.body;
-    const userId = req.session.user.id;
-    
-    // Inserisci la nuova room
-    const insertRoomQuery = `INSERT INTO chat_rooms (name, type) VALUES (?, ?)`;
-    db.run(insertRoomQuery, [name, type], function(err) {
-        if (err) {
-            console.error('Errore durante la creazione della chat room:', err);
-            return res.status(500).json({ error: 'Errore del server' });
-        }
-        
-        const roomId = this.lastID;
-        
-        // Aggiungi il creatore come partecipante
-        const insertParticipantQuery = `INSERT INTO room_participants (room_id, user_id) VALUES (?, ?)`;
-        db.run(insertParticipantQuery, [roomId, userId], function(err) {
-            if (err) {
-                console.error('Errore durante l\'aggiunta del partecipante:', err);
-                return res.status(500).json({ error: 'Errore del server' });
-            }
-            
-            // Aggiungi altri partecipanti
-            if (participants && participants.length > 0) {
-                const stmt = db.prepare(insertParticipantQuery);
-                participants.forEach(participantId => {
-                    if (participantId !== userId) { // Evita duplicati
-                        stmt.run(roomId, participantId);
-                    }
-                });
-                stmt.finalize();
-            }
-            
-            res.status(201).json({ 
-                success: true, 
-                roomId: roomId, 
-                message: 'Chat room creata con successo' 
-            });
-        });
-    });
-});
-
-/**
- * @swagger
- * /api/messages:
- *   post:
- *     summary: Invia un messaggio
- *     description: Invia un messaggio a una chat room
- *     tags: [Chat]
- *     security:
- *       - sessionAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               roomId:
- *                 type: integer
- *               message:
- *                 type: string
- *     responses:
- *       201:
- *         description: Messaggio inviato con successo
- *       500:
- *         description: Errore del server
- */
-app.post('/api/messages', requireAuth, (req, res) => {
-    const { roomId, message } = req.body;
-    const senderId = req.session.user.id;
-    
-    // Verifica che il mittente sia un partecipante della room
-    const participantQuery = `SELECT * FROM room_participants WHERE room_id = ? AND user_id = ?`;
-    db.get(participantQuery, [roomId, senderId], (err, participant) => {
-        if (err || !participant) {
-            return res.status(403).json({ error: 'Non sei un partecipante di questa chat room' });
-        }
-        
-        // Ottieni i destinatari (altri partecipanti della room)
-        const recipientsQuery = `SELECT user_id FROM room_participants WHERE room_id = ? AND user_id != ?`;
-        db.all(recipientsQuery, [roomId, senderId], (err, recipients) => {
-            if (err) {
-                console.error('Errore durante il recupero dei destinatari:', err);
-                return res.status(500).json({ error: 'Errore del server' });
-            }
-            
-            // Inserisci un messaggio per ogni destinatario
-            recipients.forEach(recipient => {
-                const insertMsgQuery = `
-                    INSERT INTO chat_messages (sender_id, recipient_id, room_id, message)
-                    VALUES (?, ?, ?, ?)
-                `;
-                db.run(insertMsgQuery, [senderId, recipient.user_id, roomId, message], function(err) {
-                    if (err) {
-                        console.error('Errore durante l\'invio del messaggio:', err);
-                    }
-                });
-            });
-            
-            // Recupera l'email del mittente per il socket
-            db.get(`SELECT email FROM userss WHERE id = ?`, [senderId], (err, user) => {
-                if (!err && user) {
-                    // Emetti l'evento per il socket
-                    io.to(`room_${roomId}`).emit('chat message', {
-                        content: message,
-                        sender: user.email,
-                        senderId: senderId,
-                        roomId: roomId,
-                        timestamp: new Date().toLocaleString()
-                    });
-                }
-                
-                res.status(201).json({ success: true, message: 'Messaggio inviato' });
-            });
-        });
-    });
-});
-
-/**
- * @swagger
- * /registra:
- *   post:
- *     summary: Registra un nuovo utente
- *     description: Registra un nuovo utente nel sistema
- *     tags: [Utenti]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RegisterRequest'
- *         application/x-www-form-urlencoded:
- *           schema:
- *             $ref: '#/components/schemas/RegisterRequest'
- *     responses:
- *       201:
- *         description: Registrazione completata con successo
- *       400:
- *         description: Utente già registrato
- *       500:
- *         description: Errore del server
- */
-app.post('/registra', (req, res) => {
-    const { email, telefono, data_nascita, citta, ruolo, password } = req.body;
-
-    const query = `INSERT INTO userss (email, telefono, data_nascita, citta, ruolo, password) VALUES (?, ?, ?, ?, ?, ?)`;
-    db.run(query, [email, telefono, data_nascita, citta, ruolo, password], function (err) {
-        if (err) {
-            if (err.code === 'SQLITE_CONSTRAINT') {
-                return res.status(400).send('Utente già registrato');
-            }
-            console.error('Errore durante la registrazione:', err);
-            return res.status(500).send('Errore del server');
-        }
-        res.status(201).send('Registrazione completata!');
-    });
-});
-
-/**
- * @swagger
- * /login:
- *   post:
- *     summary: Effettua il login
- *     description: Autentica un utente tramite email e password
- *     tags: [Autenticazione]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/LoginRequest'
- *         application/x-www-form-urlencoded:
- *           schema:
- *             $ref: '#/components/schemas/LoginRequest'
- *     responses:
- *       200:
- *         description: Login avvenuto con successo
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 redirect:
- *                   type: string
- *                   description: URL di reindirizzamento
- *       401:
- *         description: Credenziali non valide
- *       500:
- *         description: Errore del server
- */
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-
-  const query = `SELECT * FROM userss WHERE email = ? AND password = ?`;
-  db.get(query, [email, password], (err, row) => {
-      if (err) {
-          console.error('Errore durante il login:', err);
-          return res.status(500).send('Errore del server');
-      }
-      if (!row) {
-          return res.status(401).send('Credenziali non valide');
-      }
-
-      req.session.user = {
-          id: row.id,
-          email: row.email,
-          ruolo: row.ruolo,
-      };
-
-      // Check if user is admin by checking email domain
-      if (row.ruolo === 'admin' || email.endsWith('@admin.it')) {
-          return res.json({ redirect: '/admin' });
-      }
-
-      res.json({ redirect: '/dashboard' });
-  });
-});
-
-
-/**
- * @swagger
- * /logout:
- *   get:
- *     summary: Effettua il logout
- *     description: Termina la sessione dell'utente
- *     tags: [Autenticazione]
- *     security:
- *       - sessionAuth: []
- *     responses:
- *       302:
- *         description: Reindirizza alla home page dopo il logout
- *       500:
- *         description: Errore del server
- */
-app.get('/logout', (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            console.error('Errore durante il logout:', err);
-            return res.status(500).send('Errore del server');
-        }
-        res.clearCookie('connect.sid');
-        res.redirect('/');
-    });
-});
-
-/**
- * @swagger
- * /dashboard:
- *   get:
- *     summary: Pagina dashboard
- *     description: Restituisce la pagina dashboard dell'utente
- *     tags: [Pagine]
- *     security:
- *       - sessionAuth: []
- *     responses:
- *       200:
- *         description: Pagina dashboard
- *         content:
- *           text/html:
- *             schema:
- *               type: string
- *       401:
- *         description: Accesso non autorizzato
- */
+// Update the dashboard route to include job offers based on preferences
 app.get('/dashboard', requireAuth, (req, res) => {
     // First, fetch all user preferences
     const getUserPreferences = `SELECT * FROM preferences WHERE user_id = ?`;
@@ -1322,9 +866,10 @@ app.get('/dashboard', requireAuth, (req, res) => {
             
             res.render('dashboard', {
                 user: req.session.user,
-                preferences: preferences.length > 0 ? preferences[0] : {}, // We'll modify this to handle multiple preferences
-                allPreferences: preferences, // Pass all preferences to the template
+                preferences: preferences.length > 0 ? preferences[0] : {},
+                allPreferences: preferences,
                 jobs: jobs,
+                regions: Object.keys(regionCityMapping),
                 helpers: {
                     equals: function(a, b) { return a === b; }
                 }
@@ -1333,759 +878,364 @@ app.get('/dashboard', requireAuth, (req, res) => {
     });
 });
 
-/**
- * @swagger
- * /chat:
- *   get:
- *     summary: Pagina chat
- *     description: Restituisce la pagina della chat
- *     tags: [Pagine]
- *     responses:
- *       200:
- *         description: Pagina della chat
- *         content:
- *           text/html:
- *             schema:
- *               type: string
- */
-app.get('/chat', (req, res) => {
-    // Modificato per utilizzare il template HBS
-    res.render('chat', {
-        user: req.session.user,
-        year: new Date().getFullYear()
+// Routes for chat
+app.get('/chat', requireAuth, (req, res) => {
+    const query = `
+        SELECT r.id, r.name, r.type, 
+            (SELECT COUNT(*) FROM room_participants WHERE room_id = r.id) as participant_count,
+            (SELECT COUNT(*) FROM chat_messages WHERE room_id = r.id AND recipient_id = ? AND is_read = 0) as unread_count
+        FROM chat_rooms r
+        JOIN room_participants p ON r.id = p.room_id
+        WHERE p.user_id = ?
+        ORDER BY r.created_at DESC
+    `;
+    
+    db.all(query, [req.session.user.id, req.session.user.id], (err, rooms) => {
+        if (err) {
+            console.error('Errore durante il recupero delle chat rooms:', err);
+            return res.status(500).send('Errore del server');
+        }
+        
+        const userQuery = `SELECT id, email, ruolo FROM userss WHERE id != ?`;
+        db.all(userQuery, [req.session.user.id], (err, users) => {
+            if (err) {
+                console.error('Errore durante il recupero degli utenti:', err);
+                return res.status(500).send('Errore del server');
+            }
+            
+            res.render('chat', {
+                user: req.session.user,
+                rooms: rooms,
+                users: users,
+                year: new Date().getFullYear()
+            });
+        });
     });
 });
 
-/**
- * @swagger
- * /:
- *   get:
- *     summary: Home page
- *     description: Restituisce la pagina principale
- *     tags: [Pagine]
- *     responses:
- *       200:
- *         description: Home page
- *         content:
- *           text/html:
- *             schema:
- *               type: string
- */
+app.get('/chat/:roomId', requireAuth, (req, res) => {
+    const roomId = req.params.roomId;
+    const userId = req.session.user.id;
+    
+    const participantQuery = `SELECT * FROM room_participants WHERE room_id = ? AND user_id = ?`;
+    db.get(participantQuery, [roomId, userId], (err, participant) => {
+        if (err || !participant) {
+            return res.status(404).send('Chat room non trovata o accesso non autorizzato');
+        }
+        
+        const roomQuery = `SELECT * FROM chat_rooms WHERE id = ?`;
+        db.get(roomQuery, [roomId], (err, room) => {
+            if (err || !room) {
+                return res.status(404).send('Chat room non trovata');
+            }
+            
+            const messagesQuery = `
+                SELECT m.*, u.email as sender_email
+                FROM chat_messages m
+                JOIN userss u ON m.sender_id = u.id
+                WHERE m.room_id = ?
+                ORDER BY m.timestamp ASC
+            `;
+            
+            db.all(messagesQuery, [roomId], (err, messages) => {
+                if (err) {
+                    console.error('Errore durante il recupero dei messaggi:', err);
+                    return res.status(500).send('Errore del server');
+                }
+                
+                db.run(`UPDATE chat_messages SET is_read = 1 WHERE room_id = ? AND recipient_id = ?`, 
+                    [roomId, userId], (err) => {
+                    if (err) {
+                        console.error('Errore durante l\'aggiornamento dello stato dei messaggi:', err);
+                    }
+                    
+                    const participantsQuery = `
+                        SELECT u.id, u.email
+                        FROM room_participants rp
+                        JOIN userss u ON rp.user_id = u.id
+                        WHERE rp.room_id = ?
+                    `;
+                    
+                    db.all(participantsQuery, [roomId], (err, participants) => {
+                        if (err) {
+                            console.error('Errore durante il recupero dei partecipanti:', err);
+                            return res.status(500).send('Errore del server');
+                        }
+                        
+                        const formattedMessages = messages.map(msg => {
+                            return {
+                                content: msg.message,
+                                sender: msg.sender_email,
+                                timestamp: new Date(msg.timestamp).toLocaleString(),
+                                isSelf: msg.sender_id === userId
+                            };
+                        });
+                        
+                        res.render('chat_room', {
+                            user: req.session.user,
+                            room: room,
+                            messages: formattedMessages,
+                            participants: participants,
+                            roomId: roomId,
+                            year: new Date().getFullYear()
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+// API routes for chat
+app.post('/api/rooms', requireAuth, (req, res) => {
+    const { name, type, participants } = req.body;
+    const userId = req.session.user.id;
+    
+    const insertRoomQuery = `INSERT INTO chat_rooms (name, type) VALUES (?, ?)`;
+    db.run(insertRoomQuery, [name, type], function(err) {
+        if (err) {
+            console.error('Errore durante la creazione della chat room:', err);
+            return res.status(500).json({ error: 'Errore del server' });
+        }
+        
+        const roomId = this.lastID;
+        
+        const insertParticipantQuery = `INSERT INTO room_participants (room_id, user_id) VALUES (?, ?)`;
+        db.run(insertParticipantQuery, [roomId, userId], function(err) {
+            if (err) {
+                console.error('Errore durante l\'aggiunta del partecipante:', err);
+                return res.status(500).json({ error: 'Errore del server' });
+            }
+            
+            if (participants && participants.length > 0) {
+                const stmt = db.prepare(insertParticipantQuery);
+                participants.forEach(participantId => {
+                    if (participantId !== userId) {
+                        stmt.run(roomId, participantId);
+                    }
+                });
+                stmt.finalize();
+            }
+            
+            res.status(201).json({ 
+                success: true, 
+                roomId: roomId, 
+                message: 'Chat room creata con successo' 
+            });
+        });
+    });
+});
+
+app.post('/api/messages', requireAuth, (req, res) => {
+    const { roomId, message } = req.body;
+    const senderId = req.session.user.id;
+    
+    const participantQuery = `SELECT * FROM room_participants WHERE room_id = ? AND user_id = ?`;
+    db.get(participantQuery, [roomId, senderId], (err, participant) => {
+        if (err || !participant) {
+            return res.status(403).json({ error: 'Non sei un partecipante di questa chat room' });
+        }
+        
+        const recipientsQuery = `SELECT user_id FROM room_participants WHERE room_id = ? AND user_id != ?`;
+        db.all(recipientsQuery, [roomId, senderId], (err, recipients) => {
+            if (err) {
+                console.error('Errore durante il recupero dei destinatari:', err);
+                return res.status(500).json({ error: 'Errore del server' });
+            }
+            
+            recipients.forEach(recipient => {
+                const insertMsgQuery = `
+                    INSERT INTO chat_messages (sender_id, recipient_id, room_id, message)
+                    VALUES (?, ?, ?, ?)
+                `;
+                db.run(insertMsgQuery, [senderId, recipient.user_id, roomId, message], function(err) {
+                    if (err) {
+                        console.error('Errore durante l\'invio del messaggio:', err);
+                    }
+                });
+            });
+            
+            db.get(`SELECT email FROM userss WHERE id = ?`, [senderId], (err, user) => {
+                if (!err && user) {
+                    io.to(`room_${roomId}`).emit('chat message', {
+                        content: message,
+                        sender: user.email,
+                        senderId: senderId,
+                        roomId: roomId,
+                        timestamp: new Date().toLocaleString()
+                    });
+                }
+                
+                res.status(201).json({ success: true, message: 'Messaggio inviato' });
+            });
+        });
+    });
+});
+
+// Basic routes
+app.post('/registra', (req, res) => {
+    const { email, telefono, data_nascita, citta, ruolo, password } = req.body;
+
+    const query = `INSERT INTO userss (email, telefono, data_nascita, citta, ruolo, password) VALUES (?, ?, ?, ?, ?, ?)`;
+    db.run(query, [email, telefono, data_nascita, citta, ruolo, password], function (err) {
+        if (err) {
+            if (err.code === 'SQLITE_CONSTRAINT') {
+                return res.status(400).send('Utente già registrato');
+            }
+            console.error('Errore durante la registrazione:', err);
+            return res.status(500).send('Errore del server');
+        }
+        res.status(201).send('Registrazione completata!');
+    });
+});
+
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+
+    const query = `SELECT * FROM userss WHERE email = ? AND password = ?`;
+    db.get(query, [email, password], (err, row) => {
+        if (err) {
+            console.error('Errore durante il login:', err);
+            return res.status(500).send('Errore del server');
+        }
+        if (!row) {
+            return res.status(401).send('Credenziali non valide');
+        }
+
+        req.session.user = {
+            id: row.id,
+            email: row.email,
+            ruolo: row.ruolo,
+        };
+
+        if (row.ruolo === 'admin' || email.endsWith('@admin.it')) {
+            return res.json({ redirect: '/admin' });
+        }
+
+        res.json({ redirect: '/dashboard' });
+    });
+});
+
+app.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Errore durante il logout:', err);
+            return res.status(500).send('Errore del server');
+        }
+        res.clearCookie('connect.sid');
+        res.redirect('/');
+    });
+});
+
 app.get('/', (req, res) => {
-    // Se l'utente è già autenticato, reindirizza alla dashboard
     if (req.session.user) {
         return res.redirect('/dashboard');
     }
-    // Altrimenti mostra la pagina di login
     res.render('index', {
         year: new Date().getFullYear()
     });
 });
 
-/**
- * @swagger
- * /registra:
- *   get:
- *     summary: Pagina di registrazione
- *     description: Restituisce la pagina di registrazione utente
- *     tags: [Pagine]
- *     responses:
- *       200:
- *         description: Pagina di registrazione
- *         content:
- *           text/html:
- *             schema:
- *               type: string
- */
 app.get('/registra', (req, res) => {
-    // Modificato per utilizzare il template HBS
     res.render('registra', {
         year: new Date().getFullYear()
     });
 });
 
-/**
- * @swagger
- * /save-preferences:
- *   post:
- *     summary: Salva le preferenze utente
- *     description: Salva le preferenze dell'utente nel database
- *     tags: [Utenti]
- *     security:
- *       - sessionAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               region:
- *                 type: string
- *               city:
- *                 type: string
- *               startDate:
- *                 type: string
- *               endDate:
- *                 type: string
- *               jobType:
- *                 type: string
- *               restaurantType:
- *                 type: string
- *     responses:
- *       200:
- *         description: Preferenze salvate con successo
- *       401:
- *         description: Utente non autenticato
- *       500:
- *         description: Errore del server
- */
-app.post('/save-preferences', requireAuth, (req, res) => {
-    const { region, city, startDate, endDate, jobType, restaurantType } = req.body;
-    const userId = req.session.user.id;
-
-    const checkQuery = `SELECT * FROM preferences WHERE user_id = ?`;
-    db.get(checkQuery, [userId], (err, row) => {
-        if (err) {
-            console.error('Errore durante il controllo delle preferenze:', err);
-            return res.status(500).send('Errore del server');
-        }
-
-        if (row) {
-            // Update existing preferences
-            const updateQuery = `UPDATE preferences SET country = ?, start_date = ?, end_date = ?, job_type = ?, restaurant_type = ? WHERE user_id = ?`;
-            db.run(updateQuery, [region, startDate, endDate, jobType, restaurantType, userId], function(err) {
-                if (err) {
-                    console.error('Errore durante l\'aggiornamento delle preferenze:', err);
-                    return res.status(500).send('Errore del server');
-                }
-                res.status(200).send('Preferenze aggiornate con successo');
-            });
-        } else {
-            // Insert new preferences
-            const insertQuery = `INSERT INTO preferences (user_id, country, start_date, end_date, job_type, restaurant_type) VALUES (?, ?, ?, ?, ?, ?)`;
-            db.run(insertQuery, [userId, region, startDate, endDate, jobType, restaurantType], function(err) {
-                if (err) {
-                    console.error('Errore durante l\'inserimento delle preferenze:', err);
-                    return res.status(500).send('Errore del server');
-                }
-                res.status(200).send('Preferenze salvate con successo');
-            });
-        }
-    });
-});
-
-/**
- * @swagger
- * /api/preferences:
- *   get:
- *     summary: Ottieni tutte le preferenze
- *     description: Restituisce l'elenco completo delle preferenze di tutti gli utenti
- *     tags: [Preferenze]
- *     security:
- *       - sessionAuth: []
- *     responses:
- *       200:
- *         description: Elenco di preferenze
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Preference'
- *       401:
- *         description: Utente non autenticato
- *       500:
- *         description: Errore del server
- */
-app.get('/api/preferences', requireAuth, (req, res) => {
-  const query = `SELECT * FROM preferences`;
-  
-  db.all(query, [], (err, rows) => {
-      if (err) {
-          console.error('Errore durante il recupero delle preferenze:', err);
-          return res.status(500).json({ error: 'Errore del server' });
-      }
-      
-      res.status(200).json(rows);
-  });
-});
-
-/**
-* @swagger
-* /api/preferences/filter:
-*   get:
-*     summary: Ottieni preferenze filtrate
-*     description: Restituisce l'elenco delle preferenze filtrate in base ai parametri specificati
-*     tags: [Preferenze]
-*     security:
-*       - sessionAuth: []
-*     parameters:
-*       - in: query
-*         name: city
-*         schema:
-*           type: string
-*         description: Filtra per città
-*     responses:
-*       200:
-*         description: Elenco di preferenze filtrate
-*         content:
-*           application/json:
-*             schema:
-*               type: array
-*               items:
-*                 $ref: '#/components/schemas/Preference'
-*       401:
-*         description: Utente non autenticato
-*       500:
-*         description: Errore del server
-*/
-app.get('/api/preferences/filter', requireAuth, (req, res) => {
-  const city = req.query.city;
-  
-  // Costruisci la query in base al filtro città
-  let query = `
-      SELECT p.* 
-      FROM preferences p
-      JOIN userss u ON p.user_id = u.id
-      WHERE u.citta = ?
-  `;
-  
-  db.all(query, [city], (err, rows) => {
-      if (err) {
-          console.error('Errore durante il recupero delle preferenze filtrate:', err);
-          return res.status(500).json({ error: 'Errore del server' });
-      }
-      
-      res.status(200).json(rows);
-  });
-});
-
-/**
-* @swagger
-* /ajax:
-*   get:
-*     summary: Pagina AJAX
-*     description: Restituisce la pagina per test AJAX delle preferenze
-*     tags: [Pagine]
-*     responses:
-*       200:
-*         description: Pagina AJAX
-*         content:
-*           text/html:
-*             schema:
-*               type: string
-*/
-app.get('/ajax', (req, res) => {
-  res.render('ajax', {
-      user: req.session.user,
-      year: new Date().getFullYear()
-  });
-});
-
-/**
- * @swagger
- * /profile:
- *   get:
- *     summary: Pagina profilo utente
- *     description: Restituisce la pagina del profilo dell'utente
- *     tags: [Pagine]
- *     security:
- *       - sessionAuth: []
- *     responses:
- *       200:
- *         description: Pagina profilo
- *         content:
- *           text/html:
- *             schema:
- *               type: string
- *       401:
- *         description: Accesso non autorizzato
- */
-app.get('/profile', requireAuth, (req, res) => {
-  // Recupera le informazioni dell'utente dal database
-  const query = `SELECT * FROM userss WHERE id = ?`;
-  db.get(query, [req.session.user.id], (err, user) => {
-      if (err) {
-          console.error('Errore durante il recupero del profilo:', err);
-          return res.status(500).send('Errore del server');
-      }
-      
-      res.render('profile', {
-          user: req.session.user,
-          userProfile: user,
-          year: new Date().getFullYear()
-      });
-  });
-});
-
-
-/**
- * @swagger
- * /update-profile:
- *   post:
- *     summary: Aggiorna il profilo utente
- *     description: Aggiorna le informazioni del profilo dell'utente
- *     tags: [Utenti]
- *     security:
- *       - sessionAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               telefono:
- *                 type: string
- *               data_nascita:
- *                 type: string
- *               citta:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Profilo aggiornato con successo
- *       401:
- *         description: Utente non autenticato
- *       500:
- *         description: Errore del server
- */
-app.post('/update-profile', requireAuth, (req, res) => {
-  const { email, telefono, data_nascita, citta, password } = req.body;
-  const userId = req.session.user.id;
-  
-  // Base query for updating user info without password
-  let query = `UPDATE userss SET telefono = ?, data_nascita = ?, citta = ? WHERE id = ?`;
-  let params = [telefono, data_nascita, citta, userId];
-  
-  // If password is provided, update it too
-  if (password) {
-    query = `UPDATE userss SET telefono = ?, data_nascita = ?, citta = ?, password = ? WHERE id = ?`;
-    params = [telefono, data_nascita, citta, password, userId];
-  }
-  
-  db.run(query, params, function(err) {
-    if (err) {
-      console.error('Errore durante l\'aggiornamento del profilo:', err);
-      return res.status(500).json({ error: 'Errore del server' });
-    }
-    
-    // Update session data if needed
-    if (req.session.user.email !== email && email) {
-      req.session.user.email = email;
-    }
-    
-    res.status(200).json({ success: true, message: 'Profilo aggiornato con successo' });
-  });
-});
-
-/**
- * @swagger
- * /delete-account:
- *   post:
- *     summary: Elimina account utente
- *     description: Elimina definitivamente l'account dell'utente corrente
- *     tags: [Utenti]
- *     security:
- *       - sessionAuth: []
- *     responses:
- *       200:
- *         description: Account eliminato con successo
- *       401:
- *         description: Utente non autenticato
- *       500:
- *         description: Errore del server
- */
-app.post('/delete-account', requireAuth, (req, res) => {
-  const userId = req.session.user.id;
-  
-  // Elimina prima le preferenze (foreign key constraint)
-  db.run(`DELETE FROM preferences WHERE user_id = ?`, [userId], function(err) {
-    if (err) {
-      console.error('Errore durante l\'eliminazione delle preferenze:', err);
-      return res.status(500).json({ error: 'Errore del server' });
-    }
-    
-    // Poi elimina l'utente
-    db.run(`DELETE FROM userss WHERE id = ?`, [userId], function(err) {
-      if (err) {
-        console.error('Errore durante l\'eliminazione dell\'utente:', err);
-        return res.status(500).json({ error: 'Errore del server' });
-      }
-      
-      res.status(200).json({ success: true, message: 'Account eliminato con successo' });
-    });
-  });
-});
-
-/**
- * @swagger
- * /download-user-data:
- *   get:
- *     summary: Scarica i dati dell'utente
- *     description: Restituisce tutti i dati dell'utente in formato JSON
- *     tags: [Utenti]
- *     security:
- *       - sessionAuth: []
- *     responses:
- *       200:
- *         description: File JSON con i dati dell'utente
- *       401:
- *         description: Utente non autenticato
- *       500:
- *         description: Errore del server
- */
-app.get('/download-user-data', requireAuth, (req, res) => {
-  const userId = req.session.user.id;
-  
-  // Recupera i dati dell'utente
-  db.get(`SELECT id, email, telefono, data_nascita, citta, ruolo FROM userss WHERE id = ?`, [userId], (err, user) => {
-    if (err) {
-      console.error('Errore durante il recupero dei dati utente:', err);
-      return res.status(500).json({ error: 'Errore del server' });
-    }
-    
-    // Recupera le preferenze dell'utente
-    db.all(`SELECT * FROM preferences WHERE user_id = ?`, [userId], (err, preferences) => {
-      if (err) {
-        console.error('Errore durante il recupero delle preferenze:', err);
-        return res.status(500).json({ error: 'Errore del server' });
-      }
-      
-      // Crea l'oggetto dati completo
-      const userData = {
-        user: user,
-        preferences: preferences || []
-      };
-      
-      // Imposta gli header per il download
-      res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', 'attachment; filename=user-data.json');
-      
-      // Invia i dati
-      res.send(JSON.stringify(userData, null, 2));
-    });
-  });
-});
-
-
+// Admin functions
 function requireAdmin(req, res, next) {
-  if (!req.session.user || (req.session.user.ruolo !== 'admin' && !req.session.user.email.endsWith('@admin.it'))) {
-      return res.redirect('/');
-  }
-  next();
+    if (!req.session.user || (req.session.user.ruolo !== 'admin' && !req.session.user.email.endsWith('@admin.it'))) {
+        return res.redirect('/');
+    }
+    next();
 }
 
-/**
-* @swagger
-* /admin:
-*   get:
-*     summary: Pagina amministrazione
-*     description: Restituisce la pagina di amministrazione del sistema
-*     tags: [Pagine]
-*     security:
-*       - sessionAuth: []
-*     responses:
-*       200:
-*         description: Pagina amministrazione
-*         content:
-*           text/html:
-*             schema:
-*               type: string
-*       401:
-*         description: Accesso non autorizzato
-*/
 app.get('/admin', requireAdmin, (req, res) => {
-  // Recupera tutti gli utenti dal database
-  const query = `SELECT * FROM userss`;
-  db.all(query, [], (err, users) => {
-      if (err) {
-          console.error('Errore durante il recupero degli utenti:', err);
-          return res.status(500).send('Errore del server');
-      }
-      
-      res.render('admin', {
-          user: req.session.user,
-          users: users,
-          year: new Date().getFullYear()
-      });
-  });
+    const query = `SELECT * FROM userss`;
+    db.all(query, [], (err, users) => {
+        if (err) {
+            console.error('Errore durante il recupero degli utenti:', err);
+            return res.status(500).send('Errore del server');
+        }
+        
+        res.render('admin', {
+            user: req.session.user,
+            users: users,
+            year: new Date().getFullYear()
+        });
+    });
 });
 
-/**
-* @swagger
-* /api/users:
-*   get:
-*     summary: Ottieni tutti gli utenti
-*     description: Restituisce l'elenco completo degli utenti (solo per admin)
-*     tags: [Utenti]
-*     security:
-*       - sessionAuth: []
-*     responses:
-*       200:
-*         description: Elenco di utenti
-*         content:
-*           application/json:
-*             schema:
-*               type: array
-*               items:
-*                 $ref: '#/components/schemas/User'
-*       401:
-*         description: Accesso non autorizzato
-*       500:
-*         description: Errore del server
-*/
-app.get('/api/users', requireAdmin, (req, res) => {
-  const query = `SELECT * FROM userss`;
-  
-  db.all(query, [], (err, rows) => {
-      if (err) {
-          console.error('Errore durante il recupero degli utenti:', err);
-          return res.status(500).json({ error: 'Errore del server' });
-      }
-      
-      res.status(200).json(rows);
-  });
-});
-
-/**
-* @swagger
-* /api/users/{id}:
-*   delete:
-*     summary: Elimina un utente
-*     description: Elimina un utente dal sistema (solo per admin)
-*     tags: [Utenti]
-*     security:
-*       - sessionAuth: []
-*     parameters:
-*       - in: path
-*         name: id
-*         required: true
-*         schema:
-*           type: integer
-*         description: ID dell'utente da eliminare
-*     responses:
-*       200:
-*         description: Utente eliminato con successo
-*       401:
-*         description: Accesso non autorizzato
-*       500:
-*         description: Errore del server
-*/
-app.delete('/api/users/:id', requireAdmin, (req, res) => {
-  const userId = req.params.id;
-  
-  // Prevent deleting admin users
-  db.get(`SELECT * FROM userss WHERE id = ?`, [userId], (err, user) => {
-      if (err) {
-          console.error('Errore durante il recupero dell\'utente:', err);
-          return res.status(500).json({ error: 'Errore del server' });
-      }
-      
-      if (user && (user.ruolo === 'admin' || user.email.endsWith('@admin.it'))) {
-          return res.status(403).json({ error: 'Non è possibile eliminare un account amministratore' });
-      }
-      
-      // Delete user preferences first
-      db.run(`DELETE FROM preferences WHERE user_id = ?`, [userId], function(err) {
-          if (err) {
-              console.error('Errore durante l\'eliminazione delle preferenze:', err);
-              return res.status(500).json({ error: 'Errore del server' });
-          }
-          
-          // Then delete user
-          db.run(`DELETE FROM userss WHERE id = ?`, [userId], function(err) {
-              if (err) {
-                  console.error('Errore durante l\'eliminazione dell\'utente:', err);
-                  return res.status(500).json({ error: 'Errore del server' });
-              }
-              
-              res.status(200).json({ success: true, message: 'Utente eliminato con successo' });
-          });
-      });
-  });
-});
-
-/**
-* @swagger
-* /api/users/{id}:
-*   put:
-*     summary: Aggiorna un utente
-*     description: Aggiorna i dati di un utente (solo per admin)
-*     tags: [Utenti]
-*     security:
-*       - sessionAuth: []
-*     parameters:
-*       - in: path
-*         name: id
-*         required: true
-*         schema:
-*           type: integer
-*         description: ID dell'utente da aggiornare
-*     requestBody:
-*       required: true
-*       content:
-*         application/json:
-*           schema:
-*             $ref: '#/components/schemas/User'
-*     responses:
-*       200:
-*         description: Utente aggiornato con successo
-*       401:
-*         description: Accesso non autorizzato
-*       500:
-*         description: Errore del server
-*/
-app.put('/api/users/:id', requireAdmin, (req, res) => {
-  const userId = req.params.id;
-  const { email, telefono, data_nascita, citta, ruolo, password } = req.body;
-  
-  // Base query for updating user info without password
-  let query = `UPDATE userss SET email = ?, telefono = ?, data_nascita = ?, citta = ?, ruolo = ? WHERE id = ?`;
-  let params = [email, telefono, data_nascita, citta, ruolo, userId];
-  
-  // If password is provided, update it too
-  if (password) {
-      query = `UPDATE userss SET email = ?, telefono = ?, data_nascita = ?, citta = ?, ruolo = ?, password = ? WHERE id = ?`;
-      params = [email, telefono, data_nascita, citta, ruolo, password, userId];
-  }
-  
-  db.run(query, params, function(err) {
-      if (err) {
-          console.error('Errore durante l\'aggiornamento dell\'utente:', err);
-          return res.status(500).json({ error: 'Errore del server' });
-      }
-      
-      res.status(200).json({ success: true, message: 'Utente aggiornato con successo' });
-  });
-});
-
-/**
-* @swagger
-* /api/users:
-*   post:
-*     summary: Crea un nuovo utente
-*     description: Crea un nuovo utente nel sistema (solo per admin)
-*     tags: [Utenti]
-*     security:
-*       - sessionAuth: []
-*     requestBody:
-*       required: true
-*       content:
-*         application/json:
-*           schema:
-*             $ref: '#/components/schemas/RegisterRequest'
-*     responses:
-*       201:
-*         description: Utente creato con successo
-*       400:
-*         description: Utente già esistente
-*       401:
-*         description: Accesso non autorizzato
-*       500:
-*         description: Errore del server
-*/
-app.post('/api/users', requireAdmin, (req, res) => {
-  const { email, telefono, data_nascita, citta, ruolo, password } = req.body;
-  
-  const query = `INSERT INTO userss (email, telefono, data_nascita, citta, ruolo, password) VALUES (?, ?, ?, ?, ?, ?)`;
-  db.run(query, [email, telefono, data_nascita, citta, ruolo, password], function(err) {
-      if (err) {
-          if (err.code === 'SQLITE_CONSTRAINT') {
-              return res.status(400).json({ error: 'Email già registrata' });
-          }
-          console.error('Errore durante la creazione dell\'utente:', err);
-          return res.status(500).json({ error: 'Errore del server' });
-      }
-      
-      res.status(201).json({ success: true, message: 'Utente creato con successo', id: this.lastID });
-  });
+// WebSocket events
+io.on('connection', (socket) => {
+    console.log('Un utente si è connesso');
+    onlineUsers++;
+    io.emit('update online users', onlineUsers);
+    
+    socket.on('authenticate', (userData) => {
+        if (userData && userData.userId) {
+            socket.userId = userData.userId;
+            socket.join(`user_${userData.userId}`);
+            console.log(`Utente ${userData.userId} autenticato`);
+            
+            const roomsQuery = `SELECT room_id FROM room_participants WHERE user_id = ?`;
+            db.all(roomsQuery, [userData.userId], (err, rooms) => {
+                if (!err && rooms) {
+                    rooms.forEach(room => {
+                        socket.join(`room_${room.room_id}`);
+                        console.log(`Utente ${userData.userId} si è unito alla room ${room.room_id}`);
+                    });
+                }
+            });
+            
+            io.emit('user status', { userId: userData.userId, status: 'online' });
+        }
+    });
+    
+    socket.on('chat message', (data) => {
+        if (socket.userId && data.roomId) {
+            io.to(`room_${data.roomId}`).emit('chat message', {
+                ...data,
+                timestamp: new Date().toLocaleString()
+            });
+        }
+    });
+    
+    socket.on('typing', (data) => {
+        socket.to(`room_${data.roomId}`).emit('user typing', {
+            userId: socket.userId,
+            roomId: data.roomId,
+            isTyping: data.isTyping
+        });
+    });
+    
+    socket.on('join room', (roomId) => {
+        if (socket.userId) {
+            socket.join(`room_${roomId}`);
+            console.log(`Utente ${socket.userId} si è unito alla room ${roomId}`);
+        }
+    });
+    
+    socket.on('leave room', (roomId) => {
+        socket.leave(`room_${roomId}`);
+        console.log(`Utente ha lasciato la room ${roomId}`);
+    });
+    
+    socket.on('disconnect', () => {
+        onlineUsers = Math.max(0, onlineUsers - 1);
+        io.emit('update online users', onlineUsers);
+        
+        if (socket.userId) {
+            io.emit('user status', { userId: socket.userId, status: 'offline' });
+            console.log(`Utente ${socket.userId} si è disconnesso`);
+        } else {
+            console.log('Un utente si è disconnesso');
+        }
+    });
 });
 
 // Global counter for online users
 let onlineUsers = 0;
-
-// WebSocket events
-io.on('connection', (socket) => {
-  console.log('Un utente si è connesso');
-  onlineUsers++;
-  io.emit('update online users', onlineUsers);
-  
-  // Autenticazione del socket
-  socket.on('authenticate', (userData) => {
-      if (userData && userData.userId) {
-          socket.userId = userData.userId;
-          socket.join(`user_${userData.userId}`);
-          console.log(`Utente ${userData.userId} autenticato`);
-          
-          // Unisciti alle room dell'utente
-          const roomsQuery = `
-              SELECT room_id FROM room_participants WHERE user_id = ?
-          `;
-          db.all(roomsQuery, [userData.userId], (err, rooms) => {
-              if (!err && rooms) {
-                  rooms.forEach(room => {
-                      socket.join(`room_${room.room_id}`);
-                      console.log(`Utente ${userData.userId} si è unito alla room ${room.room_id}`);
-                  });
-              }
-          });
-          
-          // Notifica online status
-          io.emit('user status', { userId: userData.userId, status: 'online' });
-      }
-  });
-  
-  // Gestione messaggi
-  socket.on('chat message', (data) => {
-      if (socket.userId && data.roomId) {
-          io.to(`room_${data.roomId}`).emit('chat message', {
-              ...data,
-              timestamp: new Date().toLocaleString()
-          });
-      }
-  });
-  
-  // Typing indicator
-  socket.on('typing', (data) => {
-      socket.to(`room_${data.roomId}`).emit('user typing', {
-          userId: socket.userId,
-          roomId: data.roomId,
-          isTyping: data.isTyping
-      });
-  });
-  
-  // Join room
-  socket.on('join room', (roomId) => {
-      if (socket.userId) {
-          socket.join(`room_${roomId}`);
-          console.log(`Utente ${socket.userId} si è unito alla room ${roomId}`);
-      }
-  });
-  
-  // Leave room
-  socket.on('leave room', (roomId) => {
-      socket.leave(`room_${roomId}`);
-      console.log(`Utente ha lasciato la room ${roomId}`);
-  });
-  
-  // Disconnessione
-  socket.on('disconnect', () => {
-      onlineUsers = Math.max(0, onlineUsers - 1);
-      io.emit('update online users', onlineUsers);
-      
-      if (socket.userId) {
-          io.emit('user status', { userId: socket.userId, status: 'offline' });
-          console.log(`Utente ${socket.userId} si è disconnesso`);
-      } else {
-          console.log('Un utente si è disconnesso');
-      }
-  });
-});
 
 server.listen(port, 'localhost', (err) => {
     if (err) {
