@@ -229,119 +229,12 @@ function requireAuth(req, res, next) {
     next();
 }
 
-// Configurazione per il login tramite Google
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_SECRET,
-    callbackURL: 'http://localhost:3000/auth/google/callback'
-}, (accessToken, refreshToken, profile, done) => {
-    const email = profile.emails[0].value;
-    const query = `SELECT * FROM userss WHERE email = ?`;
-
-    db.get(query, [email], (err, row) => {
-        if (err) return done(err);
-        if (row) {
-            return done(null, row);
-        } else {
-            const insertQuery = `INSERT INTO userss (email, telefono, data_nascita, citta, ruolo, password) VALUES (?, '', '', '', 'google', '')`;
-            db.run(insertQuery, [email], function (err) {
-                if (err) return done(err);
-                return done(null, { id: this.lastID, email });
-            });
-        }
-    });
-}));
-
-// Serializzazione e deserializzazione utente
-passport.serializeUser((user, done) => {
-    done(null, user);
-});
-
-passport.deserializeUser((user, done) => {
-    done(null, user);
-});
-
-app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-app.get('/auth/google/callback', passport.authenticate('google', {
-    failureRedirect: '/login'
-}), (req, res) => {
-    req.session.user = {
-        id: req.user.id,
-        email: req.user.email,
-        ruolo: req.user.ruolo || 'google',
-    };
-    res.redirect('/dashboard');
-});
-
-app.get('/ajax', requireAuth, (req, res) => {
-    res.render('ajax', {
-        user: req.session.user,
-        year: new Date().getFullYear()
-    });
-});
-
-// FIXED API endpoint to get all preferences
-app.get('/api/preferences', requireAuth, (req, res) => {
-    const query = `
-        SELECT 
-            id, 
-            user_id, 
-            country, 
-            city, 
-            start_date, 
-            end_date, 
-            job_type, 
-            restaurant_type, 
-            preference_name
-        FROM preferences 
-        WHERE user_id = ?
-    `;
-    db.all(query, [req.session.user.id], (err, rows) => {
-        if (err) {
-            console.error('Errore nel recupero delle preferenze:', err);
-            return res.status(500).json({ error: 'Errore del server' });
-        }
-        res.json(rows);
-    });
-});
-
-// FIXED endpoint to get preferences filtered by city
-app.get('/api/preferences/filter', requireAuth, (req, res) => {
-    const { city } = req.query;
-    if (!city) {
-        return res.status(400).json({ error: 'Parametro city mancante' });
-    }
-
-    const query = `
-        SELECT 
-            id, 
-            user_id, 
-            country, 
-            city, 
-            start_date, 
-            end_date, 
-            job_type, 
-            restaurant_type, 
-            preference_name
-        FROM preferences 
-        WHERE user_id = ? AND city = ?
-    `;
-    db.all(query, [req.session.user.id, city], (err, rows) => {
-        if (err) {
-            console.error('Errore nel recupero delle preferenze filtrate:', err);
-            return res.status(500).json({ error: 'Errore del server' });
-        }
-        res.json(rows);
-    });
-});
-
-// Connect to the database
+// Connect to the main database
 const db = new sqlite3.Database('database.db', (err) => {
     if (err) {
-        console.error('Errore durante la connessione al database:', err);
+        console.error('Errore durante la connessione al database principale:', err);
     } else {
-        console.log('Connesso al database SQLite.');
+        console.log('Connesso al database SQLite principale.');
 
         // Create users table
         db.run(
@@ -376,24 +269,6 @@ const db = new sqlite3.Database('database.db', (err) => {
               });
           }
       );
-
-        // Create preferences table with city column (keeping the column name as 'city')
-        db.run(
-            `CREATE TABLE IF NOT EXISTS preferences (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                country TEXT NOT NULL,
-                city TEXT NOT NULL,
-                start_date TEXT NOT NULL,
-                end_date TEXT NOT NULL,
-                job_type TEXT NOT NULL,
-                restaurant_type TEXT NOT NULL,
-                preference_name TEXT DEFAULT 'Default',
-                FOREIGN KEY (user_id) REFERENCES userss(id)
-            )`, (err) => {
-                if (err) console.error('Errore durante la creazione della tabella preferenze:', err);
-            }
-        );
         
         // Create chat messages table
         db.run(
@@ -467,66 +342,164 @@ const db = new sqlite3.Database('database.db', (err) => {
     }
 });
 
-// Mappatura delle regioni italiane con le relative città
-const regionCityMapping = {
-    "Abruzzo": ["L'Aquila", "Pescara", "Chieti", "Teramo"],
-    "Basilicata": ["Potenza", "Matera"],
-    "Calabria": ["Reggio Calabria", "Catanzaro", "Cosenza", "Crotone", "Vibo Valentia"],
-    "Campania": ["Napoli", "Salerno", "Caserta", "Avellino", "Benevento"],
-    "Emilia-Romagna": ["Bologna", "Modena", "Parma", "Reggio Emilia", "Ravenna", "Ferrara", "Forlì-Cesena", "Rimini", "Piacenza"],
-    "Friuli-Venezia Giulia": ["Trieste", "Udine", "Pordenone", "Gorizia"],
-    "Lazio": ["Roma", "Latina", "Frosinone", "Viterbo", "Rieti"],
-    "Liguria": ["Genova", "La Spezia", "Savona", "Imperia"],
-    "Lombardia": ["Milano", "Brescia", "Bergamo", "Monza", "Como", "Varese", "Pavia", "Cremona", "Mantova", "Lecco", "Lodi", "Sondrio"],
-    "Marche": ["Ancona", "Pesaro e Urbino", "Macerata", "Ascoli Piceno", "Fermo"],
-    "Molise": ["Campobasso", "Isernia"],
-    "Piemonte": ["Torino", "Cuneo", "Alessandria", "Novara", "Asti", "Vercelli", "Biella", "Verbano-Cusio-Ossola"],
-    "Puglia": ["Bari", "Taranto", "Lecce", "Foggia", "Brindisi", "Barletta-Andria-Trani"],
-    "Sardegna": ["Cagliari", "Sassari", "Nuoro", "Oristano", "Sud Sardegna"],
-    "Sicilia": ["Palermo", "Catania", "Messina", "Siracusa", "Trapani", "Agrigento", "Ragusa", "Caltanissetta", "Enna"],
-    "Toscana": ["Firenze", "Pisa", "Livorno", "Siena", "Lucca", "Arezzo", "Pistoia", "Massa-Carrara", "Grosseto", "Prato"],
-    "Trentino-Alto Adige": ["Trento", "Bolzano"],
-    "Umbria": ["Perugia", "Terni"],
-    "Valle d'Aosta": ["Aosta"],
-    "Veneto": ["Venezia", "Verona", "Padova", "Vicenza", "Treviso", "Rovigo", "Belluno"]
-};
+// Connect to the session database for preferences
+const sessionDb = new sqlite3.Database('session.db', (err) => {
+    if (err) {
+        console.error('Errore durante la connessione al database delle sessioni:', err);
+    } else {
+        console.log('Connesso al database SQLite delle sessioni.');
+        
+        // Create preferences table in session.db
+        sessionDb.run(
+            `CREATE TABLE IF NOT EXISTS preferences (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                country TEXT NOT NULL,
+                city TEXT NOT NULL,
+                start_date TEXT NOT NULL,
+                end_date TEXT NOT NULL,
+                job_type TEXT NOT NULL,
+                restaurant_type TEXT NOT NULL,
+                preference_name TEXT DEFAULT 'Default'
+            )`, (err) => {
+                if (err) {
+                    console.error('Errore durante la creazione della tabella preferenze:', err);
+                } else {
+                    console.log('Tabella preferenze creata con successo nel database delle sessioni');
+                }
+            }
+        );
+    }
+});
 
-// Crea il file di mapping nella cartella public per l'uso client-side
-const regionsFilePath = path.join(__dirname, 'public', 'js', 'region-city-mapping.js');
-const regionsFileContent = `
-// Mappatura regioni-città per l'Italia
-const regionCityMapping = ${JSON.stringify(regionCityMapping, null, 2)};
+// Configurazione per il login tramite Google
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_SECRET,
+    callbackURL: 'http://localhost:3000/auth/google/callback'
+}, (accessToken, refreshToken, profile, done) => {
+    const email = profile.emails[0].value;
+    const query = `SELECT * FROM userss WHERE email = ?`;
 
-// Funzioni di utility
-function getAllRegions() {
-    return Object.keys(regionCityMapping);
-}
+    db.get(query, [email], (err, row) => {
+        if (err) return done(err);
+        if (row) {
+            return done(null, row);
+        } else {
+            const insertQuery = `INSERT INTO userss (email, telefono, data_nascita, citta, ruolo, password) VALUES (?, '', '', '', 'google', '')`;
+            db.run(insertQuery, [email], function (err) {
+                if (err) return done(err);
+                return done(null, { id: this.lastID, email });
+            });
+        }
+    });
+}));
 
-function getCitiesForRegion(region) {
-    return regionCityMapping[region] || [];
-}
+// Serializzazione e deserializzazione utente
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
 
-function getRandomRegion() {
-    const regions = getAllRegions();
-    return regions[Math.floor(Math.random() * regions.length)];
-}
+passport.deserializeUser((user, done) => {
+    done(null, user);
+});
 
-function getRandomCityFromRegion(region) {
-    const cities = getCitiesForRegion(region);
-    return cities[Math.floor(Math.random() * cities.length)];
-}
-`;
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-// Assicurati che la directory esista
-if (!fs.existsSync(path.join(__dirname, 'public', 'js'))) {
-    fs.mkdirSync(path.join(__dirname, 'public', 'js'), { recursive: true });
-}
+app.get('/auth/google/callback', passport.authenticate('google', {
+    failureRedirect: '/login'
+}), (req, res) => {
+    req.session.user = {
+        id: req.user.id,
+        email: req.user.email,
+        ruolo: req.user.ruolo || 'google',
+    };
+    res.redirect('/dashboard');
+});
 
-// Scrivi il file
-fs.writeFileSync(regionsFilePath, regionsFileContent);
-console.log('File di mappatura regioni-città creato con successo');
+app.get('/ajax', requireAuth, (req, res) => {
+    res.render('ajax', {
+        user: req.session.user,
+        year: new Date().getFullYear()
+    });
+});
 
-// Improved function to fetch and store job offers with proper region-city mapping
+// FIXED API endpoint to get all preferences
+app.get('/api/preferences', requireAuth, (req, res) => {
+    const query = `
+        SELECT 
+            id, 
+            user_id, 
+            country, 
+            city, 
+            start_date, 
+            end_date, 
+            job_type, 
+            restaurant_type, 
+            preference_name
+        FROM preferences 
+        WHERE user_id = ?
+    `;
+    sessionDb.all(query, [req.session.user.id], (err, rows) => {
+        if (err) {
+            console.error('Errore nel recupero delle preferenze:', err);
+            return res.status(500).json({ error: 'Errore del server' });
+        }
+        res.json(rows);
+    });
+});
+
+// FIXED endpoint to get preferences filtered by city
+app.get('/api/preferences/filter', requireAuth, (req, res) => {
+    const { city } = req.query;
+    if (!city) {
+        return res.status(400).json({ error: 'Parametro city mancante' });
+    }
+
+    const query = `
+        SELECT 
+            id, 
+            user_id, 
+            country, 
+            city, 
+            start_date, 
+            end_date, 
+            job_type, 
+            restaurant_type, 
+            preference_name
+        FROM preferences 
+        WHERE user_id = ? AND city = ?
+    `;
+    sessionDb.all(query, [req.session.user.id, city], (err, rows) => {
+        if (err) {
+            console.error('Errore nel recupero delle preferenze filtrate:', err);
+            return res.status(500).json({ error: 'Errore del server' });
+        }
+        res.json(rows);
+    });
+});
+
+// Sample job types and restaurant types for random generation
+const restaurantTypes = ['Trattoria', 'Ristorante Cinese', 'Ristorante Italiano', 'Sushi', 'Fast Food', 'Pizzeria'];
+const jobTypes = ['Chef', 'Cameriere', 'Barista', 'Lavapiatti', 'Responsabile Sala', 'Aiuto Cuoco'];
+
+// Sample cities for random generation (no longer tied to specific regions)
+const sampleCities = [
+    'Roma', 'Milano', 'Napoli', 'Torino', 'Palermo', 'Genova', 'Bologna', 
+    'Firenze', 'Bari', 'Catania', 'Venezia', 'Verona', 'Messina', 'Padova', 
+    'Trieste', 'Brescia', 'Parma', 'Taranto', 'Prato', 'Modena', 'Reggio Calabria', 
+    'Reggio Emilia', 'Perugia', 'Livorno', 'Ravenna', 'Cagliari', 'Foggia'
+];
+
+// Sample regions for random generation
+const sampleRegions = [
+    'Abruzzo', 'Basilicata', 'Calabria', 'Campania', 'Emilia-Romagna', 
+    'Friuli-Venezia Giulia', 'Lazio', 'Liguria', 'Lombardia', 'Marche', 
+    'Molise', 'Piemonte', 'Puglia', 'Sardegna', 'Sicilia', 'Toscana', 
+    'Trentino-Alto Adige', 'Umbria', 'Valle d\'Aosta', 'Veneto'
+];
+
+// Improved function to fetch and store job offers
 function fetchAndStoreJobOffers() {
     fetch('https://remotive.com/api/remote-jobs?category=restaurants')
         .then(response => response.json())
@@ -574,9 +547,6 @@ function fetchAndStoreJobOffers() {
 }
 
 function insertJobOffers(jobsToInsert, restaurantUsers) {
-    const restaurantTypes = ['Trattoria', 'Ristorante Cinese', 'Ristorante Italiano', 'Sushi', 'Fast Food', 'Pizzeria'];
-    const jobTypes = ['Chef', 'Cameriere', 'Barista', 'Lavapiatti', 'Responsabile Sala', 'Aiuto Cuoco'];
-    
     const insertStmt = db.prepare('INSERT INTO offerte (title, role, description, city, region, restaurant_type, job_type, start_date, end_date, salary, imageUrl, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
     
     jobsToInsert.forEach((job, index) => {
@@ -584,11 +554,9 @@ function insertJobOffers(jobsToInsert, restaurantUsers) {
         const randomUserIndex = Math.floor(Math.random() * restaurantUsers.length);
         const restaurantUser = restaurantUsers[randomUserIndex];
         
-        // Get a random region and corresponding city
-        const regions = Object.keys(regionCityMapping);
-        const randomRegion = regions[Math.floor(Math.random() * regions.length)];
-        const citiesInRegion = regionCityMapping[randomRegion];
-        const randomCity = citiesInRegion[Math.floor(Math.random() * citiesInRegion.length)];
+        // Get random city and region (now independent from each other)
+        const randomCity = sampleCities[Math.floor(Math.random() * sampleCities.length)];
+        const randomRegion = sampleRegions[Math.floor(Math.random() * sampleRegions.length)];
         
         const randomRestaurantType = restaurantTypes[Math.floor(Math.random() * restaurantTypes.length)];
         const randomJobType = jobTypes[Math.floor(Math.random() * jobTypes.length)];
@@ -643,12 +611,6 @@ app.post('/create-offer', requireAuth, (req, res) => {
     // Basic validation
     if (!title || !role || !description || !city || !region || !restaurant_type || !job_type || !start_date || !end_date) {
         return res.status(400).send('Tutti i campi sono obbligatori');
-    }
-    
-    // Validate that city belongs to the selected region
-    const citiesInRegion = regionCityMapping[region] || [];
-    if (!citiesInRegion.includes(city)) {
-        return res.status(400).send('La città selezionata non appartiene alla regione selezionata');
     }
     
     // Generate random image for the job posting
@@ -753,7 +715,69 @@ app.post('/api/contact-restaurateur', requireAuth, (req, res) => {
     });
 });
 
-// FIXED save-preferences route
+// API endpoint to get all users
+app.get('/api/users', requireAuth, (req, res) => {
+    // Only allow admin or self
+    if (req.session.user.ruolo !== 'admin' && !req.session.user.email.endsWith('@admin.it')) {
+        return res.status(403).json({ error: 'Non hai i permessi per accedere a questa risorsa' });
+    }
+    
+    const query = `
+        SELECT 
+            id, 
+            email, 
+            telefono, 
+            data_nascita, 
+            citta, 
+            ruolo
+        FROM userss 
+        ORDER BY id DESC
+    `;
+    
+    db.all(query, [], (err, rows) => {
+        if (err) {
+            console.error('Errore nel recupero degli utenti:', err);
+            return res.status(500).json({ error: 'Errore del server' });
+        }
+        res.json(rows);
+    });
+});
+
+// API endpoint to get users filtered by city
+app.get('/api/users/filter', requireAuth, (req, res) => {
+    // Only allow admin or self
+    if (req.session.user.ruolo !== 'admin' && !req.session.user.email.endsWith('@admin.it')) {
+        return res.status(403).json({ error: 'Non hai i permessi per accedere a questa risorsa' });
+    }
+    
+    const { city } = req.query;
+    if (!city) {
+        return res.status(400).json({ error: 'Parametro city mancante' });
+    }
+
+    const query = `
+        SELECT 
+            id, 
+            email, 
+            telefono, 
+            data_nascita, 
+            citta, 
+            ruolo
+        FROM userss 
+        WHERE citta = ?
+        ORDER BY id DESC
+    `;
+    
+    db.all(query, [city], (err, rows) => {
+        if (err) {
+            console.error('Errore nel recupero degli utenti filtrati:', err);
+            return res.status(500).json({ error: 'Errore del server' });
+        }
+        res.json(rows);
+    });
+});
+
+// Save preferences (now using sessionDb)
 app.post('/save-preferences', requireAuth, (req, res) => {
     const { region, city, startDate, endDate, jobType, restaurantType, preferenceName } = req.body;
     
@@ -768,7 +792,7 @@ app.post('/save-preferences', requireAuth, (req, res) => {
         WHERE user_id = ? AND preference_name = ?
     `;
     
-    db.get(checkExistingPreference, [req.session.user.id, preferenceName || 'Default'], (err, existing) => {
+    sessionDb.get(checkExistingPreference, [req.session.user.id, preferenceName || 'Default'], (err, existing) => {
         if (err) {
             console.error('Errore durante il controllo delle preferenze esistenti:', err);
             return res.status(500).json({ success: false, message: 'Errore del server' });
@@ -794,13 +818,13 @@ app.post('/save-preferences', requireAuth, (req, res) => {
             params = [req.session.user.id, region || '', city, startDate, endDate, jobType, restaurantType, preferenceName || 'Default'];
         }
         
-        db.run(query, params, function(err) {
+        sessionDb.run(query, params, function(err) {
             if (err) {
                 console.error('Errore durante il salvataggio delle preferenze:', err);
                 return res.status(500).json({ success: false, message: 'Errore del server durante il salvataggio' });
             }
             
-            // Fetch filtered job offers based on the saved preferences - with independent city/region filtering
+            // Fetch filtered job offers based on the saved preferences
             const getFilteredOffers = `
                 SELECT o.*, u.email as restaurant_name
                 FROM offerte o
@@ -835,7 +859,7 @@ app.post('/save-preferences', requireAuth, (req, res) => {
     });
 });
 
-// FIXED API to get filtered offers by preference ID
+// Get filtered offers by preference ID (now using sessionDb)
 app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
     const preferenceId = req.params.preferenceId;
     
@@ -845,7 +869,7 @@ app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
         FROM preferences 
         WHERE id = ? AND user_id = ?`;
     
-    db.get(getPreference, [preferenceId, req.session.user.id], (err, preference) => {
+    sessionDb.get(getPreference, [preferenceId, req.session.user.id], (err, preference) => {
         if (err) {
             console.error('Errore durante il recupero della preferenza:', err);
             return res.status(500).json({ success: false, message: 'Errore del server' });
@@ -855,7 +879,7 @@ app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
             return res.status(404).json({ success: false, message: 'Preferenza non trovata' });
         }
         
-        // Get filtered offers with independent filtering
+        // Get filtered offers
         const getFilteredOffers = `
             SELECT o.*, u.email as restaurant_name
             FROM offerte o
@@ -889,28 +913,33 @@ app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
     });
 });
 
-app.get('/api/regions', (req, res) => {
-    res.json(Object.keys(regionCityMapping));
-});
-
-// Keep API to get cities but modify to not require region
+// Get all distinct cities from the offers database
 app.get('/api/cities', (req, res) => {
-    // Flatten all cities from all regions
-    const allCities = [].concat(...Object.values(regionCityMapping));
-    // Remove duplicates
-    const uniqueCities = [...new Set(allCities)].sort();
-    res.json(uniqueCities);
+    db.all('SELECT DISTINCT city FROM offerte ORDER BY city', [], (err, rows) => {
+        if (err) {
+            console.error('Errore durante il recupero delle città:', err);
+            return res.status(500).json({ error: 'Errore del server' });
+        }
+        const cities = rows.map(row => row.city);
+        res.json(cities);
+    });
 });
 
-// Optional: get cities for a specific region if still useful
-app.get('/api/cities/:region', (req, res) => {
-    const region = req.params.region;
-    res.json(regionCityMapping[region] || []);
+// Get all distinct regions from the offers database
+app.get('/api/regions', (req, res) => {
+    db.all('SELECT DISTINCT region FROM offerte ORDER BY region', [], (err, rows) => {
+        if (err) {
+            console.error('Errore durante il recupero delle regioni:', err);
+            return res.status(500).json({ error: 'Errore del server' });
+        }
+        const regions = rows.map(row => row.region);
+        res.json(regions);
+    });
 });
 
-// Update the dashboard route to include job offers based on preferences
+// Get dashboard with job offers (now using sessionDb for preferences)
 app.get('/dashboard', requireAuth, (req, res) => {
-    // First, fetch all user preferences
+    // First, fetch all user preferences from session.db
     const getUserPreferences = `SELECT * FROM preferences WHERE user_id = ?`;
     
     // Then fetch all job offers initially (without filtering)
@@ -922,7 +951,7 @@ app.get('/dashboard', requireAuth, (req, res) => {
         LIMIT 50
     `;
     
-    db.all(getUserPreferences, [req.session.user.id], (err, preferences) => {
+    sessionDb.all(getUserPreferences, [req.session.user.id], (err, preferences) => {
         if (err) {
             console.error('Errore durante il recupero delle preferenze:', err);
             return res.status(500).send('Errore del server');
@@ -935,20 +964,39 @@ app.get('/dashboard', requireAuth, (req, res) => {
                 return res.status(500).send('Errore del server');
             }
             
-            res.render('dashboard', {
-                user: req.session.user,
-                preferences: preferences.length > 0 ? preferences[0] : {},
-                allPreferences: preferences,
-                jobs: jobs,
-                regions: Object.keys(regionCityMapping),
-                helpers: {
-                    equals: function(a, b) { return a === b; }
+            // Get distinct job types for filters
+            db.all('SELECT DISTINCT job_type FROM offerte ORDER BY job_type', [], (err, jobTypeRows) => {
+                if (err) {
+                    console.error('Errore durante il recupero dei tipi di lavoro:', err);
+                    return res.status(500).send('Errore del server');
                 }
+                
+                // Get distinct restaurant types for filters
+                db.all('SELECT DISTINCT restaurant_type FROM offerte ORDER BY restaurant_type', [], (err, restaurantTypeRows) => {
+                    if (err) {
+                        console.error('Errore durante il recupero dei tipi di ristorante:', err);
+                        return res.status(500).send('Errore del server');
+                    }
+                    
+                    const jobTypes = jobTypeRows.map(row => row.job_type);
+                    const restaurantTypes = restaurantTypeRows.map(row => row.restaurant_type);
+                    
+                    res.render('dashboard', {
+                        user: req.session.user,
+                        preferences: preferences.length > 0 ? preferences[0] : {},
+                        allPreferences: preferences,
+                        jobs: jobs,
+                        jobTypes: jobTypes,
+                        restaurantTypes: restaurantTypes,
+                        helpers: {
+                            equals: function(a, b) { return a === b; }
+                        }
+                    });
+                });
             });
         });
     });
 });
-
 
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
@@ -1362,6 +1410,13 @@ io.on('connection', (socket) => {
 
 // Global counter for online users
 let onlineUsers = 0;
+
+// Close database connections on process exit
+process.on('SIGINT', () => {
+    db.close();
+    sessionDb.close();
+    process.exit(0);
+});
 
 server.listen(port, 'localhost', (err) => {
     if (err) {
