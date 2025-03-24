@@ -1,4 +1,5 @@
 require('dotenv').config();
+const fetch = require('node-fetch');
 const express = require('express');
 const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
@@ -1461,7 +1462,7 @@ process.on('SIGINT', () => {
     process.exit(0);
 });
 
-server.listen(port, 'localhost', (err) => {
+server.listen(port, '0.0.0.0', (err) => {
     if (err) {
         console.error('Errore durante l\'avvio del server:', err);
     } else {
