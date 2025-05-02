@@ -1,200 +1,444 @@
-<!-- dashboard.hbs -->
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard RestMatch</title>
+    <title>RestMatch • Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-   <style>
-        /* Base styles */
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Color System */
+            --app-primary: #0071e3;
+            --app-primary-dark: #0051a3;
+            --app-secondary: #f5f5f7;
+            --app-text-primary: #1d1d1f;
+            --app-text-secondary: #6e6e73;
+            --app-success: #32d74b;
+            --app-warning: #ff9f0a;
+            --app-error: #ff3b30;
+            --app-background: #ffffff;
+            --app-card-bg: #ffffff;
+            --app-divider: rgba(0, 0, 0, 0.05);
+            --app-component-bg: rgba(0, 0, 0, 0.02);
+            --app-overlay: rgba(0, 0, 0, 0.4);
+            --app-accent: #06c;
+            --app-accent-hover: #007aff;
+            --app-sidebar: #f5f5f7;
+            
+            /* Shadow System */
+            --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.12);
+            
+            /* Transitions */
+            --transition-fast: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-base: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-slow: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-bounce: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            
+            /* Borders */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+        }
+        
+        [data-theme="dark"] {
+            --app-primary: #0a84ff;
+            --app-primary-dark: #409cff;
+            --app-secondary: #1c1c1e;
+            --app-text-primary: #f5f5f7;
+            --app-text-secondary: #98989d;
+            --app-success: #32d74b;
+            --app-warning: #ff9f0a;
+            --app-error: #ff453a;
+            --app-background: #000000;
+            --app-card-bg: #1c1c1e;
+            --app-divider: rgba(255, 255, 255, 0.1);
+            --app-component-bg: rgba(255, 255, 255, 0.05);
+            --app-overlay: rgba(0, 0, 0, 0.7);
+            --app-accent: #0a84ff;
+            --app-accent-hover: #409cff;
+            --app-sidebar: #1c1c1e;
+        }
+        
+        /* Base Styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         body {
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
+            background-color: var(--app-background);
+            color: var(--app-text-primary);
+            line-height: 1.5;
+            font-size: 16px;
+            overflow-x: hidden;
+            transition: background-color var(--transition-base), color var(--transition-base);
         }
         
-        /* Navbar styles */
+        /* Hide scrollbar but maintain functionality */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        
+        [data-theme="dark"] ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Layout */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 70px);
+            overflow: hidden;
+        }
+        
+        /* Navbar */
         .navbar {
-            background-color: #222831;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background-color: rgba(255, 255, 255, 0.85);
+            border-bottom: 1px solid var(--app-divider);
+            height: 70px;
+            display: flex;
+            align-items: center;
+            transition: background-color var(--transition-base);
+        }
+        
+        [data-theme="dark"] .navbar {
+            background-color: rgba(29, 29, 31, 0.85);
         }
         
         .navbar-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.8rem 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
         }
         
         .logo {
-            color: #fff;
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-decoration: none;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            text-decoration: none;
+            color: var(--app-text-primary);
+            font-weight: 600;
+            font-size: 1.25rem;
+            transition: transform var(--transition-bounce);
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
         }
         
         .logo i {
-            color: #ff5722;
+            color: var(--app-primary);
+            font-size: 1.5rem;
         }
         
         .nav-links {
             display: flex;
             list-style: none;
-            gap: 1.5rem;
+            gap: 0.5rem;
         }
         
         .nav-links li a {
-            color: #ddd;
             text-decoration: none;
+            color: var(--app-text-primary);
             font-weight: 500;
-            transition: color 0.3s;
+            padding: 0.5rem 0.8rem;
+            border-radius: var(--radius-md);
+            transition: color var(--transition-base), background-color var(--transition-base), transform var(--transition-base);
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.5rem;
         }
         
-        .nav-links li a:hover, .nav-links li a.active {
-            color: #ff5722;
+        .nav-links li a:hover {
+            background-color: var(--app-component-bg);
+            transform: translateY(-2px);
         }
         
-        .logout-btn {
-            background-color: transparent;
-            color: #ddd;
-            border: 1px solid #ff5722;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
+        .nav-links li a.active {
+            color: var(--app-primary);
+            background-color: var(--app-component-bg);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 75px;
+            flex-shrink: 0;
+            background-color: var(--app-sidebar);
+            border-right: 1px solid var(--app-divider);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 0;
+            transition: width var(--transition-slow), background-color var(--transition-base);
+            overflow: hidden;
+        }
+        
+        .sidebar:hover {
+            width: 220px;
+        }
+        
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .sidebar-nav-item {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            padding: 0.8rem 1.2rem;
+            border-radius: var(--radius-md);
+            color: var(--app-text-primary);
+            text-decoration: none;
+            margin: 0 0.5rem;
+            transition: all var(--transition-base);
+            white-space: nowrap;
+            overflow: hidden;
         }
         
-        .logout-btn:hover {
-            background-color: #ff5722;
-            color: #fff;
+        .sidebar-nav-item:hover {
+            background-color: var(--app-component-bg);
+            transform: translateX(4px);
         }
         
-        .mobile-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-        
-        /* Online users counter */
-        .online-users {
-            background-color: #1e8e3e;
+        .sidebar-nav-item.active {
+            background-color: var(--app-primary);
             color: white;
-            padding: 0.4rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
+        }
+        
+        .sidebar-nav-icon {
             display: flex;
             align-items: center;
-            gap: 0.3rem;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 1rem;
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
+            color: white;
+            flex-shrink: 0;
+            font-size: 1rem;
+            transition: transform var(--transition-bounce), background var(--transition-base);
+        }
+        
+        .sidebar-nav-item:hover .sidebar-nav-icon {
+            transform: scale(1.1) rotate(-10deg);
+        }
+        
+        .sidebar-nav-item.active .sidebar-nav-icon {
+            background: white;
+            color: var(--app-primary);
+        }
+        
+        .sidebar-nav-text {
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+        
+        .sidebar:hover .sidebar-nav-text {
+            opacity: 1;
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            position: relative;
+            width: 55px;
+            height: 28px;
+            border-radius: 14px;
+            background-color: var(--app-component-bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 6px;
+            transition: background-color var(--transition-base);
+            border: 1px solid var(--app-divider);
             margin-left: 1rem;
         }
         
-        .online-users i {
-            color: #6effbe;
+        .theme-toggle i {
+            font-size: 14px;
+            color: var(--app-text-secondary);
+            z-index: 1;
         }
         
-        /* Dashboard container */
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
+        .theme-toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--app-primary);
+            transition: transform var(--transition-base), background-color var(--transition-base);
+            box-shadow: var(--shadow-sm);
         }
         
-        h1 {
-            font-size: 2rem;
-            color: #333;
-            margin-bottom: 1rem;
+        [data-theme="dark"] .theme-toggle-slider {
+            transform: translateX(27px);
+        }
+        
+        /* Online Indicator */
+        .online-indicator {
+            background: linear-gradient(135deg, #34c759, var(--app-success));
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
+            box-shadow: var(--shadow-sm);
+            animation: pulse 2s infinite;
         }
         
-        h1 i {
-            color: #ff5722;
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(50, 215, 75, 0.6); }
+            70% { box-shadow: 0 0 0 10px rgba(50, 215, 75, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(50, 215, 75, 0); }
+        }
+        
+        .online-indicator i {
+            font-size: 0.625rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--app-text-primary);
+            margin-bottom: 0.5rem;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .page-title i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .welcome-message {
-            color: #666;
-            margin-bottom: 2rem;
+            font-size: 1.25rem;
+            color: var(--app-text-secondary);
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
         
-        /* Alert styles */
-        .alert {
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 2rem;
-            display: none;
+        /* Glassy Cards */
+        .card {
+            background-color: var(--app-card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+            overflow: hidden;
+            position: relative;
+            isolation: isolate;
         }
         
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        /* Layout styles */
-        .split-layout {
+        .card-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--app-divider);
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--app-text-primary);
+        }
+        
+        .card-title i {
+            color: var(--app-primary);
+        }
+        
+        .card-body {
+            padding: 2rem;
+        }
+        
+        .card-floating {
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+        }
+        
+        .card-floating:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 2rem;
         }
         
-        .left, .right {
-            flex: 1;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            padding: 1.5rem;
-        }
-        
-        h2 {
-            font-size: 1.5rem;
-            color: #333;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        h2 i {
-            color: #ff5722;
-        }
-        
-        /* Form styles */
+        /* Forms */
         .form-group {
             position: relative;
             margin-bottom: 1.5rem;
@@ -204,97 +448,171 @@
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--app-text-secondary);
+            transition: color var(--transition-fast);
         }
         
-        .form-group i {
+        .form-field {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-field i {
             position: absolute;
             left: 1rem;
-            top: 2.3rem;
-            color: #aaa;
+            color: var(--app-text-secondary);
+            transition: color var(--transition-fast);
         }
         
-        .form-group input, .form-group select {
+        .form-control {
             width: 100%;
-            padding: 0.8rem 1rem 0.8rem 2.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 1rem 1rem 1rem 2.75rem;
+            border: none;
+            border-radius: var(--radius-md);
+            background-color: var(--app-component-bg);
+            color: var(--app-text-primary);
             font-size: 1rem;
+            transition: all var(--transition-base);
         }
         
-        .form-group input:focus, .form-group select:focus {
+        .form-control:focus {
             outline: none;
-            border-color: #ff5722;
+            box-shadow: 0 0 0 2px var(--app-primary);
+        }
+        
+        .form-group:focus-within label,
+        .form-group:focus-within i {
+            color: var(--app-primary);
+        }
+        
+        /* Apple-style Button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            border: none;
+            gap: 0.5rem;
+            font-size: 0.9375rem;
         }
         
         .btn-primary {
-            background-color: #ff5722;
-            color: #fff;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 4px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 113, 227, 0.4);
         }
         
         .btn-primary:hover {
-            background-color: #e64a19;
+            transform: scale(1.03);
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.6);
         }
         
-        /* Job list styles - Modified for vertical scrolling */
-        .job-list-container {
-            height: 600px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-right: 10px;
-            margin-right: -10px;
-            scrollbar-width: thin;
-            scrollbar-color: #ff5722 #f5f5f5;
-        }
-
-        .job-list-container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .job-list-container::-webkit-scrollbar-track {
-            background: #f5f5f5;
-            border-radius: 10px;
-        }
-
-        .job-list-container::-webkit-scrollbar-thumb {
-            background-color: #ff5722;
-            border-radius: 10px;
-            border: 2px solid #f5f5f5;
+        .btn-primary:active {
+            transform: scale(0.98);
         }
         
-        .job-list {
+        .btn-secondary {
+            background-color: var(--app-component-bg);
+            color: var(--app-text-primary);
+        }
+        
+        .btn-secondary:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        [data-theme="dark"] .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Toggle Button */
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--app-primary);
+            font-weight: 600;
+            cursor: pointer;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
+        }
+        
+        .toggle-btn:hover {
+            background-color: var(--app-component-bg);
+            transform: translateY(-2px);
+        }
+        
+        /* Badge for Job Types */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: 0.875rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .badge-primary {
+            background-color: rgba(0, 113, 227, 0.15);
+            color: var(--app-primary);
+        }
+        
+        /* Jobs List */
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: 1fr;
             gap: 1.5rem;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 1rem;
         }
         
+        /* Job Card */
         .job-card {
-            display: flex;
-            gap: 1rem;
-            border: 1px solid #eee;
-            border-radius: 8px;
+            background-color: var(--app-card-bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
             overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background-color: #fff;
+            display: flex;
+            transition: all var(--transition-base);
+            position: relative;
         }
         
         .job-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .job-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--app-primary), var(--app-primary-dark));
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+        
+        .job-card:hover::after {
+            opacity: 1;
         }
         
         .job-image {
-            width: 150px;
-            height: 150px;
+            width: 160px;
+            height: 160px;
+            position: relative;
             overflow: hidden;
         }
         
@@ -302,444 +620,1412 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s ease;
+            transition: transform var(--transition-base);
         }
         
         .job-card:hover .job-image img {
-            transform: scale(1.05);
+            transform: scale(1.1);
         }
         
-        .job-info {
-            padding: 1rem;
+        .job-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 50%);
+        }
+        
+        .job-content {
             flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
         }
         
         .job-title {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--app-text-primary);
         }
         
-        .job-role, .job-description, .job-period {
-            margin-bottom: 0.5rem;
+        .job-badges {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        
+        .job-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .job-detail {
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-size: 0.9375rem;
         }
         
-        .job-role i, .job-description i, .job-period i {
-            color: #ff5722;
+        .job-detail i {
+            color: var(--app-primary);
+            width: 18px;
         }
         
-        .btn {
-            background-color: #ff5722;
-            color: #fff;
+        .job-description {
+            margin-bottom: 1.25rem;
+            color: var(--app-text-secondary);
+            position: relative;
+            padding-left: 1.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .job-description::before {
+            content: '\\f15c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 400;
+            position: absolute;
+            left: 0;
+            color: var(--app-primary);
+        }
+        
+        .job-actions {
+            margin-top: auto;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--app-text-secondary);
+            opacity: 0.5;
+        }
+        
+        .empty-state-text {
+            color: var(--app-text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        /* Create Offer Form */
+        #createOfferForm {
+            display: none;
+            animation: slideDown var(--transition-base);
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            background-color: rgba(50, 50, 50, 0.95);
+            color: white;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all var(--transition-base);
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            max-width: 400px;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast i {
+            font-size: 1.25rem;
+        }
+        
+        .toast.success {
+            background-color: rgba(50, 215, 75, 0.95);
+        }
+        
+        .toast.error {
+            background-color: rgba(255, 59, 48, 0.95);
+        }
+        
+        /* Alert */
+        .alert {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            display: none;
+            animation: fadeIn var(--transition-base);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .alert-success {
+            background-color: rgba(50, 215, 75, 0.15);
+            border-left: 4px solid var(--app-success);
+            color: var(--app-success);
+        }
+        
+        .alert-error {
+            background-color: rgba(255, 59, 48, 0.15);
+            border-left: 4px solid var(--app-error);
+            color: var(--app-error);
+        }
+        
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                var(--app-component-bg) 25%,
+                rgba(255, 255, 255, 0.1) 50%,
+                var(--app-component-bg) 75%
+            );
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: var(--radius-sm);
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--app-overlay);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-base);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background-color: var(--app-card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all var(--transition-base);
+        }
+        
+        .modal-overlay.active .modal {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--app-divider);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--app-text-primary);
+        }
+        
+        .modal-close {
+            background: none;
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            text-decoration: none;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            transition: background-color 0.3s;
+            font-size: 1.5rem;
+            color: var(--app-text-secondary);
+            cursor: pointer;
+            transition: color var(--transition-fast);
         }
         
-        .btn:hover {
-            background-color: #e64a19;
+        .modal-close:hover {
+            color: var(--app-primary);
         }
         
-        .no-jobs {
-            color: #666;
-            font-style: italic;
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--app-divider);
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            justify-content: flex-end;
+            gap: 1rem;
         }
         
-        /* Responsive styles */
-        @media (max-width: 900px) {
-            .split-layout {
-                flex-direction: column;
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
             }
             
-            .navbar-container {
-                padding: 0.8rem 1rem;
+            .sidebar {
+                width: 60px;
+            }
+            
+            .sidebar:hover {
+                width: 200px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .content-wrapper {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                justify-content: center;
+                padding: 1rem;
+                border-right: none;
+                border-bottom: 1px solid var(--app-divider);
+            }
+            
+            .sidebar:hover {
+                width: 100%;
+            }
+            
+            .sidebar-nav {
+                flex-direction: row;
+                justify-content: center;
+                margin-top: 0;
+            }
+            
+            .sidebar-nav-item {
+                padding: 0.5rem 1rem;
+            }
+            
+            .sidebar-nav-icon {
+                margin-right: 0;
+            }
+            
+            .sidebar-nav-text {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 1rem;
             }
         }
         
         @media (max-width: 768px) {
-            .mobile-toggle {
-                display: block;
+            .navbar-container {
+                padding: 0 1rem;
             }
             
-            .nav-links {
+            .logo span {
                 display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background-color: #222831;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .job-card {
                 flex-direction: column;
-                padding: 1rem;
             }
             
-            .nav-links.active {
-                display: flex;
+            .job-image {
+                width: 100%;
+                height: 140px;
             }
             
-            .logout-btn {
-                display: none;
+            .job-details {
+                grid-template-columns: 1fr;
             }
             
-            .nav-links li:last-child {
-                margin-top: 0.5rem;
-                padding-top: 0.5rem;
-                border-top: 1px solid #444;
+            .card-header {
+                padding: 1.25rem;
             }
             
-            .nav-links li:last-child a {
-                color: #ff5722;
+            .card-body {
+                padding: 1.25rem;
             }
         }
+        
+        @media (max-width: 576px) {
+            .page-title {
+                font-size: 1.75rem;
+            }
+            
+            .welcome-message {
+                font-size: 1rem;
+            }
+            
+            .job-actions {
+                flex-direction: column;
+            }
+            
+            .job-actions .btn {
+                width: 100%;
+            }
+            
+            .theme-toggle {
+                display: none;
+            }
+        }
+        
+        /* Animations */
+        .animate-in {
+            animation: fadeAndSlide 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        @keyframes fadeAndSlide {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+        
+        /* Hover Effect for Buttons */
+        .btn-hover-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-hover-effect::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .btn-hover-effect:hover::after {
+            animation: ripple 1s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+        
+        /* Spinner */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease infinite;
+        }
+        
+        /* Job Details Modal */
+        .job-detail-modal {
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        .job-detail-header {
+            position: relative;
+            height: 240px;
+            overflow: hidden;
+        }
+        
+        .job-detail-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .job-detail-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%);
+        }
+        
+        .job-detail-header-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 2rem;
+            z-index: 2;
+            color: white;
+        }
+        
+        .job-detail-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .job-detail-badges {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .job-detail-badge {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.35rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .job-detail-body {
+            padding: 2rem;
+        }
+        
+        .job-detail-section {
+            margin-bottom: 2rem;
+        }
+        
+        .job-detail-section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--app-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .job-detail-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .job-detail-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .job-detail-info-label {
+            font-size: 0.875rem;
+            color: var(--app-text-secondary);
+        }
+        
+        .job-detail-info-value {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .job-detail-info-value i {
+            color: var(--app-primary);
+        }
+        
+        .job-detail-description {
+            line-height: 1.6;
+            color: var(--app-text-secondary);
+            font-size: 1rem;
+        }
+        
+        /* Animation classes for job cards */
+        .animate-job-0 { animation-delay: 0.1s; }
+        .animate-job-1 { animation-delay: 0.2s; }
+        .animate-job-2 { animation-delay: 0.3s; }
+        .animate-job-3 { animation-delay: 0.4s; }
+        .animate-job-4 { animation-delay: 0.5s; }
+        .animate-job-5 { animation-delay: 0.6s; }
+        .animate-job-6 { animation-delay: 0.7s; }
+        .animate-job-7 { animation-delay: 0.8s; }
+        .animate-job-8 { animation-delay: 0.9s; }
+        .animate-job-9 { animation-delay: 1.0s; }
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="/dashboard" class="logo">
-                <i class="fas fa-utensils"></i> RestMatch
-            </a>
-            <button class="mobile-toggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            <ul class="nav-links">
-                <li><a href="/dashboard" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="/chat"><i class="fas fa-comments"></i> Chat</a></li>
-                <li><a href="/ajax"><i class="fas fa-filter"></i> Ricerca</a></li>
-                <li><a href="/profile"><i class="fas fa-user"></i> Profilo</a></li>
-                <li><div class="online-users"><i class="fas fa-circle"></i> <span id="online-counter">1</span> online</div></li>
-            </ul>
-            <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
-        </div>
-    </nav>
-
-    <div class="dashboard-container">
-        {{#if (equals user.ruolo "ristorante")}}
-            <h1><i class="fas fa-utensils"></i> Dashboard Ristoratore</h1>
-        {{else}}
-            <h1><i class="fas fa-utensils"></i> Dashboard Lavoratore</h1>
-        {{/if}}
-        <p class="welcome-message"><i class="fas fa-user-circle"></i> Benvenuto, {{user.email}}!</p>
-        
-        <div id="alert" class="alert"></div>
-
-        <div class="split-layout">
-            <section class="left">
-                <h2><i class="fas fa-cog"></i> Salva le tue preferenze</h2>
-                <form id="preferencesForm" action="/save-preferences" method="POST">
-                    <div class="form-group">
-                        <label for="region">Regione</label>
-                        <i class="fas fa-map-marker-alt"></i>
-                        <input type="text" id="region" name="region" placeholder="Inserisci una regione" required value="{{preferences.region}}">
+    <div class="app-container" id="app">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="/dashboard" class="logo">
+                    <i class="fas fa-utensils"></i>
+                    <span>RestMatch</span>
+                </a>
+                
+                <div class="nav-links">
+                    <div class="online-indicator">
+                        <i class="fas fa-circle"></i>
+                        <span id="online-counter">5</span> online
                     </div>
-
-                    <div class="form-group">
-                        <label for="city">Città</label>
-                        <i class="fas fa-city"></i>
-                        <input type="text" id="city" name="city" placeholder="Inserisci una città" required value="{{preferences.city}}">
+                    
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-sun"></i>
+                        <i class="fas fa-moon"></i>
+                        <div class="theme-toggle-slider"></div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="startDate">Data Inizio</label>
-                        <i class="fas fa-calendar-alt"></i>
-                        <input type="date" id="startDate" name="startDate" required value="{{preferences.startDate}}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="endDate">Data Fine</label>
-                        <i class="fas fa-calendar-check"></i>
-                        <input type="date" id="endDate" name="endDate" required value="{{preferences.endDate}}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="jobType">Lavoro Richiesto</label>
-                        <i class="fas fa-briefcase"></i>
-                        <select id="jobType" name="jobType" required>
-                            <option value="" disabled {{#unless preferences.jobType}}selected{{/unless}}>Seleziona un tipo di lavoro</option>
-                            <option value="Chef" {{#if (equals preferences.jobType "Chef")}}selected{{/if}}>Chef</option>
-                            <option value="Cameriere" {{#if (equals preferences.jobType "Cameriere")}}selected{{/if}}>Cameriere</option>
-                            <option value="Barista" {{#if (equals preferences.jobType "Barista")}}selected{{/if}}>Barista</option>
-                            <option value="Lavapiatti" {{#if (equals preferences.jobType "Lavapiatti")}}selected{{/if}}>Lavapiatti</option>
-                            <option value="Responsabile Sala" {{#if (equals preferences.jobType "Responsabile Sala")}}selected{{/if}}>Responsabile Sala</option>
-                            <option value="Aiuto Cuoco" {{#if (equals preferences.jobType "Aiuto Cuoco")}}selected{{/if}}>Aiuto Cuoco</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="restaurantType">Tipologia di Ristorante</label>
-                        <i class="fas fa-store"></i>
-                        <select id="restaurantType" name="restaurantType" required>
-                            <option value="" disabled {{#unless preferences.restaurantType}}selected{{/unless}}>Seleziona una tipologia</option>
-                            <option value="Trattoria" {{#if (equals preferences.restaurantType "Trattoria")}}selected{{/if}}>Trattoria</option>
-                            <option value="Ristorante Cinese" {{#if (equals preferences.restaurantType "Ristorante Cinese")}}selected{{/if}}>Ristorante Cinese</option>
-                            <option value="Ristorante Italiano" {{#if (equals preferences.restaurantType "Ristorante Italiano")}}selected{{/if}}>Ristorante Italiano</option>
-                            <option value="Sushi" {{#if (equals preferences.restaurantType "Sushi")}}selected{{/if}}>Sushi</option>
-                            <option value="Fast Food" {{#if (equals preferences.restaurantType "Fast Food")}}selected{{/if}}>Fast Food</option>
-                            <option value="Pizzeria" {{#if (equals preferences.restaurantType "Pizzeria")}}selected{{/if}}>Pizzeria</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salva Preferenze</button>
-                </form>
-
-                {{#if (equals user.ruolo "ristorante")}}
-                <div class="create-offer-toggle">
-                    <h2><i class="fas fa-plus-circle"></i> Crea un'offerta di lavoro</h2>
-                    <button id="toggleOfferForm" class="btn-primary"><i class="fas fa-plus"></i> Nuova Offerta</button>
+                </div>
+            </div>
+        </nav>
+    
+        <div class="content-wrapper">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="/dashboard" class="sidebar-nav-item active">
+                        <div class="sidebar-nav-icon">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <span class="sidebar-nav-text">Dashboard</span>
+                    </a>
+                    <a href="/chat" class="sidebar-nav-item">
+                        <div class="sidebar-nav-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <span class="sidebar-nav-text">Chat</span>
+                    </a>
+                    <a href="/ajax" class="sidebar-nav-item">
+                        <div class="sidebar-nav-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <span class="sidebar-nav-text">Ricerca</span>
+                    </a>
+                    <a href="/profile" class="sidebar-nav-item">
+                        <div class="sidebar-nav-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="sidebar-nav-text">Profilo</span>
+                    </a>
+                    <a href="/logout" class="sidebar-nav-item">
+                        <div class="sidebar-nav-icon">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="sidebar-nav-text">Logout</span>
+                    </a>
+                </nav>
+            </aside>
+    
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="dashboard-header animate-in">
+                    {{#if (equals user.ruolo "ristorante")}}
+                        <h1 class="page-title"><i class="fas fa-utensils"></i> Dashboard Ristoratore</h1>
+                    {{else}}
+                        <h1 class="page-title"><i class="fas fa-utensils"></i> Dashboard Lavoratore</h1>
+                    {{/if}}
+                    <p class="welcome-message"><i class="fas fa-user-circle"></i> Benvenuto, <strong>{{user.email}}</strong> • <span id="current-date">2 Maggio 2025</span></p>
                 </div>
                 
-                <form id="createOfferForm" action="/create-offer" method="POST">
-                    <div class="form-group">
-                        <label for="title">Titolo Offerta</label>
-                        <i class="fas fa-heading"></i>
-                        <input type="text" id="title" name="title" placeholder="Inserisci un titolo per l'offerta" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="role">Ruolo</label>
-                        <i class="fas fa-user-tag"></i>
-                        <select id="role" name="role" required>
-                            <option value="" disabled selected>Seleziona un ruolo</option>
-                            <option value="Chef">Chef</option>
-                            <option value="Cameriere">Cameriere</option>
-                            <option value="Barista">Barista</option>
-                            <option value="Lavapiatti">Lavapiatti</option>
-                            <option value="Responsabile Sala">Responsabile Sala</option>
-                            <option value="Aiuto Cuoco">Aiuto Cuoco</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="description">Descrizione</label>
-                        <i class="fas fa-align-left"></i>
-                        <input type="text" id="description" name="description" placeholder="Descrivi l'offerta di lavoro" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="city">Città</label>
-                        <i class="fas fa-city"></i>
-                        <input type="text" id="city" name="city" placeholder="Inserisci la città" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="region">Regione</label>
-                        <i class="fas fa-map-marker-alt"></i>
-                        <input type="text" id="region" name="region" placeholder="Inserisci la regione" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="restaurant_type">Tipologia Ristorante</label>
-                        <i class="fas fa-store"></i>
-                        <select id="restaurant_type" name="restaurant_type" required>
-                            <option value="" disabled selected>Seleziona una tipologia</option>
-                            <option value="Trattoria">Trattoria</option>
-                            <option value="Ristorante Cinese">Ristorante Cinese</option>
-                            <option value="Ristorante Italiano">Ristorante Italiano</option>
-                            <option value="Sushi">Sushi</option>
-                            <option value="Fast Food">Fast Food</option>
-                            <option value="Pizzeria">Pizzeria</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="job_type">Tipo di Lavoro</label>
-                        <i class="fas fa-briefcase"></i>
-                        <select id="job_type" name="job_type" required>
-                            <option value="" disabled selected>Seleziona un tipo</option>
-                            <option value="Chef">Chef</option>
-                            <option value="Cameriere">Cameriere</option>
-                            <option value="Barista">Barista</option>
-                            <option value="Lavapiatti">Lavapiatti</option>
-                            <option value="Responsabile Sala">Responsabile Sala</option>
-                            <option value="Aiuto Cuoco">Aiuto Cuoco</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="start_date">Data Inizio</label>
-                        <i class="fas fa-calendar-alt"></i>
-                        <input type="date" id="start_date" name="start_date" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="end_date">Data Fine</label>
-                        <i class="fas fa-calendar-check"></i>
-                        <input type="date" id="end_date" name="end_date" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="salary">Stipendio (opzionale)</label>
-                        <i class="fas fa-euro-sign"></i>
-                        <input type="text" id="salary" name="salary" placeholder="Es: 1500€/mese">
-                    </div>
-                    
-                    <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Crea Offerta</button>
-                </form>
-                {{/if}}
-            </section>
-
-            <section class="right">
-                <h2><i class="fas fa-briefcase"></i> Offerte di Lavoro{{#if preferences.jobType}} per {{preferences.jobType}}{{/if}}</h2>
+                <div id="alert" class="alert"></div>
                 
-                <!-- Vertically scrollable job list -->
-                <div class="job-list-container">
-                    <div class="job-list">
-                        {{#if jobs.length}}
-                            {{#each jobs}}
-                            <div class="job-card">
-                                <div class="job-image">
-                                    <img src="{{imageUrl}}" alt="{{title}}">
+                <div class="dashboard-grid">
+                    <!-- Left Card -->
+                    <div class="card card-floating animate-in delay-2">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-sliders"></i> Le tue preferenze
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <form id="preferencesForm" action="/save-preferences" method="POST">
+                                <div class="form-group">
+                                    <label for="region">Regione</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <input type="text" id="region" name="region" class="form-control" placeholder="Inserisci una regione" required value="{{preferences.region}}">
+                                    </div>
                                 </div>
-                                <div class="job-info">
-                                    <h3 class="job-title">{{title}}</h3>
-                                    <p class="job-role"><i class="fas fa-user-tag"></i> {{role}}</p>
-                                    <p class="job-description"><i class="fas fa-align-left"></i> {{description}}</p>
-                                    <p class="job-period"><i class="fas fa-calendar-alt"></i> Dal {{start_date}} al {{end_date}}</p>
-                                    <p class="job-role"><i class="fas fa-map-marker-alt"></i> {{city}}, {{region}}</p>
-                                    <p class="job-role"><i class="fas fa-store"></i> {{restaurant_type}}</p>
-                                    {{#if salary}}
-                                    <p class="job-role"><i class="fas fa-euro-sign"></i> {{salary}}</p>
-                                    {{/if}}
-                                    <button class="btn contact-restaurateur" data-offer-id="{{id}}"><i class="fas fa-paper-plane"></i> Contatta Ristoratore</button>
+                                
+                                <div class="form-group">
+                                    <label for="city">Città</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-city"></i>
+                                        <input type="text" id="city" name="city" class="form-control" placeholder="Inserisci una città" required value="{{preferences.city}}">
+                                    </div>
                                 </div>
+                                
+                                <div class="form-group">
+                                    <label for="startDate">Data Inizio</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <input type="date" id="startDate" name="startDate" class="form-control" required value="{{preferences.startDate}}">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="endDate">Data Fine</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <input type="date" id="endDate" name="endDate" class="form-control" required value="{{preferences.endDate}}">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="jobType">Lavoro Richiesto</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-briefcase"></i>
+                                        <select id="jobType" name="jobType" class="form-control" required>
+                                            <option value="" disabled {{#unless preferences.jobType}}selected{{/unless}}>Seleziona un tipo di lavoro</option>
+                                            <option value="Chef" {{#if (equals preferences.jobType "Chef")}}selected{{/if}}>Chef</option>
+                                            <option value="Cameriere" {{#if (equals preferences.jobType "Cameriere")}}selected{{/if}}>Cameriere</option>
+                                            <option value="Barista" {{#if (equals preferences.jobType "Barista")}}selected{{/if}}>Barista</option>
+                                            <option value="Lavapiatti" {{#if (equals preferences.jobType "Lavapiatti")}}selected{{/if}}>Lavapiatti</option>
+                                            <option value="Responsabile Sala" {{#if (equals preferences.jobType "Responsabile Sala")}}selected{{/if}}>Responsabile Sala</option>
+                                            <option value="Aiuto Cuoco" {{#if (equals preferences.jobType "Aiuto Cuoco")}}selected{{/if}}>Aiuto Cuoco</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="restaurantType">Tipologia di Ristorante</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-store"></i>
+                                        <select id="restaurantType" name="restaurantType" class="form-control" required>
+                                            <option value="" disabled {{#unless preferences.restaurantType}}selected{{/unless}}>Seleziona una tipologia</option>
+                                            <option value="Trattoria" {{#if (equals preferences.restaurantType "Trattoria")}}selected{{/if}}>Trattoria</option>
+                                            <option value="Ristorante Cinese" {{#if (equals preferences.restaurantType "Ristorante Cinese")}}selected{{/if}}>Ristorante Cinese</option>
+                                            <option value="Ristorante Italiano" {{#if (equals preferences.restaurantType "Ristorante Italiano")}}selected{{/if}}>Ristorante Italiano</option>
+                                            <option value="Sushi" {{#if (equals preferences.restaurantType "Sushi")}}selected{{/if}}>Sushi</option>
+                                            <option value="Fast Food" {{#if (equals preferences.restaurantType "Fast Food")}}selected{{/if}}>Fast Food</option>
+                                            <option value="Pizzeria" {{#if (equals preferences.restaurantType "Pizzeria")}}selected{{/if}}>Pizzeria</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary btn-hover-effect">
+                                    <i class="fas fa-save"></i> Salva Preferenze
+                                </button>
+                            </form>
+                            
+                            {{#if (equals user.ruolo "ristorante")}}
+                            <div style="margin-top: 2.5rem; display: flex; justify-content: space-between; align-items: center;">
+                                <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--app-text-primary);">
+                                    <i class="fas fa-plus-circle" style="color: var(--app-primary);"></i> Nuova opportunità di lavoro
+                                </h3>
+                                <button id="toggleOfferForm" class="toggle-btn">
+                                    <i class="fas fa-plus"></i> Crea offerta
+                                </button>
                             </div>
-                            {{/each}}
-                        {{else}}
-                            <p class="no-jobs"><i class="fas fa-exclamation-circle"></i> Nessuna offerta di lavoro disponibile.</p>
-                        {{/if}}
+                            
+                            <form id="createOfferForm" action="/create-offer" method="POST">
+                                <div class="form-group">
+                                    <label for="title">Titolo Offerta</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-heading"></i>
+                                        <input type="text" id="title" name="title" class="form-control" placeholder="Inserisci un titolo per l'offerta" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="role">Ruolo</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-user-tag"></i>
+                                        <select id="role" name="role" class="form-control" required>
+                                            <option value="" disabled selected>Seleziona un ruolo</option>
+                                            <option value="Chef">Chef</option>
+                                            <option value="Cameriere">Cameriere</option>
+                                            <option value="Barista">Barista</option>
+                                            <option value="Lavapiatti">Lavapiatti</option>
+                                            <option value="Responsabile Sala">Responsabile Sala</option>
+                                            <option value="Aiuto Cuoco">Aiuto Cuoco</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="description">Descrizione</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-align-left"></i>
+                                        <input type="text" id="description" name="description" class="form-control" placeholder="Descrivi l'offerta di lavoro" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="city">Città</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-city"></i>
+                                        <input type="text" id="city" name="city" class="form-control" placeholder="Inserisci la città" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="region">Regione</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <input type="text" id="region" name="region" class="form-control" placeholder="Inserisci la regione" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="restaurant_type">Tipologia Ristorante</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-store"></i>
+                                        <select id="restaurant_type" name="restaurant_type" class="form-control" required>
+                                            <option value="" disabled selected>Seleziona una tipologia</option>
+                                            <option value="Trattoria">Trattoria</option>
+                                            <option value="Ristorante Cinese">Ristorante Cinese</option>
+                                            <option value="Ristorante Italiano">Ristorante Italiano</option>
+                                            <option value="Sushi">Sushi</option>
+                                            <option value="Fast Food">Fast Food</option>
+                                            <option value="Pizzeria">Pizzeria</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="job_type">Tipo di Lavoro</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-briefcase"></i>
+                                        <select id="job_type" name="job_type" class="form-control" required>
+                                            <option value="" disabled selected>Seleziona un tipo</option>
+                                            <option value="Chef">Chef</option>
+                                            <option value="Cameriere">Cameriere</option>
+                                            <option value="Barista">Barista</option>
+                                            <option value="Lavapiatti">Lavapiatti</option>
+                                            <option value="Responsabile Sala">Responsabile Sala</option>
+                                            <option value="Aiuto Cuoco">Aiuto Cuoco</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="start_date">Data Inizio</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <input type="date" id="start_date" name="start_date" class="form-control" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="end_date">Data Fine</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <input type="date" id="end_date" name="end_date" class="form-control" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="salary">Stipendio (opzionale)</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-euro-sign"></i>
+                                        <input type="text" id="salary" name="salary" class="form-control" placeholder="Es: 1500€/mese">
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary btn-hover-effect">
+                                    <i class="fas fa-paper-plane"></i> Crea Offerta
+                                </button>
+                            </form>
+                            {{/if}}
+                        </div>
+                    </div>
+                    
+                    <!-- Right Card -->
+                    <div class="card animate-in delay-3">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-briefcase"></i> Offerte di Lavoro{{#if preferences.jobType}} per {{preferences.jobType}}{{/if}}
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="jobs-grid" id="jobsList">
+                                {{#if jobs.length}}
+                                    {{#each jobs}}
+                                    <div class="job-card animate-in animate-job-{{@index}}">
+                                        <div class="job-image">
+                                            <img src="{{imageUrl}}" alt="{{title}}">
+                                        </div>
+                                        <div class="job-content">
+                                            <h3 class="job-title">{{title}}</h3>
+                                            
+                                            <div class="job-badges">
+                                                <span class="badge badge-primary">{{role}}</span>
+                                                <span class="badge badge-primary">{{restaurant_type}}</span>
+                                            </div>
+                                            
+                                            <div class="job-details">
+                                                <div class="job-detail">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    <span>{{start_date}} - {{end_date}}</span>
+                                                </div>
+                                                <div class="job-detail">
+                                                    <i class="fas fa-map-marker-alt"></i>
+                                                    <span>{{city}}, {{region}}</span>
+                                                </div>
+                                                {{#if salary}}
+                                                <div class="job-detail">
+                                                    <i class="fas fa-euro-sign"></i>
+                                                    <span>{{salary}}</span>
+                                                </div>
+                                                {{/if}}
+                                            </div>
+                                            
+                                            <p class="job-description">{{description}}</p>
+                                            
+                                            <div class="job-actions">
+                                                <button class="btn btn-primary btn-hover-effect contact-restaurateur" data-offer-id="{{id}}">
+                                                    <i class="fas fa-paper-plane"></i> Contatta Ristoratore
+                                                </button>
+                                                <button class="btn btn-secondary job-details-btn" data-offer-id="{{id}}">
+                                                    <i class="fas fa-info-circle"></i> Dettagli
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{/each}}
+                                {{else}}
+                                    <div class="empty-state animate-in">
+                                        <i class="fas fa-search"></i>
+                                        <p class="empty-state-text">Nessuna offerta di lavoro disponibile al momento.</p>
+                                        <button class="btn btn-secondary">
+                                            <i class="fas fa-sync"></i> Aggiorna ricerca
+                                        </button>
+                                    </div>
+                                {{/if}}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </section>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message"></span>
+    </div>
+    
+    <!-- Modal -->
+    <div id="jobDetailModal" class="modal-overlay">
+        <div class="modal job-detail-modal">
+            <div class="job-detail-header">
+                <img id="modal-job-img" src="" alt="Job Detail">
+                <div class="job-detail-header-content">
+                    <h1 id="modal-job-title" class="job-detail-title"></h1>
+                    <div id="modal-job-badges" class="job-detail-badges"></div>
+                </div>
+            </div>
+            <div class="job-detail-body">
+                <div class="job-detail-section">
+                    <h3 class="job-detail-section-title">
+                        <i class="fas fa-info-circle"></i> Informazioni
+                    </h3>
+                    <div id="modal-job-info" class="job-detail-info-grid"></div>
+                </div>
+                <div class="job-detail-section">
+                    <h3 class="job-detail-section-title">
+                        <i class="fas fa-align-left"></i> Descrizione
+                    </h3>
+                    <p id="modal-job-description" class="job-detail-description"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close-btn">
+                    <i class="fas fa-times"></i> Chiudi
+                </button>
+                <button class="btn btn-primary btn-hover-effect modal-contact-btn">
+                    <i class="fas fa-paper-plane"></i> Contatta Ristoratore
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Toggle mobile menu
-        document.querySelector('.mobile-toggle').addEventListener('click', function() {
-            document.querySelector('.nav-links').classList.toggle('active');
-        });
-
-        // Handle preferences form submission
-        document.getElementById('preferencesForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
+        // DOM Elements
+        const app = document.getElementById('app');
+        const themeToggle = document.getElementById('themeToggle');
+        const preferencesForm = document.getElementById('preferencesForm');
+        const alertEl = document.getElementById('alert');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        const jobsList = document.getElementById('jobsList');
+        const toggleOfferBtn = document.getElementById('toggleOfferForm');
+        const createOfferForm = document.getElementById('createOfferForm');
+        const currentDateElement = document.getElementById('current-date');
+        const modal = document.getElementById('jobDetailModal');
+        const modalCloseBtn = document.querySelector('.modal-close-btn');
+        
+        // Set current date
+        const setCurrentDate = () => {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            currentDateElement.textContent = now.toLocaleDateString('it-IT', options);
+        };
+        
+        setCurrentDate();
+        
+        // Check for saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            app.setAttribute('data-theme', 'dark');
+        }
+        
+        // Theme toggle functionality
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = app.getAttribute('data-theme') || 'light';
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                
+                app.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // Animate theme change
+                document.body.style.transition = 'background-color 0.5s ease, color 0.5s ease';
             });
+        }
+        
+        // Show toast function
+        function showToast(message, type = 'success') {
+            toastMessage.textContent = message;
+                        toastMessage.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
             
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<div class="spinner"></div> Salvataggio...';
-            submitBtn.disabled = true;
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+        
+        // Show alert function
+        function showAlert(message, type) {
+            alertEl.textContent = message;
+            alertEl.className = `alert alert-${type}`;
+            alertEl.style.display = 'block';
             
-            fetch('/save-preferences', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                submitBtn.innerHTML = originalBtnText;
-                submitBtn.disabled = false;
-                
-                const alertEl = document.getElementById('alert');
-                alertEl.textContent = data.message;
-                alertEl.className = 'alert ' + (data.success ? 'success' : 'error');
-                alertEl.style.display = 'block';
-                
-                // If successful and offers received, update job listings
-                if(data.success && data.offers) {
-                    updateJobListings(data.offers);
-                }
-                
-                // Hide alert after 3 seconds
+            // Scroll to alert if not in view
+            alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                alertEl.style.opacity = '0';
                 setTimeout(() => {
                     alertEl.style.display = 'none';
-                }, 3000);
-            })
-            .catch(error => {
-                submitBtn.innerHTML = originalBtnText;
-                submitBtn.disabled = false;
-                
-                const alertEl = document.getElementById('alert');
-                alertEl.textContent = 'Errore durante il salvataggio: ' + error.message;
-                alertEl.className = 'alert error';
-                alertEl.style.display = 'block';
-            });
-        });
+                    alertEl.style.opacity = '1';
+                }, 300);
+            }, 5000);
+        }
         
-        // Function to update job listings
-        function updateJobListings(offers) {
-            const jobList = document.querySelector('.job-list');
-            
-            if(offers.length === 0) {
-                jobList.innerHTML = '<p class="no-jobs"><i class="fas fa-exclamation-circle"></i> Nessuna offerta di lavoro disponibile.</p>';
-                return;
-            }
-            
-            jobList.innerHTML = '';
-            
-            offers.forEach(job => {
-                const jobCard = document.createElement('div');
-                jobCard.className = 'job-card';
+        // Handle preferences form submission
+        if (preferencesForm) {
+            preferencesForm.addEventListener('submit', function(e) {
+                e.preventDefault();
                 
-                jobCard.innerHTML = `
-                    <div class="job-image">
-                        <img src="${job.imageUrl}" alt="${job.title}">
-                    </div>
-                    <div class="job-info">
-                        <h3 class="job-title">${job.title}</h3>
-                        <p class="job-role"><i class="fas fa-user-tag"></i> ${job.role}</p>
-                        <p class="job-description"><i class="fas fa-align-left"></i> ${job.description}</p>
-                        <p class="job-period"><i class="fas fa-calendar-alt"></i> Dal ${job.start_date} al ${job.end_date}</p>
-                        <p class="job-role"><i class="fas fa-map-marker-alt"></i> ${job.city}, ${job.region}</p>
-                        <p class="job-role"><i class="fas fa-store"></i> ${job.restaurant_type}</p>
-                        ${job.salary ? `<p class="job-role"><i class="fas fa-euro-sign"></i> ${job.salary}</p>` : ''}
-                        <button class="btn contact-restaurateur" data-offer-id="${job.id}"><i class="fas fa-paper-plane"></i> Contatta Ristoratore</button>
-                    </div>
-                `;
+                // Validate dates
+                const startDate = document.getElementById('startDate');
+                const endDate = document.getElementById('endDate');
                 
-                jobList.appendChild(jobCard);
-            });
-            
-            // Add event listeners for the new contact buttons
-            document.querySelectorAll('.contact-restaurateur').forEach(button => {
-                button.addEventListener('click', function() {
-                    const offerId = this.getAttribute('data-offer-id');
-                    contactRestaurateur(offerId);
+                if (startDate && endDate && startDate.value && endDate.value) {
+                    const start = new Date(startDate.value);
+                    const end = new Date(endDate.value);
+                    
+                    if (end < start) {
+                        showAlert('La data di fine deve essere successiva alla data di inizio', 'error');
+                        return;
+                    }
+                }
+                
+                const formData = new FormData(this);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+                
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<div class="spinner"></div> Salvataggio...';
+                submitBtn.disabled = true;
+                
+                fetch('/save-preferences', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Errore nel server');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                    
+                    if(data.success) {
+                        showToast('Preferenze salvate con successo!', 'success');
+                        
+                        // If offers received, update job listings with animation
+                        if(data.offers) {
+                            updateJobListings(data.offers);
+                        }
+                    } else {
+                        showToast(data.message || 'Si è verificato un errore', 'error');
+                    }
+                })
+                .catch(error => {
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                    showToast('Errore: ' + error.message, 'error');
                 });
             });
         }
         
+        // Function to update job listings with animation
+        function updateJobListings(offers) {
+            // First fade out existing content
+            jobsList.style.opacity = '0';
+            
+            setTimeout(() => {
+                if(offers.length === 0) {
+                    jobsList.innerHTML = `
+                        <div class="empty-state animate-in">
+                            <i class="fas fa-search"></i>
+                            <p class="empty-state-text">Nessuna offerta di lavoro disponibile al momento.</p>
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-sync"></i> Aggiorna ricerca
+                            </button>
+                        </div>
+                    `;
+                    jobsList.style.opacity = '1';
+                    return;
+                }
+                
+                jobsList.innerHTML = '';
+                
+                offers.forEach((job, index) => {
+                    const jobCard = document.createElement('div');
+                    jobCard.className = 'job-card animate-in';
+                    jobCard.classList.add(`animate-job-${index % 10}`);
+                    
+                    jobCard.innerHTML = `
+                        <div class="job-image">
+                            <img src="${job.imageUrl}" alt="${job.title}">
+                        </div>
+                        <div class="job-content">
+                            <h3 class="job-title">${job.title}</h3>
+                            
+                            <div class="job-badges">
+                                <span class="badge badge-primary">${job.role}</span>
+                                <span class="badge badge-primary">${job.restaurant_type}</span>
+                            </div>
+                            
+                            <div class="job-details">
+                                <div class="job-detail">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>${job.start_date} - ${job.end_date}</span>
+                                </div>
+                                <div class="job-detail">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>${job.city}, ${job.region}</span>
+                                </div>
+                                ${job.salary ? `
+                                <div class="job-detail">
+                                    <i class="fas fa-euro-sign"></i>
+                                    <span>${job.salary}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                            
+                            <p class="job-description">${job.description}</p>
+                            
+                            <div class="job-actions">
+                                <button class="btn btn-primary btn-hover-effect contact-restaurateur" data-offer-id="${job.id}">
+                                    <i class="fas fa-paper-plane"></i> Contatta Ristoratore
+                                </button>
+                                <button class="btn btn-secondary job-details-btn" data-offer-id="${job.id}" data-job='${JSON.stringify(job)}'>
+                                    <i class="fas fa-info-circle"></i> Dettagli
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    jobsList.appendChild(jobCard);
+                });
+                
+                // Show the container
+                jobsList.style.opacity = '1';
+                
+                // Add event listeners for the new buttons
+                attachJobCardEvents();
+            }, 300);
+        }
+        
+        // Attach event listeners to job card buttons
+        function attachJobCardEvents() {
+            // Contact restaurateur buttons
+            document.querySelectorAll('.contact-restaurateur').forEach(button => {
+                button.addEventListener('click', function() {
+                    const offerId = this.getAttribute('data-offer-id');
+                    contactRestaurateur(offerId, this);
+                });
+            });
+            
+            // Job details buttons
+            document.querySelectorAll('.job-details-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const offerId = this.getAttribute('data-offer-id');
+                    const jobData = this.hasAttribute('data-job') ? 
+                        JSON.parse(this.getAttribute('data-job')) : 
+                        { id: offerId };
+                    showJobDetails(jobData);
+                });
+            });
+        }
+        
+        // Function to show job details in modal
+        function showJobDetails(job) {
+            // Fallback for cases where we only have ID
+            if (!job.title) {
+                // Find the job in the existing DOM
+                const jobElement = document.querySelector(`.job-card .contact-restaurateur[data-offer-id="${job.id}"]`)?.closest('.job-card');
+                if (jobElement) {
+                    const title = jobElement.querySelector('.job-title').textContent;
+                    const role = jobElement.querySelector('.badge').textContent;
+                    const restaurantType = jobElement.querySelectorAll('.badge')[1]?.textContent;
+                    const img = jobElement.querySelector('.job-image img').src;
+                    const description = jobElement.querySelector('.job-description').textContent;
+                    
+                    // Extract other details
+                    const details = {};
+                    jobElement.querySelectorAll('.job-detail').forEach(detail => {
+                        const icon = detail.querySelector('i');
+                        const text = detail.querySelector('span').textContent;
+                        
+                        if (icon.classList.contains('fa-calendar-alt')) {
+                            const dates = text.split(' - ');
+                            details.start_date = dates[0];
+                            details.end_date = dates[1];
+                        } else if (icon.classList.contains('fa-map-marker-alt')) {
+                            const location = text.split(', ');
+                            details.city = location[0];
+                            details.region = location[1];
+                        } else if (icon.classList.contains('fa-euro-sign')) {
+                            details.salary = text;
+                        }
+                    });
+                    
+                    // Combine everything
+                    job = {
+                        id: job.id,
+                        title,
+                        role,
+                        restaurant_type: restaurantType,
+                        imageUrl: img,
+                        description,
+                        ...details
+                    };
+                } else {
+                    showToast('Impossibile caricare i dettagli', 'error');
+                    return;
+                }
+            }
+        
+            // Set modal content
+            document.getElementById('modal-job-img').src = job.imageUrl || 'https://via.placeholder.com/800x400?text=Offerta+di+Lavoro';
+            document.getElementById('modal-job-title').textContent = job.title;
+            
+            // Set badges
+            const badgesContainer = document.getElementById('modal-job-badges');
+            badgesContainer.innerHTML = `
+                <span class="job-detail-badge">${job.role}</span>
+                <span class="job-detail-badge">${job.restaurant_type}</span>
+            `;
+            
+            // Set info grid
+            const infoGrid = document.getElementById('modal-job-info');
+            infoGrid.innerHTML = `
+                <div class="job-detail-info-item">
+                    <div class="job-detail-info-label">Periodo</div>
+                    <div class="job-detail-info-value">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>${job.start_date} - ${job.end_date}</span>
+                    </div>
+                </div>
+                <div class="job-detail-info-item">
+                    <div class="job-detail-info-label">Località</div>
+                    <div class="job-detail-info-value">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${job.city}, ${job.region}</span>
+                    </div>
+                </div>
+                <div class="job-detail-info-item">
+                    <div class="job-detail-info-label">Tipo ristorante</div>
+                    <div class="job-detail-info-value">
+                        <i class="fas fa-store"></i>
+                        <span>${job.restaurant_type}</span>
+                    </div>
+                </div>
+                ${job.salary ? `
+                <div class="job-detail-info-item">
+                    <div class="job-detail-info-label">Stipendio</div>
+                    <div class="job-detail-info-value">
+                        <i class="fas fa-euro-sign"></i>
+                        <span>${job.salary}</span>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            // Set description
+            document.getElementById('modal-job-description').textContent = job.description;
+            
+            // Set contact button action
+            const contactBtn = document.querySelector('.modal-contact-btn');
+            contactBtn.setAttribute('data-offer-id', job.id);
+            
+            // Clear previous event listeners
+            const newContactBtn = contactBtn.cloneNode(true);
+            contactBtn.parentNode.replaceChild(newContactBtn, contactBtn);
+            
+            // Add new event listener
+            newContactBtn.addEventListener('click', function() {
+                const offerId = this.getAttribute('data-offer-id');
+                contactRestaurateur(offerId, this);
+                closeModal();
+            });
+            
+            // Show modal with animation
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+        
+        // Close modal function
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = ''; // Re-enable scrolling
+        }
+        
+        // Close modal when clicking close button
+        if (modalCloseBtn) {
+            modalCloseBtn.addEventListener('click', closeModal);
+        }
+        
+        // Close modal when clicking outside
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // Run attachment on page load
+        attachJobCardEvents();
+        
         // Toggle offer creation form
-        if (document.getElementById('toggleOfferForm')) {
-            document.getElementById('toggleOfferForm').addEventListener('click', function(e) {
+        if (toggleOfferBtn && createOfferForm) {
+            toggleOfferBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                const form = document.getElementById('createOfferForm');
-                form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
-                this.innerHTML = form.style.display === 'none' ? '<i class="fas fa-plus"></i> Nuova Offerta' : '<i class="fas fa-minus"></i> Nascondi Form';
+                
+                if (createOfferForm.style.display === 'none' || createOfferForm.style.display === '') {
+                    createOfferForm.style.display = 'block';
+                    createOfferForm.style.animation = 'slideDown var(--transition-base)';
+                    
+                    this.innerHTML = '<i class="fas fa-minus"></i> Nascondi form';
+                } else {
+                    createOfferForm.style.animation = 'slideUp var(--transition-base)';
+                    
+                    setTimeout(() => {
+                        createOfferForm.style.display = 'none';
+                    }, 300);
+                    
+                    this.innerHTML = '<i class="fas fa-plus"></i> Crea offerta';
+                }
             });
         }
         
         // Handle offer creation form submission
-        if (document.getElementById('createOfferForm')) {
-            document.getElementById('createOfferForm').addEventListener('submit', function(e) {
+        if (createOfferForm) {
+            createOfferForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+                
+                // Validate dates
+                const startDate = document.getElementById('start_date');
+                const endDate = document.getElementById('end_date');
+                
+                if (startDate && endDate && startDate.value && endDate.value) {
+                    const start = new Date(startDate.value);
+                    const end = new Date(endDate.value);
+                    
+                    if (end < start) {
+                        showAlert('La data di fine deve essere successiva alla data di inizio', 'error');
+                        return;
+                    }
+                }
                 
                 const formData = new FormData(this);
                 const data = {};
@@ -759,43 +2045,56 @@
                     },
                     body: JSON.stringify(data)
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Errore nel server');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     submitBtn.innerHTML = originalBtnText;
                     submitBtn.disabled = false;
                     
-                    const alertEl = document.getElementById('alert');
-                    alertEl.textContent = data.message;
-                    alertEl.className = 'alert ' + (data.success ? 'success' : 'error');
-                    alertEl.style.display = 'block';
-                    
                     if(data.success) {
-                        document.getElementById('createOfferForm').reset();
-                        // Refresh the page to show the new offer
+                        showToast('Offerta creata con successo!', 'success');
+                        
+                        // Reset form
+                        createOfferForm.reset();
+                        
+                        // Hide form with animation
+                        createOfferForm.style.animation = 'slideUp var(--transition-base)';
+                        
+                        setTimeout(() => {
+                            createOfferForm.style.display = 'none';
+                            toggleOfferBtn.innerHTML = '<i class="fas fa-plus"></i> Crea offerta';
+                        }, 300);
+                        
+                        // Refresh page after delay to show new offer
                         setTimeout(() => {
                             window.location.reload();
-                        }, 2000);
+                        }, 1500);
+                        
+                    } else {
+                        showToast(data.message || 'Si è verificato un errore', 'error');
                     }
-                    
-                    // Hide alert after 3 seconds
-                    setTimeout(() => {
-                        alertEl.style.display = 'none';
-                    }, 3000);
                 })
                 .catch(error => {
                     submitBtn.innerHTML = originalBtnText;
                     submitBtn.disabled = false;
-                    
-                    const alertEl = document.getElementById('alert');
-                    alertEl.textContent = 'Errore durante la creazione: ' + error.message;
-                    alertEl.className = 'alert error';
-                    alertEl.style.display = 'block';
+                    showToast('Errore: ' + error.message, 'error');
                 });
             });
         }
-
+        
         // Function to contact restaurateur
-        function contactRestaurateur(offerId) {
+        function contactRestaurateur(offerId, buttonEl) {
+            // Show loading state on button
+            const originalBtnText = buttonEl ? buttonEl.innerHTML : '';
+            if (buttonEl) {
+                buttonEl.innerHTML = '<div class="spinner"></div> Contattando...';
+                buttonEl.disabled = true;
+            }
+            
             fetch('/api/contact-restaurateur', {
                 method: 'POST',
                 headers: {
@@ -803,27 +2102,189 @@
                 },
                 body: JSON.stringify({ offerId: offerId })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Errore di rete');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    window.location.href = `/chat/${data.roomId}`;
+                    showToast('Chat aperta, verrai reindirizzato...', 'success');
+                    
+                    // Add animation before redirect
+                    document.body.style.opacity = '0';
+                    document.body.style.transition = 'opacity 0.5s ease';
+                    
+                    setTimeout(() => {
+                        window.location.href = `/chat/${data.roomId}`;
+                    }, 600);
                 } else {
-                    alert('Errore durante il contatto del ristoratore: ' + data.error);
+                    if (buttonEl) {
+                        buttonEl.innerHTML = originalBtnText;
+                        buttonEl.disabled = false;
+                    }
+                    showToast('Errore: ' + data.error, 'error');
                 }
             })
             .catch(error => {
                 console.error('Errore:', error);
-                alert('Si è verificato un errore durante il contatto del ristoratore');
+                if (buttonEl) {
+                    buttonEl.innerHTML = originalBtnText;
+                    buttonEl.disabled = false;
+                }
+                showToast('Si è verificato un errore durante il contatto', 'error');
             });
         }
-
-        // Handle contact restaurateur button click
-        document.querySelectorAll('.contact-restaurateur').forEach(button => {
-            button.addEventListener('click', function() {
-                const offerId = this.getAttribute('data-offer-id');
-                contactRestaurateur(offerId);
+        
+        // Set min date for date inputs to today
+        document.querySelectorAll('input[type="date"]').forEach(input => {
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const yyyy = today.getFullYear();
+            
+            const minDate = yyyy + '-' + mm + '-' + dd;
+            
+            input.min = minDate;
+            
+            // If empty and not a preference field, set default to today
+            if (!input.value && !input.id.includes('preferences')) {
+                input.value = minDate;
+            }
+        });
+        
+        // Add typing animation to welcome message
+        const welcomeMessage = document.querySelector('.welcome-message strong');
+        if (welcomeMessage) {
+            const text = welcomeMessage.textContent;
+            welcomeMessage.textContent = '';
+            
+            const typeWriter = (text, i = 0) => {
+                if (i < text.length) {
+                    welcomeMessage.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(() => typeWriter(text, i), 100);
+                }
+            };
+            
+            setTimeout(() => {
+                typeWriter(text);
+            }, 500);
+        }
+        
+        // Online users counter animation
+        const onlineCounter = document.getElementById('online-counter');
+        if (onlineCounter) {
+            setInterval(() => {
+                // Simulate random fluctuation for demo
+                let count = parseInt(onlineCounter.textContent);
+                let change = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+                count = Math.max(1, count + change);
+                
+                // Animate counter change
+                if (change !== 0) {
+                    onlineCounter.style.transform = 'scale(1.2)';
+                    onlineCounter.style.color = change > 0 ? '#34c759' : '#ff9f0a';
+                    
+                    setTimeout(() => {
+                        onlineCounter.textContent = count;
+                        onlineCounter.style.transform = 'scale(1)';
+                        onlineCounter.style.color = '';
+                    }, 200);
+                }
+            }, 8000);
+        }
+        
+        // Form validation animation
+        document.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('invalid', function(e) {
+                e.preventDefault();
+                
+                this.classList.add('invalid');
+                this.animate([
+                    { transform: 'translateX(-5px)' },
+                    { transform: 'translateX(5px)' },
+                    { transform: 'translateX(-5px)' },
+                    { transform: 'translateX(5px)' },
+                    { transform: 'translateX(0)' }
+                ], { duration: 300 });
+                
+                // Show validation message
+                const parent = this.closest('.form-group');
+                if (parent) {
+                    // Remove any existing message
+                    const existingMsg = parent.querySelector('.validation-message');
+                    if (existingMsg) existingMsg.remove();
+                    
+                    // Add new message
+                    const msg = document.createElement('div');
+                    msg.className = 'validation-message';
+                    msg.style.color = 'var(--app-error)';
+                    msg.style.fontSize = '0.75rem';
+                    msg.style.marginTop = '0.25rem';
+                    msg.style.animation = 'fadeIn var(--transition-fast)';
+                    
+                    if (this.validity.valueMissing) {
+                        msg.textContent = 'Campo obbligatorio';
+                    } else if (this.validity.typeMismatch) {
+                        msg.textContent = 'Formato non valido';
+                    } else {
+                        msg.textContent = 'Valore non valido';
+                    }
+                    
+                    parent.appendChild(msg);
+                }
+            });
+            
+            input.addEventListener('input', function() {
+                this.classList.remove('invalid');
+                
+                // Remove validation message
+                const parent = this.closest('.form-group');
+                if (parent) {
+                    const msg = parent.querySelector('.validation-message');
+                    if (msg) msg.remove();
+                }
             });
         });
+        
+        // Easter egg - hidden feature (Konami code)
+        const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let konamiIndex = 0;
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === konamiCode[konamiIndex]) {
+                konamiIndex++;
+                
+                if (konamiIndex === konamiCode.length) {
+                    // Easter egg activated!
+                    document.body.style.transition = 'transform 5s ease';
+                    document.body.style.transform = 'rotate(360deg)';
+                    
+                    setTimeout(() => {
+                        showToast('Hai scoperto un easter egg! 🎉', 'success');
+                        document.body.style.transition = '';
+                        document.body.style.transform = '';
+                    }, 5000);
+                    
+                    konamiIndex = 0;
+                }
+            } else {
+                konamiIndex = 0;
+            }
+        });
+        
+        // Set current time in footer
+        const currentTimeEl = document.createElement('div');
+        currentTimeEl.style.position = 'fixed';
+        currentTimeEl.style.bottom = '1rem';
+        currentTimeEl.style.left = '1rem';
+        currentTimeEl.style.fontSize = '0.75rem';
+        currentTimeEl.style.color = 'var(--app-text-secondary)';
+        currentTimeEl.style.opacity = '0.7';
+        currentTimeEl.textContent = '⏱️ ' + new Date('2025-05-02 11:48:23').toLocaleString('it-IT'); // Using the provided date
+        document.body.appendChild(currentTimeEl);
     </script>
 </body>
 </html>
