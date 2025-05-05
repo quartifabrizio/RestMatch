@@ -3,780 +3,1300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profilo - Gestione profilo utente</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<style>
-       /* Base styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
-}
+    <title>RestMatch • Profilo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Color System */
+            --app-primary: #0071e3;
+            --app-primary-dark: #0051a3;
+            --app-secondary: #f5f5f7;
+            --app-text-primary: #1d1d1f;
+            --app-text-secondary: #6e6e73;
+            --app-success: #32d74b;
+            --app-warning: #ff9f0a;
+            --app-error: #ff3b30;
+            --app-background: #ffffff;
+            --app-card-bg: #ffffff;
+            --app-divider: rgba(0, 0, 0, 0.05);
+            --app-component-bg: rgba(0, 0, 0, 0.02);
+            --app-overlay: rgba(0, 0, 0, 0.4);
+            --app-accent: #06c;
+            --app-accent-hover: #007aff;
+            --app-sidebar: #f5f5f7;
+            --app-danger: #ff453a;
 
-body {
-    background-color: #f5f7fa;
-    color: #333;
-    line-height: 1.6;
-}
+            /* Shadow System */
+            --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.12);
 
-/* Variables */
-:root {
-    --primary-color: #ff5722;
-    --secondary-color: #222831;
-    --light-bg: #f5f7fa;
-    --dark-text: #333;
-    --border-radius: 8px;
-    --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    --transition: all 0.3s ease;
-    --success: #1e8e3e;
-    --warning: #f39c12;
-}
+            /* Transitions */
+            --transition-fast: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-base: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-slow: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-bounce: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-/* Navbar styles */
-.navbar {
-    background-color: var(--secondary-color);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
+            /* Borders */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+        }
 
-.navbar-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.8rem 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-}
+        [data-theme="dark"] {
+            --app-primary: #0a84ff;
+            --app-primary-dark: #409cff;
+            --app-secondary: #1c1c1e;
+            --app-text-primary: #f5f5f7;
+            --app-text-secondary: #98989d;
+            --app-success: #32d74b;
+            --app-warning: #ff9f0a;
+            --app-error: #ff453a;
+            --app-background: #000000;
+            --app-card-bg: #1c1c1e;
+            --app-divider: rgba(255, 255, 255, 0.1);
+            --app-component-bg: rgba(255, 255, 255, 0.05);
+            --app-overlay: rgba(0, 0, 0, 0.7);
+            --app-accent: #0a84ff;
+            --app-accent-hover: #409cff;
+            --app-sidebar: #1c1c1e;
+        }
 
-.logo {
-    color: #fff;
-    font-size: 1.5rem;
-    font-weight: 700;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
 
-.logo i {
-    color: var(--primary-color);
-}
+        body {
+            background-color: var(--app-background);
+            color: var(--app-text-primary);
+            line-height: 1.5;
+            font-size: 16px;
+            overflow-x: hidden;
+            transition: background-color var(--transition-base), color var(--transition-base);
+        }
 
-.nav-links {
-    display: flex;
-    list-style: none;
-    gap: 1.5rem;
-}
+        /* Hide scrollbar but maintain functionality */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+            background: transparent;
+        }
 
-.nav-links li a {
-    color: #ddd;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
 
-.nav-links li a:hover, 
-.nav-links li a.active {
-    color: var(--primary-color);
-}
+        [data-theme="dark"] ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
 
-.logout-btn {
-    background-color: transparent;
-    color: #ddd;
-    border: 1px solid var(--primary-color);
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
 
-.logout-btn:hover {
-    background-color: var(--primary-color);
-    color: #fff;
-}
+        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
 
-.mobile-toggle {
-    display: none;
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 1.5rem;
-    cursor: pointer;
-}
+        /* Layout */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-/* Dashboard container */
-.dashboard-container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-}
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 70px);
+            overflow: hidden;
+        }
 
-h1 {
-    font-size: 2rem;
-    color: var(--dark-text);
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    position: relative;
-}
+        /* Navbar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background-color: rgba(255, 255, 255, 0.85);
+            border-bottom: 1px solid var(--app-divider);
+            height: 70px;
+            display: flex;
+            align-items: center;
+            transition: background-color var(--transition-base);
+        }
 
-h1 i, h1::after {
-    color: var(--primary-color);
-}
+        [data-theme="dark"] .navbar {
+            background-color: rgba(29, 29, 31, 0.85);
+        }
 
-h1::after {
-    content: '';
-    position: absolute;
-    width: 50px;
-    height: 3px;
-    background: var(--primary-color);
-    bottom: -5px;
-    left: 0;
-}
+        .navbar-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-.welcome-message {
-    color: #666;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--app-text-primary);
+            font-weight: 600;
+            font-size: 1.25rem;
+            transition: transform var(--transition-bounce);
+        }
 
-.welcome-message i {
-    color: var(--primary-color);
-}
+        .logo:hover {
+            transform: scale(1.05);
+        }
 
-/* Alert styles */
-.alert {
-    padding: 1rem;
-    border-radius: var(--border-radius);
-    margin-bottom: 1.5rem;
-    display: none;
-    transition: var(--transition);
-}
+        .logo i {
+            color: var(--app-primary);
+            font-size: 1.5rem;
+        }
 
-.alert.success {
-    background-color: rgba(30, 142, 62, 0.1);
-    border-left: 4px solid var(--success);
-    color: #155724;
-}
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 0.5rem;
+        }
 
-.alert.error {
-    background-color: rgba(255, 87, 34, 0.1);
-    border-left: 4px solid var(--primary-color);
-    color: #721c24;
-}
+        .nav-links li a {
+            text-decoration: none;
+            color: var(--app-text-primary);
+            font-weight: 500;
+            padding: 0.5rem 0.8rem;
+            border-radius: var(--radius-md);
+            transition: color var(--transition-base), background-color var(--transition-base), transform var(--transition-base);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-/* Layout styles */
-.split-layout {
-    display: flex;
-    gap: 2rem;
-}
+        .nav-links li a:hover {
+            background-color: var(--app-component-bg);
+            transform: translateY(-2px);
+        }
 
-.left, .right {
-    flex: 1;
-    background-color: #fff;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    padding: 1.5rem;
-}
+        .nav-links li a.active {
+            color: var(--app-primary);
+            background-color: var(--app-component-bg);
+        }
 
-h2 {
-    font-size: 1.5rem;
-    color: var(--dark-text);
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
+        .logout-btn {
+            background-color: transparent;
+            border: 1px solid var(--app-primary);
+            color: var(--app-primary);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all var(--transition-base);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-h2 i {
-    color: var(--primary-color);
-}
+        .logout-btn:hover {
+            background-color: var(--app-primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
 
-/* Form styles */
-.form-group {
-    position: relative;
-    margin-bottom: 1.5rem;
-}
+        /* Mobile toggle */
+        .mobile-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--app-text-primary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color var(--transition-fast);
+        }
 
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: var(--dark-text);
-}
+        .mobile-toggle:hover {
+            color: var(--app-primary);
+        }
 
-.form-group i {
-    position: absolute;
-    left: 1rem;
-    top: 2.3rem;
-    color: #aaa;
-}
+        /* Sidebar */
+        .sidebar {
+            width: 75px;
+            flex-shrink: 0;
+            background-color: var(--app-sidebar);
+            border-right: 1px solid var(--app-divider);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 0;
+            transition: width var(--transition-slow), background-color var(--transition-base);
+            overflow: hidden;
+        }
 
-.form-group input, 
-.form-group select, 
-.form-group input[type="date"] {
-    width: 100%;
-    padding: 0.8rem 1rem 0.8rem 2.5rem;
-    border: 1px solid #ddd;
-    border-radius: var(--border-radius);
-    font-size: 1rem;
-    height: 48px;
-    transition: var(--transition);
-}
+        .sidebar:hover {
+            width: 220px;
+        }
 
-.form-group input:focus, 
-.form-group select:focus,
-.form-group input[type="date"]:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
-}
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
 
-input[readonly] {
-    background-color: #f8f9fa;
-    cursor: not-allowed;
-}
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1.2rem;
+            border-radius: var(--radius-md);
+            color: var(--app-text-primary);
+            text-decoration: none;
+            margin: 0 0.5rem;
+            transition: all var(--transition-base);
+            white-space: nowrap;
+            overflow: hidden;
+        }
 
-.btn-primary {
-    background-color: var(--primary-color);
-    color: #fff;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: var(--border-radius);
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-}
+        .sidebar-nav-item:hover {
+            background-color: var(--app-component-bg);
+            transform: translateX(4px);
+        }
 
-.btn-primary:hover {
-    background-color: #e64a19;
-    transform: translateY(-2px);
-}
+        .sidebar-nav-item.active {
+            background-color: var(--app-primary);
+            color: white;
+        }
 
-/* Account info styles */
-.account-item {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    border-radius: var(--border-radius);
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-    border: 1px solid #f0f0f0;
-    transition: var(--transition);
-}
+        .sidebar-nav-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 1rem;
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
+            color: white;
+            flex-shrink: 0;
+            font-size: 1rem;
+            transition: transform var(--transition-bounce), background var(--transition-base);
+        }
 
-.account-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--box-shadow);
-}
+        .sidebar-nav-item:hover .sidebar-nav-icon {
+            transform: scale(1.1) rotate(-10deg);
+        }
 
-.account-icon {
-    margin-right: 1rem;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: rgba(255, 87, 34, 0.1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        .sidebar-nav-item.active .sidebar-nav-icon {
+            background: white;
+            color: var(--app-primary);
+        }
 
-.account-icon i {
-    color: var(--primary-color) !important;
-    font-size: 2rem;
-}
+        .sidebar-nav-text {
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
 
-.account-details h3 {
-    font-size: 1.1rem;
-    margin: 0 0 0.5rem 0;
-    color: var(--dark-text);
-}
+        .sidebar:hover .sidebar-nav-text {
+            opacity: 1;
+        }
 
-.account-details p {
-    margin: 0;
-    color: #555;
-}
+        /* Theme Toggle */
+        .theme-toggle {
+            position: relative;
+            width: 55px;
+            height: 28px;
+            border-radius: 14px;
+            background-color: var(--app-component-bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 6px;
+            transition: background-color var(--transition-base);
+            border: 1px solid var(--app-divider);
+            margin-left: 1rem;
+        }
 
-/* Profile stats */
-.profile-stats {
-    margin-top: 2rem;
-    background-color: #f9f9f9;
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-}
+        .theme-toggle i {
+            font-size: 14px;
+            color: var(--app-text-secondary);
+            z-index: 1;
+        }
 
-.profile-stats h3 {
-    margin-bottom: 1rem;
-    color: var(--dark-text);
-}
+        .theme-toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--app-primary);
+            transition: transform var(--transition-base), background-color var(--transition-base);
+            box-shadow: var(--shadow-sm);
+        }
 
-.stat-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-    transition: var(--transition);
-}
+        [data-theme="dark"] .theme-toggle-slider {
+            transform: translateX(27px);
+        }
 
-.stat-item:hover {
-    transform: translateX(5px);
-}
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
 
-.stat-item > div:first-child {
-    background-color: rgba(255, 87, 34, 0.1);
-    padding: 12px;
-    border-radius: 50%;
-    margin-right: 15px;
-}
+        .dashboard-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 2.5rem;
+        }
 
-.stat-item:nth-child(2) > div:first-child {
-    background-color: rgba(231, 76, 60, 0.1);
-}
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--app-text-primary);
+            margin-bottom: 0.5rem;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
 
-.stat-item:nth-child(3) > div:first-child {
-    background-color: rgba(46, 204, 113, 0.1);
-}
+        .page-title i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-.stat-item i {
-    color: var(--primary-color);
-}
+        .welcome-message {
+            font-size: 1.25rem;
+            color: var(--app-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-.stat-item:nth-child(2) i {
-    color: #e74c3c;
-}
+        /* Card Styles */
+        .card {
+            background-color: var(--app-card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+            overflow: hidden;
+            position: relative;
+            isolation: isolate;
+        }
 
-.stat-item:nth-child(3) i {
-    color: var(--success);
-}
+        .card-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--app-divider);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-.stat-item h4 {
-    margin: 0;
-    font-size: 1rem;
-}
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--app-text-primary);
+        }
 
-.stat-item p {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--dark-text);
-}
+        .card-title i {
+            color: var(--app-primary);
+        }
 
-/* Data actions */
-.data-actions {
-    margin-top: 2rem;
-}
+        .card-body {
+            padding: 2rem;
+        }
 
-.data-actions h3 {
-    margin-bottom: 1rem;
-    color: var(--dark-text);
-}
+        .card-floating {
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+        }
 
-.data-actions .btn-primary {
-    margin-bottom: 1rem;
-}
+        .card-floating:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
 
-.data-actions .btn-primary:last-child {
-    background-color: #e74c3c;
-}
+        /* Profile Grid */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+            gap: 2rem;
+        }
 
-.data-actions .btn-primary:last-child:hover {
-    background-color: #c0392b;
-}
+        /* Forms */
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
 
-/* Footer */
-footer {
-    background-color: var(--secondary-color);
-    color: white;
-    padding: 1.5rem 0;
-    margin-top: 3rem;
-    text-align: center;
-}
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--app-text-secondary);
+            transition: color var(--transition-fast);
+        }
 
-/* Responsive styles */
-@media (max-width: 992px) {
-    .split-layout {
-        flex-direction: column;
-    }
-    
-    .left, .right {
-        width: 100%;
-    }
-}
+        .form-field {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
 
-@media (max-width: 768px) {
-    .mobile-toggle {
-        display: block;
-        position: absolute;
-        right: 1rem;
-    }
-    
-    .navbar-container {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 0.8rem 1rem;
-    }
-    
-    .nav-links {
-        flex-direction: column;
-        width: 100%;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-        margin-top: 1rem;
-    }
-    
-    .nav-links.active {
-        max-height: 300px;
-    }
-    
-    .nav-links li {
-        width: 100%;
-        padding: 0.5rem 0;
-    }
-    
-    .logout-btn {
-        margin-top: 0.5rem;
-        width: 100%;
-        justify-content: center;
-    }
-}
+        .form-field i {
+            position: absolute;
+            left: 1rem;
+            color: var(--app-text-secondary);
+            transition: color var(--transition-fast);
+        }
 
-@media (max-width: 576px) {
-    .dashboard-container {
-        padding: 0 1rem;
-    }
-    
-    h1 {
-        font-size: 1.8rem;
-    }
-    
-    .account-item {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .account-icon {
-        margin-right: 0;
-        margin-bottom: 1rem;
-    }
-}
+        .form-control {
+            width: 100%;
+            padding: 1rem 1rem 1rem 2.75rem;
+            border: none;
+            border-radius: var(--radius-md);
+            background-color: var(--app-component-bg);
+            color: var(--app-text-primary);
+            font-size: 1rem;
+            transition: all var(--transition-base);
+        }
+
+        .form-control:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--app-primary);
+        }
+
+        .form-control[readonly] {
+            background-color: var(--app-secondary);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .form-group:focus-within label,
+        .form-group:focus-within i {
+            color: var(--app-primary);
+        }
+
+        /* Password Strength */
+        .password-strength {
+            height: 4px;
+            border-radius: var(--radius-sm);
+            margin-top: 0.5rem;
+            transition: var(--transition-base);
+        }
+
+        .strength-0 {
+            background-color: #ddd;
+            width: 0%;
+        }
+
+        .strength-1 {
+            background-color: var(--app-error);
+            width: 25%;
+        }
+
+        .strength-2 {
+            background-color: var(--app-warning);
+            width: 50%;
+        }
+
+        .strength-3 {
+            background-color: var(--app-primary);
+            width: 75%;
+        }
+
+        .strength-4 {
+            background-color: var(--app-success);
+            width: 100%;
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            border: none;
+            gap: 0.5rem;
+            font-size: 0.9375rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 113, 227, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: scale(1.03);
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.6);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background-color: var(--app-component-bg);
+            color: var(--app-text-primary);
+            border: 1px solid var(--app-divider);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+
+        [data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--app-error), #cf3032);
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 59, 48, 0.4);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: scale(1.03);
+            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.6);
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert.success {
+            background-color: rgba(50, 215, 75, 0.15);
+            border-left: 4px solid var(--app-success);
+            color: var(--app-success);
+        }
+
+        .alert.error {
+            background-color: rgba(255, 59, 48, 0.15);
+            border-left: 4px solid var(--app-error);
+            color: var(--app-error);
+        }
+
+        /* Stats cards */
+        .stat-card {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            background-color: var(--app-card-bg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1rem;
+            transition: all var(--transition-base);
+            border: 1px solid var(--app-divider);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .stat-info h4 {
+            font-size: 0.9rem;
+            margin: 0;
+            color: var(--app-text-secondary);
+            font-weight: 500;
+        }
+
+        .stat-info p {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--app-text-primary);
+        }
+
+        /* Account type badges */
+        .account-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.8rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .badge-google {
+            background-color: #4285F4;
+            color: white;
+        }
+
+        .badge-standard {
+            background-color: var(--app-primary);
+            color: white;
+        }
+
+        /* Account actions */
+        .account-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            background-color: rgba(50, 50, 50, 0.95);
+            color: white;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all var(--transition-base);
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            max-width: 400px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast i {
+            font-size: 1.25rem;
+        }
+
+        .toast.success {
+            background-color: rgba(50, 215, 75, 0.95);
+        }
+
+        .toast.error {
+            background-color: rgba(255, 59, 48, 0.95);
+        }
+
+        .toast.info {
+            background-color: rgba(0, 113, 227, 0.95);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--app-overlay);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-base);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background-color: var(--app-card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            width: 90%;
+            max-width: 500px;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all var(--transition-base);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--app-divider);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--app-text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--app-text-secondary);
+            cursor: pointer;
+            transition: color var(--transition-fast);
+        }
+
+        .modal-close:hover {
+            color: var(--app-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--app-divider);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            margin-right: 0.5em;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Animations */
+        .animate-in {
+            animation: fadeAndSlide 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @keyframes fadeAndSlide {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+
+        /* Responsive styles */
+        @media (max-width: 1200px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .sidebar {
+                width: 90px;
+            }
+
+            .sidebar:hover {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .content-wrapper {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                justify-content: center;
+                padding: 1rem;
+                border-right: none;
+                border-bottom: 1px solid var(--app-divider);
+            }
+
+            .sidebar:hover {
+                width: 100%;
+            }
+
+            .sidebar-nav {
+                flex-direction: row;
+                justify-content: center;
+                margin-top: 0;
+            }
+
+            .sidebar-nav-item {
+                padding: 0.5rem 1rem;
+            }
+
+            .sidebar-nav-icon {
+                margin-right: 0;
+            }
+
+            .sidebar-nav-text {
+                display: none;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar-container {
+                padding: 0 1rem;
+            }
+
+            .logo span {
+                display: none;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background-color: var(--app-background);
+                flex-direction: column;
+                padding: 1rem;
+                border-bottom: 1px solid var(--app-divider);
+                box-shadow: var(--shadow-md);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .logout-btn {
+                margin-left: auto;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .page-title {
+                font-size: 1.75rem;
+            }
+
+            .welcome-message {
+                font-size: 1rem;
+            }
+
+            .card-header {
+                padding: 1.25rem;
+            }
+
+            .card-body {
+                padding: 1.25rem;
+            }
+
+            .account-actions {
+                flex-direction: column;
+            }
+
+            .theme-toggle {
+                display: none;
+            }
+        }
+
+        /* Password meter styles */
+        .password-strength-text {
+            display: block;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            color: var(--app-text-secondary);
+            transition: color var(--transition-fast);
+        }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="/" class="logo">
-                <i class="fas fa-utensils"></i> RestMatch
-            </a>
-            <button class="mobile-toggle" id="mobileToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            <ul class="nav-links" id="navLinks">
-                <li><a href="/dashboard" class="{{#eq activeTab 'dashboard'}}active{{/eq}}">
-                    <i class="fas fa-home"></i> Dashboard
-                </a></li>
-                <li><a href="/profile" class="{{#eq activeTab 'profile'}}active{{/eq}}">
-                    <i class="fas fa-user"></i> Profilo
-                </a></li>
-                <li><a href="/chat" class="{{#eq activeTab 'chat'}}active{{/eq}}">
-                    <i class="fas fa-comments"></i> Chat
-                </a></li>
-            </ul>
-            <a href="/logout" class="logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
-    </nav>
+    <div class="app-container" id="app">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="/dashboard" class="logo">
+                    <i class="fas fa-utensils"></i>
+                    <span>RestMatch</span>
+                </a>
 
-    <!-- Profile Container -->
-    <div class="dashboard-container">
-        <h1>Profilo Utente</h1>
-        <p class="welcome-message">
-            <i class="fas fa-id-card"></i> Gestisci il tuo profilo e le tue informazioni personali
-        </p>
+                <button class="mobile-toggle" id="mobileToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
 
-        <div class="split-layout">
-            <!-- Left side - User Information -->
-            <div class="left">
-                <h2><i class="fas fa-user-circle"></i> Informazioni Personali</h2>
-                
-                <!-- Success/Error Alert -->
-                <div class="alert success" id="successAlert">
-                    <i class="fas fa-check-circle"></i> Profilo aggiornato con successo!
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-sun"></i>
+                        <i class="fas fa-moon"></i>
+                        <div class="theme-toggle-slider"></div>
+                    </div>
                 </div>
-                <div class="alert error" id="errorAlert">
-                    <i class="fas fa-exclamation-circle"></i> Si è verificato un errore durante l'aggiornamento.
-                </div>
-                
-                <form id="profileForm">
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <i class="fas fa-envelope"></i>
-                        <input type="text" id="email" name="email" value="{{userProfile.email}}" {{#eq userProfile.ruolo 'google'}}readonly{{/eq}}>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="telefono">Numero di Telefono</label>
-                        <i class="fas fa-phone"></i>
-                        <input type="text" id="telefono" name="telefono" value="{{userProfile.telefono}}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="data_nascita">Data di Nascita</label>
-                        <i class="fas fa-calendar"></i>
-                        <input type="date" id="data_nascita" name="data_nascita" value="{{userProfile.data_nascita}}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="citta">Città</label>
-                        <i class="fas fa-map-marker-alt"></i>
-                        <input type="text" id="citta" name="citta" value="{{userProfile.citta}}">
-                    </div>
-
-                    {{#unless (eq userProfile.ruolo 'google')}}
-                    <div class="form-group">
-                        <label for="password">Nuova Password (lascia vuoto per mantenere l'attuale)</label>
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" name="password">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="confirmPassword">Conferma Nuova Password</label>
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="confirmPassword" name="confirmPassword">
-                    </div>
-                    {{/unless}}
-
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-save"></i> Salva Modifiche
-                    </button>
-                </form>
             </div>
+        </nav>
 
-            <!-- Right side - Account Overview -->
-            <div class="right">
-                <h2><i class="fas fa-chart-pie"></i> Riepilogo Account</h2>
-                
-                <div class="account-info">
-                    <div class="account-item">
-                        <div class="account-icon">
-                            <i class="fas fa-user-shield" style="color: var(--primary-color); font-size: 2rem;"></i>
+        <div class="content-wrapper">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="/dashboard" class="sidebar-nav-item {{#eq activeTab 'dashboard'}}active{{/eq}}">
+                        <div class="sidebar-nav-icon">
+                            <i class="fas fa-home"></i>
                         </div>
-                        <div class="account-details">
-                            <h3>Tipo Account</h3>
-                            <p>
-                                {{#eq userProfile.ruolo 'google'}}
-                                <span style="background-color: #4285F4; color: white; padding: 3px 8px; border-radius: 4px;">
-                                    <i class="fab fa-google"></i> Google
-                                </span>
-                                {{else}}
-                                <span style="background-color: var(--secondary-color); color: white; padding: 3px 8px; border-radius: 4px;">
-                                    <i class="fas fa-user"></i> Standard
-                                </span>
-                                {{/eq}}
-                            </p>
+                        <span class="sidebar-nav-text">Dashboard</span>
+                    </a>
+                    <a href="/profile" class="sidebar-nav-item {{#eq activeTab 'profile'}}active{{/eq}}">
+                        <div class="sidebar-nav-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="sidebar-nav-text">Profilo</span>
+                    </a>
+                    <a href="/chat" class="sidebar-nav-item {{#eq activeTab 'chat'}}active{{/eq}}">
+                        <div class="sidebar-nav-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <span class="sidebar-nav-text">Chat</span>
+                    </a>
+                    <a href="/ajax" class="sidebar-nav-item {{#eq activeTab 'search'}}active{{/eq}}">
+                        <div class="sidebar-nav-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <span class="sidebar-nav-text">Ricerca</span>
+                    </a>
+                    <a href="/logout" class="sidebar-nav-item">
+                        <div class="sidebar-nav-icon">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="sidebar-nav-text">Logout</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="dashboard-header animate-in">
+                    <h1 class="page-title"><i class="fas fa-user-circle"></i> Profilo Utente</h1>
+                    <p class="welcome-message"><i class="fas fa-id-card"></i> Gestisci il tuo profilo e le tue informazioni personali</p>
+                </div>
+
+                <div class="profile-grid">
+                    <!-- User Information -->
+                    <div class="card animate-in delay-1">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-user-edit"></i> Informazioni Personali</h2>
+                        </div>
+                        <div class="card-body">
+                            <!-- Alerts - These will be shown by JS -->
+                            <!--
+                            <div class="alert success" id="successAlert">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Profilo aggiornato con successo!</span>
+                            </div>
+                            <div class="alert error" id="errorAlert">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Si è verificato un errore durante l'aggiornamento.</span>
+                            </div>
+                            -->
+
+                            <form id="profileForm">
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" id="email" name="email" class="form-control" value="{{userProfile.email}}" {{#if (eq userProfile.ruolo 'google')}}readonly{{/if}}>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="telefono">Numero di Telefono</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-phone"></i>
+                                        <input type="tel" id="telefono" name="telefono" class="form-control" placeholder="Inserisci il tuo numero di telefono" value="{{userProfile.telefono}}">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="data_nascita">Data di Nascita</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-calendar"></i>
+                                        <!-- Format date for input type="date" (YYYY-MM-DD) -->
+                                        <input type="date" id="data_nascita" name="data_nascita" class="form-control" value="{{#if userProfile.data_nascita}}{{formatDateForInput userProfile.data_nascita}}{{/if}}">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="citta">Città</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <input type="text" id="citta" name="citta" class="form-control" placeholder="Inserisci la tua città" value="{{userProfile.citta}}">
+                                    </div>
+                                </div>
+
+                                {{#unless (eq userProfile.ruolo 'google')}}
+                                <div class="form-group">
+                                    <label for="password">Nuova Password (lascia vuoto per mantenere l'attuale)</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-lock"></i>
+                                        <input type="password" id="password" name="password" class="form-control" placeholder="Inserisci la nuova password">
+                                    </div>
+                                    <div class="password-strength strength-0" id="passwordStrength"></div>
+                                    <span class="password-strength-text" id="passwordStrengthText">Forza password</span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="confirmPassword">Conferma Nuova Password</label>
+                                    <div class="form-field">
+                                        <i class="fas fa-lock"></i>
+                                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" placeholder="Conferma la nuova password">
+                                    </div>
+                                </div>
+                                {{/unless}}
+
+                                <button type="submit" class="btn btn-primary" id="saveProfileBtn">
+                                    <i class="fas fa-save"></i> Salva Modifiche
+                                </button>
+                            </form>
                         </div>
                     </div>
 
-                    <div class="account-item" style="margin-top: 1.5rem;">
-                        <div class="account-icon">
-                            <i class="fas fa-calendar-check" style="color: var(--primary-color); font-size: 2rem;"></i>
+                    <!-- Account Overview -->
+                    <div class="card animate-in delay-2">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-chart-pie"></i> Riepilogo Account</h2>
                         </div>
-                        <div class="account-details">
-                            <h3>Data Registrazione</h3>
-                            <p><i class="fas fa-clock"></i> <span id="registrationDate">{{userProfile.registration_date}}</span></p>
-                        </div>
-                    </div>
+                        <div class="card-body">
+                            <!-- Account Type -->
+                            <div style="display: flex; align-items: center; margin-bottom: 1.5rem;">
+                                <div style="background: linear-gradient(135deg, var(--app-primary-dark), var(--app-primary)); width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1.5rem;">
+                                    <i class="fas fa-user-shield" style="color: white; font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: var(--app-text-secondary);">Tipo Account</h3>
+                                    {{#eq userProfile.ruolo 'google'}}
+                                        <span class="account-badge badge-google">
+                                            <i class="fab fa-google"></i> Google
+                                        </span>
+                                    {{else}}
+                                        <span class="account-badge badge-standard">
+                                            <i class="fas fa-user"></i> {{userProfile.ruolo}}
+                                        </span>
+                                    {{/eq}}
+                                </div>
+                            </div>
 
-                    <div class="profile-stats" style="margin-top: 2rem; background-color: #f9f9f9; border-radius: var(--border-radius); padding: 1.5rem;">
-                        <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Attività Account</h3>
-                        
-                        <div class="stat-item" style="display: flex; align-items: center; margin-bottom: 1rem;">
-                            <div style="background-color: rgba(74, 111, 165, 0.1); padding: 12px; border-radius: 50%; margin-right: 15px;">
-                                <i class="fas fa-briefcase" style="color: var(--primary-color);"></i>
+                            <!-- Registration Date -->
+                            <div style="display: flex; align-items: center; margin-bottom: 2rem;">
+                                <div style="background: linear-gradient(135deg, #34c759, #2ea043); width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1.5rem;">
+                                    <i class="fas fa-calendar-check" style="color: white; font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: var(--app-text-secondary);">Data Registrazione</h3>
+                                    <p style="margin: 0; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class="fas fa-clock" style="color: var(--app-primary);"></i>
+                                        <span id="registrationDate">{{userProfile.registration_date}}</span>
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h4 style="margin: 0; font-size: 1rem;">Candidature Inviate</h4>
-                                <p style="margin: 0; font-size: 1.2rem; font-weight: 600; color: var(--secondary-color);">0</p>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-item" style="display: flex; align-items: center; margin-bottom: 1rem;">
-                            <div style="background-color: rgba(231, 76, 60, 0.1); padding: 12px; border-radius: 50%; margin-right: 15px;">
-                                <i class="fas fa-heart" style="color: var(--accent-color);"></i>
-                            </div>
-                            <div>
-                                <h4 style="margin: 0; font-size: 1rem;">Offerte Salvate</h4>
-                                <p style="margin: 0; font-size: 1.2rem; font-weight: 600; color: var(--secondary-color);">0</p>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-item" style="display: flex; align-items: center;">
-                            <div style="background-color: rgba(46, 204, 113, 0.1); padding: 12px; border-radius: 50%; margin-right: 15px;">
-                                <i class="fas fa-comments" style="color: var(--success);"></i>
-                            </div>
-                            <div>
-                                <h4 style="margin: 0; font-size: 1rem;">Messaggi Inviati</h4>
-                                <p style="margin: 0; font-size: 1.2rem; font-weight: 600; color: var(--secondary-color);">0</p>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="data-actions" style="margin-top: 2rem;">
-                        <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Azioni Account</h3>
-                        
-                        <button id="downloadData" class="btn-primary" style="background-color: var(--secondary-color); margin-bottom: 1rem;">
-                            <i class="fas fa-download"></i> Scarica i tuoi dati
-                        </button>
-                        
-                        <button id="deleteAccount" class="btn-primary" style="background-color: var(--accent-color);">
-                            <i class="fas fa-trash-alt"></i> Elimina account
-                        </button>
+                            <!-- Stats -->
+                            <div style="background-color: var(--app-component-bg); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem;">
+                                <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--app-text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="fas fa-chart-line" style="color: var(--app-primary);"></i> Attività Account
+                                </h3>
+
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background-color: rgba(74, 111, 165, 0.1);">
+                                        <i class="fas fa-briefcase" style="color: var(--app-primary);"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <h4>Candidature Inviate</h4>
+                                        <p>{{userProfile.stats.candidatureInviate}}</p>
+                                    </div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background-color: rgba(231, 76, 60, 0.1);">
+                                        <i class="fas fa-heart" style="color: var(--app-error);"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <h4>Offerte Salvate</h4>
+                                        <p>{{userProfile.stats.offerteSalvate}}</p>
+                                    </div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background-color: rgba(46, 204, 113, 0.1);">
+                                        <i class="fas fa-comments" style="color: var(--app-success);"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <h4>Messaggi Inviati</h4>
+                                        <p>{{userProfile.stats.messaggiInviati}}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Account Actions -->
+                            <div class="account-actions">
+                                <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--app-text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="fas fa-cog" style="color: var(--app-primary);"></i> Azioni Account
+                                </h3>
+
+                                <button id="downloadData" class="btn btn-secondary">
+                                    <i class="fas fa-download"></i> Scarica i tuoi dati
+                                </button>
+
+                                <button id="deleteAccount" class="btn btn-danger">
+                                    <i class="fas fa-trash-alt"></i> Elimina account
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Conferma eliminazione</h3>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: var(--app-text-secondary);">
+                    <i class="fas fa-exclamation-triangle" style="color: var(--app-warning); margin-right: 0.5rem;"></i>
+                    Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata.
+                </p>
+                <p>Tutti i tuoi dati, inclusi preferenze e messaggi, saranno eliminati permanentemente.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelDelete">
+                    <i class="fas fa-times"></i> Annulla
+                </button>
+                <button class="btn btn-danger" id="confirmDelete">
+                    <i class="fas fa-trash-alt"></i> Elimina account
+                </button>
             </div>
         </div>
     </div>
-    
+
     <script>
-        // Toggle mobile menu
-        document.getElementById('mobileToggle').addEventListener('click', function() {
-            document.getElementById('navLinks').classList.toggle('active');
-        });
-
-        // Form submission handling
-        document.getElementById('profileForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Validate password match if provided
-            const password = document.getElementById('password');
-            const confirmPassword = document.getElementById('confirmPassword');
-            
-            if (password && confirmPassword && 
-                password.value !== '' && 
-                password.value !== confirmPassword.value) {
-                document.getElementById('errorAlert').textContent = 'Le password non corrispondono';
-                document.getElementById('errorAlert').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('errorAlert').style.display = 'none';
-                }, 3000);
-                return;
-            }
-            
-            // Get form data
-            const formData = new FormData(this);
-            const userData = {};
-            formData.forEach((value, key) => {
-                // Only include password if it's not empty
-                if (key === 'password' && value === '') return;
-                if (key === 'confirmPassword') return; // Don't include confirmation
-                userData[key] = value;
-            });
-            
-            // Send update request
-            fetch('/update-profile', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Errore durante l\'aggiornamento del profilo');
-                }
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById('successAlert').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('successAlert').style.display = 'none';
-                }, 3000);
-            })
-            .catch(error => {
-                document.getElementById('errorAlert').textContent = error.message;
-                document.getElementById('errorAlert').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('errorAlert').style.display = 'none';
-                }, 3000);
-            });
-        });
-
-        // Account deletion confirmation
-        document.getElementById('deleteAccount').addEventListener('click', function() {
-            if (confirm('Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata.')) {
-                fetch('/delete-account', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Errore durante l\'eliminazione dell\'account');
-                    }
-                    window.location.href = '/logout'; // Redirect to logout after deletion
-                })
-                .catch(error => {
-                    document.getElementById('errorAlert').textContent = error.message;
-                    document.getElementById('errorAlert').style.display = 'block';
-                    setTimeout(() => {
-                        document.getElementById('errorAlert').style.display = 'none';
-                    }, 3000);
-                });
-            }
-        });
-
-        // Download user data
-        document.getElementById('downloadData').addEventListener('click', function() {
-            fetch('/download-user-data')
-                .then(response => response.blob())
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = 'miei-dati-utente.json';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                })
-                .catch(error => {
-                    document.getElementById('errorAlert').textContent = 'Errore durante il download dei dati';
-                    document.getElementById('errorAlert').style.display = 'block';
-                    setTimeout(() => {
-                        document.getElementById('errorAlert').style.display = 'none';
-                    }, 3000);
-                });
-        });
+        // DOM Elements
+        const app = document.getElementById('app');
+        const profileForm = document.getElementById('profileForm');
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navLinks = document.getElementById('navLinks');
+        const themeToggle = document.getElementById('themeToggle');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        const passwordField = document.getElementById('password');
+        const confirmPasswordField = document.getElementById('confirmPassword');
+        const passwordStrength = document.getElementById('passwordStrength');
+        const passwordStrengthText = document.getElementById('passwordStrengthText');
+        const deleteAccountBtn = document.getElementById('deleteAccount');
+        const downloadDataBtn = document.getElementById('downloadData');
+        const confirmModal = document.getElementById('confirmModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelDelete = document.getElementById('cancelDelete');
+        const confirmDelete = document.getElementById('confirmDelete');
+        const registrationDateEl = document.getElementById('registrationDate');
+        const saveProfileBtn = document.getElementById('saveProfileBtn');
 
         // Format registration date if present
-        const registrationDate = document.getElementById('registrationDate');
-        if (registrationDate && registrationDate.textContent) {
+        if (registrationDateEl && registrationDateEl.textContent) {
             try {
-                const date = new Date(registrationDate.textContent);
+                const date = new Date(registrationDateEl.textContent);
                 if (!isNaN(date)) {
-                    registrationDate.textContent = date.toLocaleDateString('it-IT', {
+                    registrationDateEl.textContent = date.toLocaleDateString('it-IT', {
                         day: '2-digit',
                         month: '2-digit',
                         year: 'numeric'
@@ -786,55 +1306,335 @@ footer {
                 console.error('Errore nel parsing della data', e);
             }
         }
+
+        // Check for saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            app.setAttribute('data-theme', 'dark');
+        }
+
+        // Theme toggle functionality
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = app.getAttribute('data-theme') || 'light';
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+                app.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+
+                // Animate theme change
+                document.body.style.transition = 'background-color 0.5s ease, color 0.5s ease';
+            });
+        }
+
+        // Mobile navigation toggle
+        if (mobileToggle) {
+            mobileToggle.addEventListener('click', function() {
+                navLinks.classList.toggle('active');
+
+                if (navLinks.classList.contains('active')) {
+                    mobileToggle.innerHTML = '<i class="fas fa-times"></i>';
+                } else {
+                    mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            });
+        }
+
+        // Show toast function
+        function showToast(message, type = 'success') {
+            if (!toast || !toastMessage) return;
+
+            // Set icon based on type
+            const iconMap = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                info: 'info-circle',
+                warning: 'exclamation-triangle'
+            };
+
+            const icon = iconMap[type] || 'info-circle';
+            toast.innerHTML = `<i class="fas fa-${icon}"></i><span id="toast-message">${message}</span>`;
+
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // Password strength meter
+        if (passwordField && passwordStrength && passwordStrengthText) {
+            passwordField.addEventListener('input', function() {
+                const password = this.value;
+                let strength = 0;
+                const strengthLabels = ['', 'Molto debole', 'Debole', 'Media', 'Forte', 'Molto forte'];
+                const strengthClasses = ['strength-0', 'strength-1', 'strength-2', 'strength-3', 'strength-4'];
+
+                if (password.length >= 8) strength++;
+                if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+                if (password.match(/\d/)) strength++;
+                if (password.match(/[^a-zA-Z\d]/)) strength++;
+
+                // Remove all classes and add appropriate one
+                passwordStrength.className = 'password-strength';
+                passwordStrength.classList.add(strengthClasses[strength]);
+
+                // Update strength text
+                passwordStrengthText.textContent = strength > 0 ? strengthLabels[strength] : 'Forza password';
+
+                // Update text color
+                if (strength === 0) {
+                    passwordStrengthText.style.color = 'var(--app-text-secondary)';
+                } else if (strength === 1) {
+                    passwordStrengthText.style.color = 'var(--app-error)';
+                } else if (strength === 2) {
+                    passwordStrengthText.style.color = 'var(--app-warning)';
+                } else {
+                    passwordStrengthText.style.color = 'var(--app-success)';
+                }
+            });
+        }
+
+        // Form submission handling
+        if (profileForm) {
+            profileForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // Validate password match if provided
+                if (passwordField && confirmPasswordField &&
+                    passwordField.value !== '' &&
+                    passwordField.value !== confirmPasswordField.value) {
+                    showToast('Le password non corrispondono', 'error');
+                    return;
+                }
+
+                // Show loading state
+                saveProfileBtn.innerHTML = '<span class="spinner"></span> Salvando...';
+                saveProfileBtn.disabled = true;
+
+                // Get form data
+                const formData = new FormData(this);
+                const userData = {};
+                formData.forEach((value, key) => {
+                    // Only include password if it's not empty
+                    if (key === 'password' && value === '') return;
+                    if (key === 'confirmPassword') return; // Don't include confirmation
+                    userData[key] = value;
+                });
+
+                // Send update request
+                fetch('/update-profile', {
+                    method: 'POST', // Or PUT depending on your API design
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // Include authentication token if needed, e.g., 'Authorization': 'Bearer YOUR_TOKEN'
+                    },
+                    body: JSON.stringify(userData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                         // Try to parse error message from response body
+                        return response.json().then(errData => {
+                            throw new Error(errData.message || 'Errore durante l\'aggiornamento del profilo');
+                        }).catch(() => {
+                            // Fallback if no JSON body
+                            throw new Error(`Errore HTTP ${response.status}: ${response.statusText}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Reset button
+                    saveProfileBtn.innerHTML = '<i class="fas fa-save"></i> Salva Modifiche';
+                    saveProfileBtn.disabled = false;
+
+                    // Show success message
+                    showToast('Profilo aggiornato con successo!', 'success');
+
+                    // Clear password fields
+                    if (passwordField) passwordField.value = '';
+                    if (confirmPasswordField) confirmPasswordField.value = '';
+                    if (passwordStrength) {
+                        passwordStrength.className = 'password-strength strength-0';
+                        passwordStrengthText.textContent = 'Forza password';
+                        passwordStrengthText.style.color = 'var(--app-text-secondary)';
+                    }
+                    
+                    // Optionally update UI with new data if needed, e.g., if server returns updated profile
+                    // For instance, if the API returns the updated profile:
+                    // if(data.updatedProfile) {
+                    //    document.getElementById('telefono').value = data.updatedProfile.telefono || '';
+                    //    document.getElementById('citta').value = data.updatedProfile.citta || '';
+                    //    document.getElementById('data_nascita').value = data.updatedProfile.data_nascita ? new Date(data.updatedProfile.data_nascita).toISOString().split('T')[0] : '';
+                    // }
+                })
+                .catch(error => {
+                    // Reset button
+                    saveProfileBtn.innerHTML = '<i class="fas fa-save"></i> Salva Modifiche';
+                    saveProfileBtn.disabled = false;
+
+                    // Show error message
+                    showToast(error.message, 'error');
+                });
+            });
+        }
+
+        // Show confirmation modal for account deletion
+        if (deleteAccountBtn && confirmModal) {
+            deleteAccountBtn.addEventListener('click', function() {
+                confirmModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Close modal
+            function closeConfirmModal() {
+                confirmModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            // Close modal buttons
+            if (closeModal) closeModal.addEventListener('click', closeConfirmModal);
+            if (cancelDelete) cancelDelete.addEventListener('click', closeConfirmModal);
+
+            // Click outside modal to close
+            confirmModal.addEventListener('click', function(e) {
+                if (e.target === confirmModal) {
+                    closeConfirmModal();
+                }
+            });
+
+            // Handle actual account deletion
+            if (confirmDelete) {
+                confirmDelete.addEventListener('click', function() {
+                    // Show loading state
+                    confirmDelete.innerHTML = '<span class="spinner"></span> Eliminando...';
+                    confirmDelete.disabled = true;
+                    cancelDelete.disabled = true;
+
+                    fetch('/delete-account', {
+                        method: 'DELETE', // Use DELETE method for deletion
+                        headers: {
+                            'Content-Type': 'application/json'
+                            // Include authentication token if needed
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(errData => {
+                                throw new Error(errData.message || 'Errore durante l\'eliminazione dell\'account');
+                            }).catch(() => {
+                                throw new Error(`Errore HTTP ${response.status}: ${response.statusText}`);
+                            });
+                        }
+                        // Check if response has content before parsing JSON
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.indexOf('application/json') !== -1) {
+                            return response.json();
+                        } else {
+                            return {}; // Return empty object if no JSON content
+                        }
+                    })
+                    .then(data => {
+                        showToast('Account eliminato con successo', 'success');
+
+                        // Redirect to logout or login page after deletion
+                        setTimeout(() => {
+                            window.location.href = '/logout';
+                        }, 1500);
+                    })
+                    .catch(error => {
+                        // Reset buttons
+                        confirmDelete.innerHTML = '<i class="fas fa-trash-alt"></i> Elimina account';
+                        confirmDelete.disabled = false;
+                        cancelDelete.disabled = false;
+
+                        closeConfirmModal();
+                        showToast(error.message, 'error');
+                    });
+                });
+            }
+        }
+
+        // Download user data
+        if (downloadDataBtn) {
+            downloadDataBtn.addEventListener('click', function() {
+                // Show loading state
+                downloadDataBtn.innerHTML = '<span class="spinner"></span> Scaricando...';
+                downloadDataBtn.disabled = true;
+
+                fetch('/download-user-data', {
+                    method: 'GET', // Use GET for downloading data
+                    headers: {
+                        // Include authentication token if needed
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                         return response.json().then(errData => {
+                            throw new Error(errData.message || 'Errore durante il download dei dati');
+                        }).catch(() => {
+                            throw new Error(`Errore HTTP ${response.status}: ${response.statusText}`);
+                        });
+                    }
+                    // Get filename from Content-Disposition header, fallback to default
+                    const disposition = response.headers.get('Content-Disposition');
+                    let filename = 'miei-dati-utente.json';
+                    if (disposition && disposition.indexOf('attachment') !== -1) {
+                        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                        const matches = filenameRegex.exec(disposition);
+                        if (matches != null && matches[1]) {
+                            filename = matches[1].replace(/['"]/g, '');
+                        }
+                    }
+                    return response.blob().then(blob => ({ blob, filename }));
+                })
+                .then(({ blob, filename }) => {
+                    // Reset button
+                    downloadDataBtn.innerHTML = '<i class="fas fa-download"></i> Scarica i tuoi dati';
+                    downloadDataBtn.disabled = false;
+
+                    // Create download link
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = filename; // Use filename from header or default
+                    document.body.appendChild(a);
+                    a.click();
+
+                    // Clean up
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                    showToast('Download completato', 'success');
+                })
+                .catch(error => {
+                    // Reset button
+                    downloadDataBtn.innerHTML = '<i class="fas fa-download"></i> Scarica i tuoi dati';
+                    downloadDataBtn.disabled = false;
+
+                    showToast(error.message, 'error');
+                });
+            });
+        }
+
+        // Update Footer with current user and time
+        const currentTimeFooter = document.getElementById('currentTimeFooter');
+        const currentUserFooter = document.getElementById('currentUserFooter');
+        if (currentTimeFooter) {
+            currentTimeFooter.textContent = '⏱️ 2025-05-05 07:46:05 UTC'; // Use provided time
+        }
+        if (currentUserFooter) {
+            currentUserFooter.textContent = '👤 Utente: quartifabrizio'; // Use provided username
+        }
+
     </script>
 
-    <style>
-        /* Additional styles for profile page */
-        .account-item {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            border-radius: var(--border-radius);
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-            border: 1px solid #f0f0f0;
-        }
-        
-        .account-icon {
-            margin-right: 1rem;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: rgba(74, 111, 165, 0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .account-details h3 {
-            font-size: 1.1rem;
-            margin: 0 0 0.5rem 0;
-            color: var(--secondary-color);
-        }
-        
-        .account-details p {
-            margin: 0;
-            color: #555;
-        }
-
-        /* Password strength meter */
-        .password-strength {
-            height: 5px;
-            transition: var(--transition);
-            margin-top: 5px;
-            border-radius: 2px;
-        }
-        
-        /* Style for readonly fields */
-        input[readonly] {
-            background-color: #f8f9fa;
-            cursor: not-allowed;
-        }
-    </style>
+    <!-- Footer with time and user info -->
+    <div style="position: fixed; bottom: 1rem; left: 1rem; font-size: 0.75rem; color: var(--app-text-secondary); opacity: 0.7; z-index: 50;">
+        <div id="currentTimeFooter">⏱️ Data/Ora (loading...)</div>
+        <div id="currentUserFooter">👤 Utente (loading...)</div>
+    </div>
 </body>
 </html>

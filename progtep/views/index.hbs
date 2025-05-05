@@ -1,64 +1,707 @@
-<link rel="stylesheet" href="style.css">
-<div class="auth-container">
-    <h1 id="main-title">RestMatch</h1>
-    
-    <form id="loginForm" action="/login" method="POST">
-        <h2>Accedi</h2>
-        
-        {{#if errorMessage}}
-        <div class="alert alert-error">
-            {{errorMessage}}
-        </div>
-        {{/if}}
-        
-        <div class="form-group">
-            <label for="loginEmail">Email</label>
-            <input type="email" id="loginEmail" name="email" placeholder="Inserisci la tua email" required>
-        </div>
-
-        <div class="form-group">
-            <label for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" name="password" placeholder="Inserisci la tua password" required>
-        </div>
-
-        <button type="submit" class="btn-primary">Accedi</button>
-        
-        <p class="auth-redirect">Non hai un account? <a href="/registra">Registrati qui</a></p>
-    </form>
-
-    <div class="social-login">
-        <a href="/auth/google" class="btn btn-google">
-            Accedi con Google
-        </a>
-    </div>
-</div>
-
-<script>
-    document.getElementById('loginForm').addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-
-        try {
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                }
-            } else {
-                const message = await response.text();
-                alert(message);
-            }
-        } catch (error) {
-            console.error('Errore durante il login:', error);
-            alert('Errore durante il login. Riprova più tardi.');
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RestMatch • Accedi</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Color System */
+            --app-primary: #0071e3;
+            --app-primary-dark: #0051a3;
+            --app-secondary: #f5f5f7;
+            --app-text-primary: #1d1d1f;
+            --app-text-secondary: #6e6e73;
+            --app-success: #32d74b;
+            --app-warning: #ff9f0a;
+            --app-error: #ff3b30;
+            --app-background: #ffffff;
+            --app-card-bg: #ffffff;
+            --app-divider: rgba(0, 0, 0, 0.05);
+            --app-component-bg: rgba(0, 0, 0, 0.02);
+            --app-overlay: rgba(0, 0, 0, 0.4);
+            --app-accent: #06c;
+            --app-accent-hover: #007aff;
+            
+            /* Shadow System */
+            --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.12);
+            
+            /* Transitions */
+            --transition-fast: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-base: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-slow: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-bounce: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            
+            /* Borders */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
         }
-    });
-</script>
+        
+        [data-theme="dark"] {
+            --app-primary: #0a84ff;
+            --app-primary-dark: #409cff;
+            --app-secondary: #1c1c1e;
+            --app-text-primary: #f5f5f7;
+            --app-text-secondary: #98989d;
+            --app-success: #32d74b;
+            --app-warning: #ff9f0a;
+            --app-error: #ff453a;
+            --app-background: #000000;
+            --app-card-bg: #1c1c1e;
+            --app-divider: rgba(255, 255, 255, 0.1);
+            --app-component-bg: rgba(255, 255, 255, 0.05);
+            --app-overlay: rgba(0, 0, 0, 0.7);
+            --app-accent: #0a84ff;
+            --app-accent-hover: #409cff;
+        }
+        
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            background-color: var(--app-background);
+            color: var(--app-text-primary);
+            line-height: 1.5;
+            font-size: 16px;
+            overflow-x: hidden;
+            transition: background-color var(--transition-base), color var(--transition-base);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        }
+        
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #121212, #1e1e1e);
+        }
+        
+        /* Main container */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 55px;
+            height: 28px;
+            border-radius: 14px;
+            background-color: var(--app-component-bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 6px;
+            transition: background-color var(--transition-base);
+            border: 1px solid var(--app-divider);
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .theme-toggle i {
+            font-size: 14px;
+            color: var(--app-text-secondary);
+            z-index: 1;
+        }
+        
+        .theme-toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--app-primary);
+            transition: transform var(--transition-base), background-color var(--transition-base);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        [data-theme="dark"] .theme-toggle-slider {
+            transform: translateX(27px);
+        }
+        
+        /* Authentication Container */
+        .auth-container {
+            max-width: 480px;
+            width: 100%;
+            margin: auto;
+            padding: 2rem;
+            background-color: var(--app-card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            text-align: center;
+            position: relative;
+            animation: floatIn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        @keyframes floatIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        #main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            position: relative;
+        }
+        
+        #main-title:before {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='%230071e3' d='M221.6 148.7C224.7 161.3 224.8 174.5 222.1 187.2C219.3 199.1 213.6 211.9 205.6 222.1C191.1 238.6 173 249.1 151.1 254.1V472C151.1 482.6 147.8 492.8 140.3 500.3C132.8 507.8 122.6 512 111.1 512C101.4 512 91.22 507.8 83.71 500.3C76.21 492.8 71.1 482.6 71.1 472V254.1C50.96 249.1 32.01 238.6 18.4 222.1C10.39 211.9 4.708 199.1 1.882 187.2C-0.9441 174.5-.8228 161.3 2.248 148.7C8.071 122.5 22.27 99.36 41.78 81.47C54.51 69.93 70.1 61.04 87.96 55.62C105.9 50.2 124.6 48.57 142.9 50.58C161.2 52.58 178.8 58.37 194.5 67.07C210.2 75.77 223.3 87.64 233.4 102.1L223.1 111.1C213.1 97.69 201.5 87.04 187.2 79.6C172.8 72.16 156.8 68.37 140.5 68.51C124.2 68.41 108.1 71.77 93.79 78.67C79.48 85.57 67.12 95.91 57.82 108.8C48.53 121.7 42.63 136.7 40.63 152.6L223.1 148.7zM308.8 306.3L329.1 327.5L384.9 383.9C390.6 389.6 394.4 396.6 396.3 404.3L410.9 473.9C412.6 481.3 412.2 489.2 409.1 496.3C407.9 499.8 406.1 502.9 403.5 505.9C400.8 509.1 397.1 511.6 393.9 513.3C386.8 516.7 379 517.7 371.5 516.4C363.9 515 356.9 511.8 350.1 507.1L272.2 439.5C264.7 432.8 260.9 423.1 261.5 413.1C262 402.3 267 392.4 275.9 385.9L286.7 378.3L216.8 308.3L173.9 441.5C171.9 449.3 166.9 455.9 160 460.1L84.37 510.9C77.51 515.9 69.05 518.2 60.44 517.5C51.84 516.7 43.76 512.9 37.56 506.9C31.35 500.7 27.52 492.7 26.84 484.1C26.15 475.5 28.49 467 33.49 460.1L84.8 384.5C89.01 377.6 95.6 372.6 103.4 370.6L170.8 351.6L216.8 305.6L141.9 230.9C128.2 217.3 120.1 198.4 120 178.6C119.9 158.7 128 139.8 141.7 126.1C155.4 112.5 174.4 104.8 194.2 104.9C214 105 232.9 113 246.5 126.7L308.8 189L329.1 210.2L350.3 231.4C364.2 245.3 371.3 264.3 370.1 283.9C368.9 303.5 358.5 321.7 342.3 333.7L308.8 306.3z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.1;
+            top: -10px;
+            left: -20px;
+            z-index: -1;
+        }
+        
+        /* Form */
+        #loginForm h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--app-text-primary);
+        }
+        
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--app-text-secondary);
+            transition: color var(--transition-fast);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 2.75rem;
+            border: none;
+            border-radius: var(--radius-md);
+            background-color: var(--app-component-bg);
+            color: var(--app-text-primary);
+            font-size: 1rem;
+            transition: all var(--transition-base);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--app-primary);
+        }
+        
+        .form-group:focus-within label {
+            color: var(--app-primary);
+        }
+        
+        .form-group::before {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 1rem;
+            top: 2.35rem;
+            color: var(--app-text-secondary);
+            transition: color var(--transition-fast);
+        }
+        
+        .form-group:focus-within::before {
+            color: var(--app-primary);
+        }
+        
+        .form-group:nth-of-type(1)::before {
+            content: '\f0e0'; /* Email icon */
+        }
+        
+        .form-group:nth-of-type(2)::before {
+            content: '\f023'; /* Lock icon */
+        }
+        
+        /* Button */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
+            color: white;
+            border: none;
+            padding: 0.9rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            width: 100%;
+            margin-top: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 113, 227, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.6);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 113, 227, 0.4);
+        }
+        
+        .btn-primary:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .btn-primary:focus:after {
+            animation: ripple 1s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+        
+        /* Auth redirect */
+        .auth-redirect {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: var(--app-text-secondary);
+        }
+        
+        .auth-redirect a {
+            color: var(--app-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color var(--transition-fast);
+        }
+        
+        .auth-redirect a:hover {
+            color: var(--app-primary-dark);
+            text-decoration: underline;
+        }
+        
+        /* Social login */
+        .social-login {
+            margin-top: 2rem;
+            position: relative;
+        }
+        
+        .social-login::before {
+            content: 'o';
+            display: inline-block;
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--app-card-bg);
+            padding: 0 1rem;
+            color: var(--app-text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .social-login::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 1px;
+            background-color: var(--app-divider);
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.8rem 1.5rem;
+            margin-top: 2rem;
+            background-color: #fff;
+            color: #757575;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            border: 1px solid var(--app-divider);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-sm);
+            text-decoration: none;
+            font-size: 1rem;
+        }
+        
+        .btn-google::before {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 488 512'%3E%3Cpath fill='%234285F4' d='M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z'/%3E%3C/svg%3E");
+            width: 18px;
+            height: 18px;
+        }
+        
+        .btn-google:hover {
+            background-color: #f8f8f8;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        /* Alert */
+        .alert {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            animation: fadeIn var(--transition-base);
+        }
+        
+        .alert-error {
+            background-color: rgba(255, 59, 48, 0.15);
+            border-left: 4px solid var(--app-error);
+            color: var(--app-error);
+            position: relative;
+        }
+        
+        .alert-error::before {
+            content: '\f071';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: 0.75rem;
+            color: var(--app-text-secondary);
+            opacity: 0.7;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        /* Decoration */
+        .decoration {
+            position: fixed;
+            z-index: -1;
+        }
+        
+        .decoration-1 {
+            top: 10%;
+            left: 10%;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 113, 227, 0.1) 0%, rgba(0, 113, 227, 0) 70%);
+        }
+        
+        .decoration-2 {
+            bottom: 10%;
+            right: 10%;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 59, 48, 0.08) 0%, rgba(255, 59, 48, 0) 70%);
+        }
+        
+        .decoration-3 {
+            top: 40%;
+            right: 15%;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(50, 215, 75, 0.08) 0%, rgba(50, 215, 75, 0) 70%);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 576px) {
+            .auth-container {
+                margin: 2rem auto;
+                width: 90%;
+            }
+            
+            #main-title {
+                font-size: 2rem;
+            }
+            
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" id="app">
+        <!-- Theme toggle switch -->
+        <div class="theme-toggle" id="themeToggle">
+            <i class="fas fa-sun"></i>
+            <i class="fas fa-moon"></i>
+            <div class="theme-toggle-slider"></div>
+        </div>
+        
+        <!-- Background decorations -->
+        <div class="decoration decoration-1"></div>
+        <div class="decoration decoration-2"></div>
+        <div class="decoration decoration-3"></div>
+        
+        <!-- Login container -->
+        <div class="auth-container">
+            <h1 id="main-title">RestMatch</h1>
+            
+            <form id="loginForm" action="/login" method="POST">
+                <h2>Accedi</h2>
+                
+                {{#if errorMessage}}
+                <div class="alert alert-error">
+                    {{errorMessage}}
+                </div>
+                {{/if}}
+                
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" name="email" placeholder="Inserisci la tua email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" name="password" placeholder="Inserisci la tua password" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Accedi</button>
+                
+                <p class="auth-redirect">Non hai un account? <a href="/registra">Registrati qui</a></p>
+            </form>
+
+            <div class="social-login">
+                <a href="/auth/google" class="btn-google">
+                    Accedi con Google
+                </a>
+            </div>
+        </div>
+        
+        <!-- Footer with time and user info -->
+        <div class="footer">
+            <div>⏱️ Data e ora: <span id="current-date">2025-05-02 16:30:34</span></div>
+            <div>👤 Utente: <span id="current-user">quartifabrizio</span></div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const app = document.getElementById('app');
+        const themeToggle = document.getElementById('themeToggle');
+        const loginForm = document.getElementById('loginForm');
+        const currentDateElem = document.getElementById('current-date');
+        const currentUserElem = document.getElementById('current-user');
+        
+        // Set current date and username
+        if (currentDateElem) currentDateElem.textContent = '2025-05-02 16:30:34';
+        if (currentUserElem) currentUserElem.textContent = 'quartifabrizio';
+        
+        // Check for saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            app.setAttribute('data-theme', 'dark');
+        }
+        
+        // Theme toggle functionality
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = app.getAttribute('data-theme') || 'light';
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                
+                app.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // Animate theme change
+                document.body.style.transition = 'background-color 0.5s ease, color 0.5s ease';
+            });
+        }
+        
+        // Form submission
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                
+                const submitBtn = loginForm.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.innerHTML = '<span class="spinner"></span> Caricando...';
+                submitBtn.disabled = true;
+
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                try {
+                    const response = await fetch('/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password }),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.redirect) {
+                            // Add page transition before redirect
+                            document.body.style.opacity = '0';
+                            document.body.style.transition = 'opacity 0.3s ease';
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 300);
+                        }
+                    } else {
+                        const errorData = await response.json();
+                        
+                        // Create or update error alert
+                        let alertEl = document.querySelector('.alert-error');
+                        if (!alertEl) {
+                            alertEl = document.createElement('div');
+                            alertEl.className = 'alert alert-error';
+                            loginForm.insertBefore(alertEl, loginForm.firstChild);
+                        }
+                        alertEl.textContent = errorData.message || 'Errore durante il login';
+                        
+                        // Reset button
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Errore durante il login:', error);
+                    
+                    // Create or update error alert
+                    let alertEl = document.querySelector('.alert-error');
+                    if (!alertEl) {
+                        alertEl = document.createElement('div');
+                        alertEl.className = 'alert alert-error';
+                        loginForm.insertBefore(alertEl, loginForm.firstChild);
+                    }
+                    alertEl.textContent = 'Errore di connessione. Riprova più tardi.';
+                    
+                    // Reset button
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
+        }
+        
+        // Add subtle animations to form fields
+        document.querySelectorAll('.form-group input').forEach((input, index) => {
+            input.style.opacity = '0';
+            input.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                input.style.transition = 'all 0.4s ease';
+                input.style.opacity = '1';
+                input.style.transform = 'translateY(0)';
+            }, 100 + (index * 100));
+            
+            // Animate label when input is focused
+            input.addEventListener('focus', function() {
+                this.parentElement.querySelector('label').style.transform = 'translateY(-3px)';
+                this.parentElement.querySelector('label').style.transition = 'transform 0.3s ease';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.querySelector('label').style.transform = 'translateY(0)';
+            });
+        });
+        
+        // Add animation to the submit button
+        const submitBtn = document.querySelector('.btn-primary');
+        if (submitBtn) {
+            submitBtn.style.opacity = '0';
+            submitBtn.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                submitBtn.style.transition = 'all 0.4s ease';
+                submitBtn.style.opacity = '1';
+                submitBtn.style.transform = 'translateY(0)';
+            }, 400);
+        }
+        
+        // Add ripple effect to buttons
+        document.querySelectorAll('button, .btn-google').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                ripple.style.position = 'absolute';
+                ripple.style.borderRadius = '50%';
+                ripple.style.transform = 'scale(0)';
+                ripple.style.background = 'rgba(255, 255, 255, 0.4)';
+                ripple.style.width = '100px';
+                ripple.style.height = '100px';
+                ripple.style.left = e.offsetX - 50 + 'px';
+                ripple.style.top = e.offsetY - 50 + 'px';
+                ripple.style.pointerEvents = 'none';
+                ripple.style.transition = 'all 0.6s ease-out';
+                
+                if (this.style.position !== 'relative') {
+                    this.style.position = 'relative';
+                    this.style.overflow = 'hidden';
+                }
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.style.transform = 'scale(4)';
+                    ripple.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
+                    }, 600);
+                }, 10);
+            });
+        });
+    </script>
+</body>
+</html>
