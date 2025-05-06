@@ -41,6 +41,28 @@ hbs.registerHelper('eq', function(a, b, options) {
   }
 });
 
+// Nuovo helper per verificare se un tipo di lavoro è presente nell'array dei tipi di lavoro selezionati
+hbs.registerHelper('isJobTypeSelected', function(preferenceJobTypes, currentJobType) {
+    if (!preferenceJobTypes) return false;
+    
+    if (Array.isArray(preferenceJobTypes)) {
+        return preferenceJobTypes.includes(currentJobType);
+    }
+    
+    // Se è una stringa (vecchio formato), lo convertiamo in array
+    if (typeof preferenceJobTypes === 'string') {
+        const jobArray = preferenceJobTypes.split(',').map(job => job.trim());
+        return jobArray.includes(currentJobType);
+    }
+    
+    return false;
+});
+
+// Nuovo helper per convertire JSON in stringa
+hbs.registerHelper('json', function(context) {
+    return JSON.stringify(context);
+});
+
 // Swagger definition
 const swaggerOptions = {
   definition: {
@@ -121,7 +143,7 @@ const swaggerOptions = {
             },
             city: {
               type: 'string',
-              description: 'Città selezionata'
+              description: 'Città selezionate (separate da virgole)'
             },
             start_date: {
               type: 'string',
@@ -133,11 +155,11 @@ const swaggerOptions = {
             },
             job_type: {
               type: 'string',
-              description: 'Tipo di lavoro'
+              description: 'Tipi di lavoro (separati da virgole)'
             },
             restaurant_type: {
               type: 'string',
-              description: 'Tipo di ristorante'
+              description: 'Tipo di ristorante (opzionale)'
             }
           }
         },
@@ -313,7 +335,7 @@ const db = new sqlite3.Database('database.db', (err) => {
           }
         );
         
-        // Create offers table
+        // Create offers table - MODIFICATA per supportare array di ruoli
         db.run(
             `CREATE TABLE IF NOT EXISTS offerte (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -322,7 +344,7 @@ const db = new sqlite3.Database('database.db', (err) => {
                 description TEXT NOT NULL,
                 city TEXT NOT NULL,
                 region TEXT NOT NULL,
-                restaurant_type TEXT NOT NULL,
+                restaurant_type TEXT,
                 job_type TEXT NOT NULL,
                 start_date TEXT NOT NULL,
                 end_date TEXT NOT NULL,
@@ -360,7 +382,7 @@ const sessionDb = new sqlite3.Database('session.db', (err) => {
                 start_date TEXT NOT NULL,
                 end_date TEXT NOT NULL,
                 job_type TEXT NOT NULL,
-                restaurant_type TEXT NOT NULL,
+                restaurant_type TEXT,
                 preference_name TEXT DEFAULT 'Default'
             )`, (err) => {
                 if (err) {
@@ -446,7 +468,16 @@ app.get('/api/preferences', requireAuth, (req, res) => {
             console.error('Errore nel recupero delle preferenze:', err);
             return res.status(500).json({ error: 'Errore del server' });
         }
-        res.json(rows);
+        
+        // Converti job_type da string a array per ogni preferenza
+        const preferences = rows.map(pref => {
+            return {
+                ...pref,
+                job_type: pref.job_type ? pref.job_type.split(',').map(job => job.trim()) : []
+            };
+        });
+        
+        res.json(preferences);
     });
 });
 
@@ -469,14 +500,30 @@ app.get('/api/preferences/filter', requireAuth, (req, res) => {
             restaurant_type, 
             preference_name
         FROM preferences 
-        WHERE user_id = ? AND city = ?
+        WHERE user_id = ?
     `;
-    sessionDb.all(query, [req.session.user.id, city], (err, rows) => {
+    
+    sessionDb.all(query, [req.session.user.id], (err, rows) => {
         if (err) {
             console.error('Errore nel recupero delle preferenze filtrate:', err);
             return res.status(500).json({ error: 'Errore del server' });
         }
-        res.json(rows);
+        
+        // Filtra manualmente per supportare il confronto con città multiple
+        const filteredPrefs = rows.filter(pref => {
+            const prefCities = pref.city.toLowerCase().split(',').map(c => c.trim());
+            return prefCities.includes(city.toLowerCase());
+        });
+        
+        // Converti job_type da string a array per ogni preferenza
+        const preferences = filteredPrefs.map(pref => {
+            return {
+                ...pref,
+                job_type: pref.job_type ? pref.job_type.split(',').map(job => job.trim()) : []
+            };
+        });
+        
+        res.json(preferences);
     });
 });
 
@@ -501,6 +548,37 @@ const sampleRegions = [
     'Molise', 'Piemonte', 'Puglia', 'Sardegna', 'Sicilia', 'Toscana', 
     'Trentino-Alto Adige', 'Umbria', 'Valle d\'Aosta', 'Veneto'
 ];
+
+// Mappa città-regione per riferimento
+const cityToRegionMap = {
+    'Roma': 'Lazio',
+    'Milano': 'Lombardia',
+    'Napoli': 'Campania',
+    'Torino': 'Piemonte',
+    'Palermo': 'Sicilia',
+    'Genova': 'Liguria',
+    'Bologna': 'Emilia-Romagna',
+    'Firenze': 'Toscana',
+    'Bari': 'Puglia',
+    'Catania': 'Sicilia',
+    'Venezia': 'Veneto',
+    'Verona': 'Veneto',
+    'Messina': 'Sicilia',
+    'Padova': 'Veneto',
+    'Trieste': 'Friuli-Venezia Giulia',
+    'Brescia': 'Lombardia',
+    'Parma': 'Emilia-Romagna',
+    'Taranto': 'Puglia',
+    'Prato': 'Toscana',
+    'Modena': 'Emilia-Romagna',
+    'Reggio Calabria': 'Calabria',
+    'Reggio Emilia': 'Emilia-Romagna',
+    'Perugia': 'Umbria',
+    'Livorno': 'Toscana',
+    'Ravenna': 'Emilia-Romagna',
+    'Cagliari': 'Sardegna',
+    'Foggia': 'Puglia'
+};
 
 // Improved function to fetch and store job offers
 function fetchAndStoreJobOffers() {
@@ -559,10 +637,25 @@ function insertJobOffers(jobsToInsert, restaurantUsers) {
         
         // Get random city and region (now independent from each other)
         const randomCity = sampleCities[Math.floor(Math.random() * sampleCities.length)];
-        const randomRegion = sampleRegions[Math.floor(Math.random() * sampleRegions.length)];
         
-        const randomRestaurantType = restaurantTypes[Math.floor(Math.random() * restaurantTypes.length)];
-        const randomJobType = jobTypes[Math.floor(Math.random() * jobTypes.length)];
+        // Ottieni la regione corrispondente dalla mappa città-regione
+        const randomRegion = cityToRegionMap[randomCity] || sampleRegions[Math.floor(Math.random() * sampleRegions.length)];
+        
+        // Genera da 1 a 3 ruoli casuali
+        const numRoles = Math.floor(Math.random() * 2) + 1;  // 1 o 2 ruoli
+        const roleIndices = new Set();
+        while(roleIndices.size < numRoles) {
+            roleIndices.add(Math.floor(Math.random() * jobTypes.length));
+        }
+        const selectedRoles = Array.from(roleIndices).map(idx => jobTypes[idx]);
+        const roleString = selectedRoles.join(',');
+        
+        // Restaurant type può essere nullo o vuoto in alcuni casi (30% di probabilità)
+        const includeRestaurantType = Math.random() > 0.3;
+        const randomRestaurantType = includeRestaurantType ? restaurantTypes[Math.floor(Math.random() * restaurantTypes.length)] : '';
+        
+        // Usa il primo ruolo come job_type principale
+        const randomJobType = selectedRoles[0];
         
         const today = new Date();
         const startDate = new Date(today);
@@ -574,15 +667,35 @@ function insertJobOffers(jobsToInsert, restaurantUsers) {
         const formattedStartDate = startDate.toISOString().split('T')[0];
         const formattedEndDate = endDate.toISOString().split('T')[0];
         
-        const imageUrl = `/images/restaurant-${(index % 5) + 1}.jpg`;
+        // Immagine standard per tutte le offerte
+        const imageUrl = "https://via.placeholder.com/400x200?text=Offerta+Lavoro";
+        
+        // Descrizioni migliorate
+        const descriptions = [
+            `Cercasi ${roleString} con esperienza per ristorante in zona ${randomCity}. Offriamo ambiente di lavoro dinamico e opportunità di crescita professionale.`,
+            `${randomCity}: ${roleString} richiesto/i per ${randomRestaurantType || 'ristorante'}. Requisiti: esperienza pregressa, flessibilità e passione per la ristorazione.`,
+            `Opportunità per ${roleString} in ${randomCity}. Disponibilità nei weekend e turni serali. Retribuzione competitiva.`,
+            `${randomRestaurantType || 'Ristorante'} in ${randomCity} cerca ${roleString} per completare il proprio staff. Contratto a tempo determinato con possibilità di rinnovo.`,
+            `Posizione aperta per ${roleString} a ${randomCity}, ${randomRegion}. Si offre formazione continua e ambiente di lavoro stimolante.`
+        ];
+        
+        const description = descriptions[Math.floor(Math.random() * descriptions.length)];
         
         // Use restaurant name as part of the title
-        const title = `${restaurantUser.nome}: ${job.title.substring(0, 30)}`;
+        const titles = [
+            `${restaurantUser.nome}: Cercasi ${roleString}`,
+            `Posizione aperta: ${roleString} a ${randomCity}`,
+            `${randomRestaurantType || 'Ristorante'} assume ${roleString}`,
+            `Lavoro nel settore ristorazione: ${roleString}`,
+            `Offerta per ${roleString} in ${randomCity}`
+        ];
+        
+        const title = titles[Math.floor(Math.random() * titles.length)];
         
         insertStmt.run(
             title,
-            randomJobType,
-            job.description.substring(0, 200),
+            roleString,  // Salviamo i ruoli come stringa separata da virgole
+            description,
             randomCity,
             randomRegion,
             randomRestaurantType,
@@ -606,18 +719,27 @@ setInterval(fetchAndStoreJobOffers, 24 * 60 * 60 * 1000);
 app.post('/create-offer', requireAuth, (req, res) => {
     // Check if user is a restaurant
     if (req.session.user.ruolo !== 'ristoratore') {
-        return res.status(403).send('Solo i ristoratori possono creare offerte di lavoro');
+        return res.status(403).json({ success: false, message: 'Solo i ristoratori possono creare offerte di lavoro' });
     }
     
+    // Estrai i dati dal form
     const { title, role, description, city, region, restaurant_type, job_type, start_date, end_date, salary } = req.body;
     
-    // Basic validation
-    if (!title || !role || !description || !city || !region || !restaurant_type || !job_type || !start_date || !end_date) {
-        return res.status(400).send('Tutti i campi sono obbligatori');
+    // Gestisci role come array o stringa
+    let roleString;
+    if (Array.isArray(role)) {
+        roleString = role.join(',');
+    } else {
+        roleString = role;
     }
     
-    // Generate random image for the job posting
-    const imageUrl = `/images/restaurant-${Math.floor(Math.random() * 5) + 1}.jpg`;
+    // Basic validation
+    if (!title || !roleString || !description || !city || !region || !start_date || !end_date) {
+        return res.status(400).json({ success: false, message: 'Mancano campi obbligatori' });
+    }
+    
+    // Generate immagine standard
+    const imageUrl = "https://via.placeholder.com/400x200?text=Offerta+Lavoro";
     
     // Insert the job offer into the database
     const query = `
@@ -626,13 +748,26 @@ app.post('/create-offer', requireAuth, (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
+    // Usa il primo ruolo come job_type principale se è un array
+    const primaryJobType = Array.isArray(role) && role.length > 0 ? role[0] : (roleString || '');
+    
     db.run(query, [
-        title, role, description, city, region, restaurant_type, job_type, start_date, end_date, 
-        salary || `${1200 + Math.floor(Math.random() * 1800)}€/mese`, imageUrl, req.session.user.id
+        title, 
+        roleString, 
+        description, 
+        city, 
+        region, 
+        restaurant_type || "", // Opzionale 
+        primaryJobType,
+        start_date, 
+        end_date, 
+        salary || `${1200 + Math.floor(Math.random() * 1800)}€/mese`, 
+        imageUrl, 
+        req.session.user.id
     ], function(err) {
         if (err) {
             console.error('Errore durante la creazione dell\'offerta:', err);
-            return res.status(500).send('Errore del server');
+            return res.status(500).json({ success: false, message: 'Errore del server' });
         }
         
         res.status(200).json({ success: true, message: 'Offerta creata con successo', id: this.lastID });
@@ -821,13 +956,19 @@ app.get('/api/users/filter', requireAuth, (req, res) => {
     });
 });
 
-// Save preferences (now using sessionDb)
+// Save preferences (now using sessionDb) - AGGIORNATO PER SUPPORTARE ARRAY DI JOB TYPES
 app.post('/save-preferences', requireAuth, (req, res) => {
-    const { region, city, startDate, endDate, jobType, restaurantType, preferenceName } = req.body;
+    // Estrai i parametri dalla request
+    let { region, city, startDate, endDate, jobType, restaurantType, preferenceName } = req.body;
+    
+    // Converti jobType in stringa separata da virgole se è un array
+    if (Array.isArray(jobType)) {
+        jobType = jobType.join(',');
+    }
     
     // Basic validation
-    if (!city || !startDate || !endDate || !jobType || !restaurantType) {
-        return res.status(400).json({ success: false, message: 'Tutti i campi sono obbligatori eccetto la regione' });
+    if (!city || !startDate || !endDate || !jobType) {
+        return res.status(400).json({ success: false, message: 'I campi città, data inizio, data fine e tipo lavoro sono obbligatori' });
     }
     
     // Check if preference with this name already exists for this user
@@ -851,7 +992,7 @@ app.post('/save-preferences', requireAuth, (req, res) => {
                 SET country = ?, city = ?, start_date = ?, end_date = ?, job_type = ?, restaurant_type = ?
                 WHERE id = ?
             `;
-            params = [region || '', city, startDate, endDate, jobType, restaurantType, existing.id];
+            params = [region || '', city, startDate, endDate, jobType, restaurantType || '', existing.id];
         } else {
             // Insert new preference
             query = `
@@ -859,7 +1000,7 @@ app.post('/save-preferences', requireAuth, (req, res) => {
                 (user_id, country, city, start_date, end_date, job_type, restaurant_type, preference_name)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `;
-            params = [req.session.user.id, region || '', city, startDate, endDate, jobType, restaurantType, preferenceName || 'Default'];
+            params = [req.session.user.id, region || '', city, startDate, endDate, jobType, restaurantType || '', preferenceName || 'Default'];
         }
         
         sessionDb.run(query, params, function(err) {
@@ -868,35 +1009,65 @@ app.post('/save-preferences', requireAuth, (req, res) => {
                 return res.status(500).json({ success: false, message: 'Errore del server durante il salvataggio' });
             }
             
+            // Converti jobType da string a array per il filtraggio
+            const jobTypeArray = jobType.split(',').map(job => job.trim());
+            
+            // Converti city da string a array per il filtraggio
+            const cityArray = city.split(',').map(c => c.trim());
+            
             // Fetch filtered job offers based on the saved preferences
             const getFilteredOffers = `
                 SELECT o.*, u.email as restaurant_name
                 FROM offerte o
                 LEFT JOIN userss u ON o.user_id = u.id
-                WHERE o.city = ?
-                    AND o.job_type = ?
-                    AND o.restaurant_type = ?
-                    AND o.start_date >= ?
-                    AND o.end_date <= ?
+                WHERE o.start_date >= ?
+                AND o.end_date <= ?
                 ORDER BY o.created_at DESC
             `;
             
-            db.all(getFilteredOffers, [
-                city, 
-                jobType, 
-                restaurantType, 
-                startDate, 
-                endDate
-            ], (err, offers) => {
+            db.all(getFilteredOffers, [startDate, endDate], (err, allOffers) => {
                 if (err) {
                     console.error('Errore durante il recupero delle offerte filtrate:', err);
                     return res.status(500).json({ success: false, message: 'Errore del server' });
                 }
                 
+                // Filtra manualmente per supportare array di job types e città
+                let filteredOffers = allOffers.filter(offer => {
+                    // Verifica se la città dell'offerta è tra quelle preferite
+                    const isCityMatch = cityArray.some(c => 
+                        offer.city.toLowerCase() === c.toLowerCase()
+                    );
+                    
+                    if (!isCityMatch) return false;
+                    
+                    // Verifica se almeno uno dei ruoli dell'offerta è tra quelli preferiti
+                    const offerRoles = offer.role.split(',').map(r => r.trim());
+                    const isRoleMatch = offerRoles.some(r => 
+                        jobTypeArray.includes(r)
+                    );
+                    
+                    if (!isRoleMatch) return false;
+                    
+                    // Se il tipo di ristorante è specificato, filtra anche per quello
+                    if (restaurantType && restaurantType !== "") {
+                        return offer.restaurant_type === restaurantType;
+                    }
+                    
+                    return true;
+                });
+                
+                // Converti role string in array per ogni offerta trovata
+                filteredOffers = filteredOffers.map(offer => {
+                    return {
+                        ...offer,
+                        role: offer.role.split(',').map(r => r.trim())
+                    };
+                });
+                
                 return res.status(200).json({ 
                     success: true, 
                     message: 'Preferenze salvate con successo', 
-                    offers: offers 
+                    offers: filteredOffers 
                 });
             });
         });
@@ -923,34 +1094,70 @@ app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
             return res.status(404).json({ success: false, message: 'Preferenza non trovata' });
         }
         
-        // Get filtered offers
-        const getFilteredOffers = `
+        // Converti job_type da string a array
+        const jobTypeArray = preference.job_type ? preference.job_type.split(',').map(job => job.trim()) : [];
+        
+        // Converti city da string a array
+        const cityArray = preference.city ? preference.city.split(',').map(c => c.trim()) : [];
+        
+        // Get all offers within date range
+        const getOffersInDateRange = `
             SELECT o.*, u.email as restaurant_name
             FROM offerte o
             LEFT JOIN userss u ON o.user_id = u.id
-            WHERE o.city = ? 
-                AND o.job_type = ?
-                AND o.restaurant_type = ?
-                AND o.start_date >= ?
-                AND o.end_date <= ?
+            WHERE o.start_date >= ?
+            AND o.end_date <= ?
             ORDER BY o.created_at DESC
         `;
         
-        db.all(getFilteredOffers, [
-            preference.city, 
-            preference.job_type, 
-            preference.restaurant_type, 
+        db.all(getOffersInDateRange, [
             preference.start_date, 
             preference.end_date
-        ], (err, offers) => {
+        ], (err, allOffers) => {
             if (err) {
-                console.error('Errore durante il recupero delle offerte filtrate:', err);
+                console.error('Errore durante il recupero delle offerte in range di date:', err);
                 return res.status(500).json({ success: false, message: 'Errore del server' });
             }
             
+            // Filtra manualmente per supportare array di job types e città
+            let filteredOffers = allOffers.filter(offer => {
+                // Verifica se la città dell'offerta è tra quelle preferite
+                const isCityMatch = cityArray.some(c => 
+                    offer.city.toLowerCase() === c.toLowerCase()
+                );
+                
+                if (!isCityMatch) return false;
+                
+                // Verifica se almeno uno dei ruoli dell'offerta è tra quelli preferiti
+                const offerRoles = offer.role.split(',').map(r => r.trim());
+                const isRoleMatch = offerRoles.some(r => 
+                    jobTypeArray.includes(r)
+                );
+                
+                if (!isRoleMatch) return false;
+                
+                // Se il tipo di ristorante è specificato, filtra anche per quello
+                if (preference.restaurant_type && preference.restaurant_type !== "") {
+                    return offer.restaurant_type === preference.restaurant_type;
+                }
+                
+                return true;
+            });
+            
+            // Converti role string in array per ogni offerta trovata
+            filteredOffers = filteredOffers.map(offer => {
+                return {
+                    ...offer,
+                    role: offer.role.split(',').map(r => r.trim())
+                };
+            });
+            
+            // Aggiorna la preferenza con array di job types 
+            preference.job_type = jobTypeArray;
+            
             return res.status(200).json({ 
                 success: true, 
-                offers: offers,
+                offers: filteredOffers,
                 preference: preference
             });
         });
@@ -1001,12 +1208,28 @@ app.get('/dashboard', requireAuth, (req, res) => {
             return res.status(500).send('Errore del server');
         }
         
+        // Converti job_type da string a array per ogni preferenza
+        const preferencesWithArrays = preferences.map(pref => {
+            return {
+                ...pref,
+                job_type: pref.job_type ? pref.job_type.split(',').map(job => job.trim()) : []
+            };
+        });
+        
         // Get all offers by default when first loading the dashboard
-        db.all(getAllOffers, [], (err, jobs) => {
+        db.all(getAllOffers, [], (err, allJobs) => {
             if (err) {
                 console.error('Errore durante il recupero delle offerte:', err);
                 return res.status(500).send('Errore del server');
             }
+            
+            // Converti role string in array per ogni offerta
+            const jobs = allJobs.map(job => {
+                return {
+                    ...job,
+                    role: job.role.split(',').map(r => r.trim())
+                };
+            });
             
             // Get distinct job types for filters
             db.all('SELECT DISTINCT job_type FROM offerte ORDER BY job_type', [], (err, jobTypeRows) => {
@@ -1016,7 +1239,7 @@ app.get('/dashboard', requireAuth, (req, res) => {
                 }
                 
                 // Get distinct restaurant types for filters
-                db.all('SELECT DISTINCT restaurant_type FROM offerte ORDER BY restaurant_type', [], (err, restaurantTypeRows) => {
+                db.all('SELECT DISTINCT restaurant_type FROM offerte WHERE restaurant_type != "" ORDER BY restaurant_type', [], (err, restaurantTypeRows) => {
                     if (err) {
                         console.error('Errore durante il recupero dei tipi di ristorante:', err);
                         return res.status(500).send('Errore del server');
@@ -1027,14 +1250,11 @@ app.get('/dashboard', requireAuth, (req, res) => {
                     
                     res.render('dashboard', {
                         user: req.session.user,
-                        preferences: preferences.length > 0 ? preferences[0] : {},
-                        allPreferences: preferences,
+                        preferences: preferencesWithArrays.length > 0 ? preferencesWithArrays[0] : {},
+                        allPreferences: preferencesWithArrays,
                         jobs: jobs,
                         jobTypes: jobTypes,
-                        restaurantTypes: restaurantTypes,
-                        helpers: {
-                            equals: function(a, b) { return a === b; }
-                        }
+                        restaurantTypes: restaurantTypes
                     });
                 });
             });
@@ -1469,4 +1689,5 @@ server.listen(port, '0.0.0.0', (err) => {
         console.log(`Server in esecuzione su http://localhost:${port}`);
         console.log(`Documentazione Swagger disponibile su http://localhost:${port}/api-docs`);
     }
-}); 
+});
+        

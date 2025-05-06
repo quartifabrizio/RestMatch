@@ -1215,6 +1215,7 @@
         .animate-job-8 { animation-delay: 0.9s; }
         .animate-job-9 { animation-delay: 1.0s; }
     </style>
+  
 </head>
 <body>
     <div class="app-container" id="app">
@@ -1305,15 +1306,15 @@
                                     <label for="region">Regione</label>
                                     <div class="form-field">
                                         <i class="fas fa-map-marker-alt"></i>
-                                        <input type="text" id="region" name="region" class="form-control" placeholder="Inserisci una regione" required value="{{preferences.region}}">
+                                        <input type="text" id="region" name="region" class="form-control" placeholder="Inserisci una regione" required value="{{preferences.country}}">
                                     </div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="city">Città</label>
+                                    <label for="city">Città (una o più, separate da virgola)</label>
                                     <div class="form-field">
                                         <i class="fas fa-city"></i>
-                                        <input type="text" id="city" name="city" class="form-control" placeholder="Inserisci una città" required value="{{preferences.city}}">
+                                        <input type="text" id="city" name="city" class="form-control" placeholder="Es: Roma, Milano, Napoli" required value="{{preferences.city}}">
                                     </div>
                                 </div>
                                 
@@ -1321,7 +1322,7 @@
                                     <label for="startDate">Data Inizio</label>
                                     <div class="form-field">
                                         <i class="fas fa-calendar-alt"></i>
-                                        <input type="date" id="startDate" name="startDate" class="form-control" required value="{{preferences.startDate}}">
+                                        <input type="date" id="startDate" name="startDate" class="form-control" required value="{{preferences.start_date}}">
                                     </div>
                                 </div>
                                 
@@ -1329,38 +1330,31 @@
                                     <label for="endDate">Data Fine</label>
                                     <div class="form-field">
                                         <i class="fas fa-calendar-check"></i>
-                                        <input type="date" id="endDate" name="endDate" class="form-control" required value="{{preferences.endDate}}">
+                                        <input type="date" id="endDate" name="endDate" class="form-control" required value="{{preferences.end_date}}">
                                     </div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="jobType">Lavoro Richiesto</label>
+                                    <label for="jobType">Lavori Richiesti (seleziona uno o più)</label>
                                     <div class="form-field">
                                         <i class="fas fa-briefcase"></i>
-                                        <select id="jobType" name="jobType" class="form-control" required>
-                                            <option value="" disabled {{#unless preferences.jobType}}selected{{/unless}}>Seleziona un tipo di lavoro</option>
-                                            <option value="Chef" {{#if (equals preferences.jobType "Chef")}}selected{{/if}}>Chef</option>
-                                            <option value="Cameriere" {{#if (equals preferences.jobType "Cameriere")}}selected{{/if}}>Cameriere</option>
-                                            <option value="Barista" {{#if (equals preferences.jobType "Barista")}}selected{{/if}}>Barista</option>
-                                            <option value="Lavapiatti" {{#if (equals preferences.jobType "Lavapiatti")}}selected{{/if}}>Lavapiatti</option>
-                                            <option value="Responsabile Sala" {{#if (equals preferences.jobType "Responsabile Sala")}}selected{{/if}}>Responsabile Sala</option>
-                                            <option value="Aiuto Cuoco" {{#if (equals preferences.jobType "Aiuto Cuoco")}}selected{{/if}}>Aiuto Cuoco</option>
+                                        <select id="jobType" name="jobType" class="form-control" multiple required>
+                                            {{#each jobTypes}}
+                                                <option value="{{this}}" {{#if (isJobTypeSelected ../preferences.job_type this)}}selected{{/if}}>{{this}}</option>
+                                            {{/each}}
                                         </select>
                                     </div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="restaurantType">Tipologia di Ristorante</label>
+                                    <label for="restaurantType">Tipologia di Ristorante (opzionale)</label>
                                     <div class="form-field">
                                         <i class="fas fa-store"></i>
-                                        <select id="restaurantType" name="restaurantType" class="form-control" required>
-                                            <option value="" disabled {{#unless preferences.restaurantType}}selected{{/unless}}>Seleziona una tipologia</option>
-                                            <option value="Trattoria" {{#if (equals preferences.restaurantType "Trattoria")}}selected{{/if}}>Trattoria</option>
-                                            <option value="Ristorante Cinese" {{#if (equals preferences.restaurantType "Ristorante Cinese")}}selected{{/if}}>Ristorante Cinese</option>
-                                            <option value="Ristorante Italiano" {{#if (equals preferences.restaurantType "Ristorante Italiano")}}selected{{/if}}>Ristorante Italiano</option>
-                                            <option value="Sushi" {{#if (equals preferences.restaurantType "Sushi")}}selected{{/if}}>Sushi</option>
-                                            <option value="Fast Food" {{#if (equals preferences.restaurantType "Fast Food")}}selected{{/if}}>Fast Food</option>
-                                            <option value="Pizzeria" {{#if (equals preferences.restaurantType "Pizzeria")}}selected{{/if}}>Pizzeria</option>
+                                        <select id="restaurantType" name="restaurantType" class="form-control">
+                                            <option value="" {{#unless preferences.restaurant_type}}selected{{/unless}}>Seleziona una tipologia (opzionale)</option>
+                                            {{#each restaurantTypes}}
+                                                <option value="{{this}}" {{#if (equals ../preferences.restaurant_type this)}}selected{{/if}}>{{this}}</option>
+                                            {{/each}}
                                         </select>
                                     </div>
                                 </div>
@@ -1370,7 +1364,7 @@
                                 </button>
                             </form>
                             
-                            {{#if (equals user.ruolo "ristorante")}}
+                            {{#if (equals user.ruolo "ristoratore")}}
                             <div style="margin-top: 2.5rem; display: flex; justify-content: space-between; align-items: center;">
                                 <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--app-text-primary);">
                                     <i class="fas fa-plus-circle" style="color: var(--app-primary);"></i> Nuova opportunità di lavoro
@@ -1380,7 +1374,7 @@
                                 </button>
                             </div>
                             
-                            <form id="createOfferForm" action="/create-offer" method="POST">
+                            <form id="createOfferForm" action="/create-offer" method="POST" style="display: none;">
                                 <div class="form-group">
                                     <label for="title">Titolo Offerta</label>
                                     <div class="form-field">
@@ -1390,17 +1384,13 @@
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="role">Ruolo</label>
+                                    <label for="role">Ruoli Richiesti (seleziona uno o più)</label>
                                     <div class="form-field">
                                         <i class="fas fa-user-tag"></i>
-                                        <select id="role" name="role" class="form-control" required>
-                                            <option value="" disabled selected>Seleziona un ruolo</option>
-                                            <option value="Chef">Chef</option>
-                                            <option value="Cameriere">Cameriere</option>
-                                            <option value="Barista">Barista</option>
-                                            <option value="Lavapiatti">Lavapiatti</option>
-                                            <option value="Responsabile Sala">Responsabile Sala</option>
-                                            <option value="Aiuto Cuoco">Aiuto Cuoco</option>
+                                        <select id="role" name="role" class="form-control" multiple required>
+                                            {{#each jobTypes}}
+                                                <option value="{{this}}">{{this}}</option>
+                                            {{/each}}
                                         </select>
                                     </div>
                                 </div>
@@ -1414,66 +1404,47 @@
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="city">Città</label>
+                                    <label for="city_offer">Città (una o più, separate da virgola)</label>
                                     <div class="form-field">
                                         <i class="fas fa-city"></i>
-                                        <input type="text" id="city" name="city" class="form-control" placeholder="Inserisci la città" required>
+                                        <input type="text" id="city_offer" name="city" class="form-control" placeholder="Es: Roma, Milano" required>
                                     </div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="region">Regione</label>
+                                    <label for="region_offer">Regione</label>
                                     <div class="form-field">
                                         <i class="fas fa-map-marker-alt"></i>
-                                        <input type="text" id="region" name="region" class="form-control" placeholder="Inserisci la regione" required>
+                                        <input type="text" id="region_offer" name="region" class="form-control" placeholder="Inserisci la regione" required>
                                     </div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="restaurant_type">Tipologia Ristorante</label>
+                                    <label for="restaurant_type_offer">Tipologia Ristorante (opzionale)</label>
                                     <div class="form-field">
                                         <i class="fas fa-store"></i>
-                                        <select id="restaurant_type" name="restaurant_type" class="form-control" required>
-                                            <option value="" disabled selected>Seleziona una tipologia</option>
-                                            <option value="Trattoria">Trattoria</option>
-                                            <option value="Ristorante Cinese">Ristorante Cinese</option>
-                                            <option value="Ristorante Italiano">Ristorante Italiano</option>
-                                            <option value="Sushi">Sushi</option>
-                                            <option value="Fast Food">Fast Food</option>
-                                            <option value="Pizzeria">Pizzeria</option>
+                                        <select id="restaurant_type_offer" name="restaurant_type" class="form-control">
+                                            <option value="" selected>Seleziona una tipologia (opzionale)</option>
+                                            {{#each restaurantTypes}}
+                                                <option value="{{this}}">{{this}}</option>
+                                            {{/each}}
                                         </select>
                                     </div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="job_type">Tipo di Lavoro</label>
-                                    <div class="form-field">
-                                        <i class="fas fa-briefcase"></i>
-                                        <select id="job_type" name="job_type" class="form-control" required>
-                                            <option value="" disabled selected>Seleziona un tipo</option>
-                                            <option value="Chef">Chef</option>
-                                            <option value="Cameriere">Cameriere</option>
-                                            <option value="Barista">Barista</option>
-                                            <option value="Lavapiatti">Lavapiatti</option>
-                                            <option value="Responsabile Sala">Responsabile Sala</option>
-                                            <option value="Aiuto Cuoco">Aiuto Cuoco</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="start_date">Data Inizio</label>
+                                    <label for="start_date_offer">Data Inizio</label>
                                     <div class="form-field">
                                         <i class="fas fa-calendar-alt"></i>
-                                        <input type="date" id="start_date" name="start_date" class="form-control" required>
+                                        <input type="date" id="start_date_offer" name="start_date" class="form-control" required>
                                     </div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="end_date">Data Fine</label>
+                                    <label for="end_date_offer">Data Fine</label>
                                     <div class="form-field">
                                         <i class="fas fa-calendar-check"></i>
-                                        <input type="date" id="end_date" name="end_date" class="form-control" required>
+                                        <input type="date" id="end_date_offer" name="end_date" class="form-control" required>
                                     </div>
                                 </div>
                                 
@@ -1497,7 +1468,13 @@
                     <div class="card animate-in delay-3">
                         <div class="card-header">
                             <h2 class="card-title">
-                                <i class="fas fa-briefcase"></i> Offerte di Lavoro{{#if preferences.jobType}} per {{preferences.jobType}}{{/if}}
+                                <i class="fas fa-briefcase"></i> Offerte di Lavoro
+                                {{#if preferences.job_type.length}}
+                                    per
+                                    {{#each preferences.job_type}}
+                                        {{this}}{{#unless @last}}, {{/unless}}
+                                    {{/each}}
+                                {{/if}}
                             </h2>
                         </div>
                         <div class="card-body">
@@ -1506,14 +1483,18 @@
                                     {{#each jobs}}
                                     <div class="job-card animate-in animate-job-{{@index}}">
                                         <div class="job-image">
-                                            <img src="{{imageUrl}}" alt="{{title}}">
+                                            <img src="https://via.placeholder.com/400x200?text=Offerta+Lavoro" alt="{{title}}">
                                         </div>
                                         <div class="job-content">
                                             <h3 class="job-title">{{title}}</h3>
                                             
                                             <div class="job-badges">
-                                                <span class="badge badge-primary">{{role}}</span>
-                                                <span class="badge badge-primary">{{restaurant_type}}</span>
+                                                {{#each role}}
+                                                <span class="badge badge-primary">{{this}}</span>
+                                                {{/each}}
+                                                {{#if restaurant_type}}
+                                                <span class="badge badge-secondary">{{restaurant_type}}</span>
+                                                {{/if}}
                                             </div>
                                             
                                             <div class="job-details">
@@ -1550,7 +1531,7 @@
                                     <div class="empty-state animate-in">
                                         <i class="fas fa-search"></i>
                                         <p class="empty-state-text">Nessuna offerta di lavoro disponibile al momento.</p>
-                                        <button class="btn btn-secondary">
+                                        <button class="btn btn-secondary" onclick="document.getElementById('preferencesForm').dispatchEvent(new Event('submit'));">
                                             <i class="fas fa-sync"></i> Aggiorna ricerca
                                         </button>
                                     </div>
@@ -1573,7 +1554,7 @@
     <div id="jobDetailModal" class="modal-overlay">
         <div class="modal job-detail-modal">
             <div class="job-detail-header">
-                <img id="modal-job-img" src="" alt="Job Detail">
+                <img id="modal-job-img" src="https://via.placeholder.com/800x400?text=Offerta+Lavoro" alt="Job Detail">
                 <div class="job-detail-header-content">
                     <h1 id="modal-job-title" class="job-detail-title"></h1>
                     <div id="modal-job-badges" class="job-detail-badges"></div>
@@ -1618,14 +1599,15 @@
         const currentDateElement = document.getElementById('current-date');
         const modal = document.getElementById('jobDetailModal');
         const modalCloseBtn = document.querySelector('.modal-close-btn');
-        
+        const standardImageUrl = 'https://via.placeholder.com/400x200?text=Offerta+Lavoro';
+        const standardModalImageUrl = 'https://via.placeholder.com/800x400?text=Offerta+Lavoro';
+
         // Set current date
         const setCurrentDate = () => {
             const now = new Date();
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
             currentDateElement.textContent = now.toLocaleDateString('it-IT', options);
         };
-        
         setCurrentDate();
         
         // Check for saved theme
@@ -1634,43 +1616,29 @@
             app.setAttribute('data-theme', 'dark');
         }
         
-        // Theme toggle functionality
         if (themeToggle) {
             themeToggle.addEventListener('click', () => {
                 const currentTheme = app.getAttribute('data-theme') || 'light';
                 const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-                
                 app.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
-                
-                // Animate theme change
                 document.body.style.transition = 'background-color 0.5s ease, color 0.5s ease';
             });
         }
         
-        // Show toast function
         function showToast(message, type = 'success') {
             toastMessage.textContent = message;
-                        toastMessage.textContent = message;
-            toast.className = `toast ${type}`;
-            toast.classList.add('show');
-            
-            // Auto hide after 3 seconds
+            toast.className = `toast ${type} show`; // Ensure show is added correctly
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3500);
         }
         
-        // Show alert function
         function showAlert(message, type) {
             alertEl.textContent = message;
             alertEl.className = `alert alert-${type}`;
             alertEl.style.display = 'block';
-            
-            // Scroll to alert if not in view
             alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            // Auto hide after 5 seconds
             setTimeout(() => {
                 alertEl.style.opacity = '0';
                 setTimeout(() => {
@@ -1680,20 +1648,13 @@
             }, 5000);
         }
         
-        // Handle preferences form submission
         if (preferencesForm) {
             preferencesForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
-                // Validate dates
-                const startDate = document.getElementById('startDate');
-                const endDate = document.getElementById('endDate');
-                
-                if (startDate && endDate && startDate.value && endDate.value) {
-                    const start = new Date(startDate.value);
-                    const end = new Date(endDate.value);
-                    
-                    if (end < start) {
+                const startDateInput = document.getElementById('startDate');
+                const endDateInput = document.getElementById('endDate');
+                if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+                    if (new Date(endDateInput.value) < new Date(startDateInput.value)) {
                         showAlert('La data di fine deve essere successiva alla data di inizio', 'error');
                         return;
                     }
@@ -1701,9 +1662,14 @@
                 
                 const formData = new FormData(this);
                 const data = {};
-                formData.forEach((value, key) => {
-                    data[key] = value;
-                });
+                for (let key of formData.keys()) {
+                    // Per input multi-select, getAll restituirà un array dei valori selezionati
+                    if (key === 'jobType') {
+                        data[key] = formData.getAll(key);
+                    } else {
+                        data[key] = formData.get(key);
+                    }
+                }
                 
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalBtnText = submitBtn.innerHTML;
@@ -1712,326 +1678,250 @@
                 
                 fetch('/save-preferences', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Errore nel server');
-                    }
-                    return response.json();
-                })
-                .then(data => {
+                .then(response => response.json())
+                .then(responseData => {
                     submitBtn.innerHTML = originalBtnText;
                     submitBtn.disabled = false;
-                    
-                    if(data.success) {
+                    if(responseData.success) {
                         showToast('Preferenze salvate con successo!', 'success');
-                        
-                        // If offers received, update job listings with animation
-                        if(data.offers) {
-                            updateJobListings(data.offers);
+                        if(responseData.offers) {
+                            updateJobListings(responseData.offers);
+                        }
+                        // Update preference display in title
+                        const jobTypePrefDisplay = document.querySelector('.card-header .card-title i.fa-briefcase').parentElement;
+                        if (jobTypePrefDisplay && data.jobType && data.jobType.length > 0) {
+                            jobTypePrefDisplay.innerHTML = `<i class="fas fa-briefcase"></i> Offerte di Lavoro per ${data.jobType.join(', ')}`;
+                        } else if (jobTypePrefDisplay) {
+                            jobTypePrefDisplay.innerHTML = `<i class="fas fa-briefcase"></i> Offerte di Lavoro`;
                         }
                     } else {
-                        showToast(data.message || 'Si è verificato un errore', 'error');
+                        showToast(responseData.message || 'Si è verificato un errore', 'error');
                     }
                 })
                 .catch(error => {
                     submitBtn.innerHTML = originalBtnText;
                     submitBtn.disabled = false;
-                    showToast('Errore: ' + error.message, 'error');
+                    showToast('Errore di connessione: ' + error.message, 'error');
                 });
             });
         }
         
-        // Function to update job listings with animation
         function updateJobListings(offers) {
-            // First fade out existing content
             jobsList.style.opacity = '0';
-            
             setTimeout(() => {
                 if(offers.length === 0) {
                     jobsList.innerHTML = `
                         <div class="empty-state animate-in">
                             <i class="fas fa-search"></i>
                             <p class="empty-state-text">Nessuna offerta di lavoro disponibile al momento.</p>
-                            <button class="btn btn-secondary">
+                            <button class="btn btn-secondary" onclick="document.getElementById('preferencesForm').dispatchEvent(new Event('submit'));">
                                 <i class="fas fa-sync"></i> Aggiorna ricerca
                             </button>
                         </div>
                     `;
-                    jobsList.style.opacity = '1';
-                    return;
+                } else {
+                    jobsList.innerHTML = ''; // Clear existing
+                    offers.forEach((job, index) => {
+                        const jobCard = document.createElement('div');
+                        jobCard.className = 'job-card animate-in';
+                        jobCard.classList.add(`animate-job-${index % 10}`); // Keep animation class
+                        
+                        let rolesHtml = '';
+                        if (Array.isArray(job.role)) {
+                            job.role.forEach(r => {
+                                rolesHtml += `<span class="badge badge-primary">${r}</span> `;
+                            });
+                        } else if (job.role) { // Fallback for single role string
+                            rolesHtml = `<span class="badge badge-primary">${job.role}</span> `;
+                        }
+
+                        let restaurantTypeHtml = '';
+                        if (job.restaurant_type) {
+                            restaurantTypeHtml = `<span class="badge badge-secondary">${job.restaurant_type}</span>`;
+                        }
+
+                        jobCard.innerHTML = `
+                            <div class="job-image">
+                                <img src="${standardImageUrl}" alt="${job.title}">
+                            </div>
+                            <div class="job-content">
+                                <h3 class="job-title">${job.title}</h3>
+                                <div class="job-badges">
+                                    ${rolesHtml}
+                                    ${restaurantTypeHtml}
+                                </div>
+                                <div class="job-details">
+                                    <div class="job-detail">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span>${job.start_date} - ${job.end_date}</span>
+                                    </div>
+                                    <div class="job-detail">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>${job.city}, ${job.region}</span>
+                                    </div>
+                                    ${job.salary ? `
+                                    <div class="job-detail">
+                                        <i class="fas fa-euro-sign"></i>
+                                        <span>${job.salary}</span>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                                <p class="job-description">${job.description}</p>
+                                <div class="job-actions">
+                                    <button class="btn btn-primary btn-hover-effect contact-restaurateur" data-offer-id="${job.id}">
+                                        <i class="fas fa-paper-plane"></i> Contatta Ristoratore
+                                    </button>
+                                    <button class="btn btn-secondary job-details-btn" data-offer-id="${job.id}" data-job='${JSON.stringify(job).replace(/'/g, "&apos;")}'>
+                                        <i class="fas fa-info-circle"></i> Dettagli
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        jobsList.appendChild(jobCard);
+                    });
                 }
-                
-                jobsList.innerHTML = '';
-                
-                offers.forEach((job, index) => {
-                    const jobCard = document.createElement('div');
-                    jobCard.className = 'job-card animate-in';
-                    jobCard.classList.add(`animate-job-${index % 10}`);
-                    
-                    jobCard.innerHTML = `
-                        <div class="job-image">
-                            <img src="${job.imageUrl}" alt="${job.title}">
-                        </div>
-                        <div class="job-content">
-                            <h3 class="job-title">${job.title}</h3>
-                            
-                            <div class="job-badges">
-                                <span class="badge badge-primary">${job.role}</span>
-                                <span class="badge badge-primary">${job.restaurant_type}</span>
-                            </div>
-                            
-                            <div class="job-details">
-                                <div class="job-detail">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    <span>${job.start_date} - ${job.end_date}</span>
-                                </div>
-                                <div class="job-detail">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>${job.city}, ${job.region}</span>
-                                </div>
-                                ${job.salary ? `
-                                <div class="job-detail">
-                                    <i class="fas fa-euro-sign"></i>
-                                    <span>${job.salary}</span>
-                                </div>
-                                ` : ''}
-                            </div>
-                            
-                            <p class="job-description">${job.description}</p>
-                            
-                            <div class="job-actions">
-                                <button class="btn btn-primary btn-hover-effect contact-restaurateur" data-offer-id="${job.id}">
-                                    <i class="fas fa-paper-plane"></i> Contatta Ristoratore
-                                </button>
-                                <button class="btn btn-secondary job-details-btn" data-offer-id="${job.id}" data-job='${JSON.stringify(job)}'>
-                                    <i class="fas fa-info-circle"></i> Dettagli
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    jobsList.appendChild(jobCard);
-                });
-                
-                // Show the container
                 jobsList.style.opacity = '1';
-                
-                // Add event listeners for the new buttons
                 attachJobCardEvents();
             }, 300);
         }
         
-        // Attach event listeners to job card buttons
         function attachJobCardEvents() {
-            // Contact restaurateur buttons
             document.querySelectorAll('.contact-restaurateur').forEach(button => {
                 button.addEventListener('click', function() {
                     const offerId = this.getAttribute('data-offer-id');
                     contactRestaurateur(offerId, this);
                 });
             });
-            
-            // Job details buttons
             document.querySelectorAll('.job-details-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const offerId = this.getAttribute('data-offer-id');
-                    const jobData = this.hasAttribute('data-job') ? 
-                        JSON.parse(this.getAttribute('data-job')) : 
-                        { id: offerId };
+                    let jobData;
+                    try {
+                        jobData = this.hasAttribute('data-job') ? 
+                            JSON.parse(this.getAttribute('data-job').replace(/&apos;/g, "'")) : 
+                            { id: offerId };
+                    } catch (e) {
+                        console.error("Error parsing job data for modal:", e);
+                        jobData = { id: offerId }; // Fallback
+                    }
                     showJobDetails(jobData);
                 });
             });
         }
         
-        // Function to show job details in modal
         function showJobDetails(job) {
-            // Fallback for cases where we only have ID
-            if (!job.title) {
-                // Find the job in the existing DOM
-                const jobElement = document.querySelector(`.job-card .contact-restaurateur[data-offer-id="${job.id}"]`)?.closest('.job-card');
-                if (jobElement) {
-                    const title = jobElement.querySelector('.job-title').textContent;
-                    const role = jobElement.querySelector('.badge').textContent;
-                    const restaurantType = jobElement.querySelectorAll('.badge')[1]?.textContent;
-                    const img = jobElement.querySelector('.job-image img').src;
-                    const description = jobElement.querySelector('.job-description').textContent;
-                    
-                    // Extract other details
-                    const details = {};
-                    jobElement.querySelectorAll('.job-detail').forEach(detail => {
-                        const icon = detail.querySelector('i');
-                        const text = detail.querySelector('span').textContent;
-                        
-                        if (icon.classList.contains('fa-calendar-alt')) {
-                            const dates = text.split(' - ');
-                            details.start_date = dates[0];
-                            details.end_date = dates[1];
-                        } else if (icon.classList.contains('fa-map-marker-alt')) {
-                            const location = text.split(', ');
-                            details.city = location[0];
-                            details.region = location[1];
-                        } else if (icon.classList.contains('fa-euro-sign')) {
-                            details.salary = text;
-                        }
-                    });
-                    
-                    // Combine everything
-                    job = {
-                        id: job.id,
-                        title,
-                        role,
-                        restaurant_type: restaurantType,
-                        imageUrl: img,
-                        description,
-                        ...details
-                    };
-                } else {
-                    showToast('Impossibile caricare i dettagli', 'error');
-                    return;
+            if (!job.title && job.id) { // Fallback if full data not passed
+                // Attempt to find data from a global store or re-fetch, simplified here
+                const offerFromList = {{{json jobs}}}.find(j => j.id == job.id);
+                if (offerFromList) job = offerFromList;
+                else {
+                     showToast('Dettagli offerta non trovati.', 'error'); return;
                 }
             }
-        
-            // Set modal content
-            document.getElementById('modal-job-img').src = job.imageUrl || 'https://via.placeholder.com/800x400?text=Offerta+di+Lavoro';
-            document.getElementById('modal-job-title').textContent = job.title;
+
+            document.getElementById('modal-job-img').src = standardModalImageUrl;
+            document.getElementById('modal-job-title').textContent = job.title || 'Dettaglio Offerta';
             
-            // Set badges
             const badgesContainer = document.getElementById('modal-job-badges');
-            badgesContainer.innerHTML = `
-                <span class="job-detail-badge">${job.role}</span>
-                <span class="job-detail-badge">${job.restaurant_type}</span>
-            `;
+            badgesContainer.innerHTML = '';
+            if (Array.isArray(job.role)) {
+                job.role.forEach(r => {
+                    badgesContainer.innerHTML += `<span class="job-detail-badge">${r}</span> `;
+                });
+            } else if (job.role) {
+                 badgesContainer.innerHTML += `<span class="job-detail-badge">${job.role}</span> `;
+            }
+            if (job.restaurant_type) {
+                badgesContainer.innerHTML += `<span class="job-detail-badge secondary">${job.restaurant_type}</span>`;
+            }
             
-            // Set info grid
             const infoGrid = document.getElementById('modal-job-info');
             infoGrid.innerHTML = `
                 <div class="job-detail-info-item">
                     <div class="job-detail-info-label">Periodo</div>
-                    <div class="job-detail-info-value">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>${job.start_date} - ${job.end_date}</span>
-                    </div>
+                    <div class="job-detail-info-value"><i class="fas fa-calendar-alt"></i> <span>${job.start_date} - ${job.end_date}</span></div>
                 </div>
                 <div class="job-detail-info-item">
                     <div class="job-detail-info-label">Località</div>
-                    <div class="job-detail-info-value">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>${job.city}, ${job.region}</span>
-                    </div>
+                    <div class="job-detail-info-value"><i class="fas fa-map-marker-alt"></i> <span>${job.city}, ${job.region}</span></div>
                 </div>
+                ${job.restaurant_type ? `
                 <div class="job-detail-info-item">
                     <div class="job-detail-info-label">Tipo ristorante</div>
-                    <div class="job-detail-info-value">
-                        <i class="fas fa-store"></i>
-                        <span>${job.restaurant_type}</span>
-                    </div>
-                </div>
+                    <div class="job-detail-info-value"><i class="fas fa-store"></i> <span>${job.restaurant_type}</span></div>
+                </div>` : ''}
                 ${job.salary ? `
                 <div class="job-detail-info-item">
                     <div class="job-detail-info-label">Stipendio</div>
-                    <div class="job-detail-info-value">
-                        <i class="fas fa-euro-sign"></i>
-                        <span>${job.salary}</span>
-                    </div>
-                </div>
-                ` : ''}
+                    <div class="job-detail-info-value"><i class="fas fa-euro-sign"></i> <span>${job.salary}</span></div>
+                </div>` : ''}
             `;
             
-            // Set description
-            document.getElementById('modal-job-description').textContent = job.description;
+            document.getElementById('modal-job-description').textContent = job.description || 'Nessuna descrizione fornita.';
             
-            // Set contact button action
             const contactBtn = document.querySelector('.modal-contact-btn');
-            contactBtn.setAttribute('data-offer-id', job.id);
-            
-            // Clear previous event listeners
-            const newContactBtn = contactBtn.cloneNode(true);
-            contactBtn.parentNode.replaceChild(newContactBtn, contactBtn);
-            
-            // Add new event listener
+            const newContactBtn = contactBtn.cloneNode(true); // To remove old listeners
+            newContactBtn.setAttribute('data-offer-id', job.id);
             newContactBtn.addEventListener('click', function() {
-                const offerId = this.getAttribute('data-offer-id');
-                contactRestaurateur(offerId, this);
+                contactRestaurateur(this.getAttribute('data-offer-id'), this);
                 closeModal();
             });
+            contactBtn.parentNode.replaceChild(newContactBtn, contactBtn);
             
-            // Show modal with animation
             modal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling
+            document.body.style.overflow = 'hidden';
         }
         
-        // Close modal function
         function closeModal() {
             modal.classList.remove('active');
-            document.body.style.overflow = ''; // Re-enable scrolling
+            document.body.style.overflow = '';
         }
+        if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
         
-        // Close modal when clicking close button
-        if (modalCloseBtn) {
-            modalCloseBtn.addEventListener('click', closeModal);
-        }
+        attachJobCardEvents(); // Initial attachment for pre-rendered jobs
         
-        // Close modal when clicking outside
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                closeModal();
-            }
-        });
-        
-        // Run attachment on page load
-        attachJobCardEvents();
-        
-        // Toggle offer creation form
         if (toggleOfferBtn && createOfferForm) {
             toggleOfferBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                
-                if (createOfferForm.style.display === 'none' || createOfferForm.style.display === '') {
+                const isHidden = createOfferForm.style.display === 'none' || createOfferForm.style.display === '';
+                if (isHidden) {
                     createOfferForm.style.display = 'block';
-                    createOfferForm.style.animation = 'slideDown var(--transition-base)';
-                    
+                    createOfferForm.style.animation = 'slideDown 0.3s ease-out forwards';
                     this.innerHTML = '<i class="fas fa-minus"></i> Nascondi form';
                 } else {
-                    createOfferForm.style.animation = 'slideUp var(--transition-base)';
-                    
-                    setTimeout(() => {
-                        createOfferForm.style.display = 'none';
-                    }, 300);
-                    
+                    createOfferForm.style.animation = 'slideUp 0.3s ease-in forwards';
+                    setTimeout(() => { createOfferForm.style.display = 'none'; }, 300);
                     this.innerHTML = '<i class="fas fa-plus"></i> Crea offerta';
                 }
             });
         }
         
-        // Handle offer creation form submission
         if (createOfferForm) {
             createOfferForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
-                // Validate dates
-                const startDate = document.getElementById('start_date');
-                const endDate = document.getElementById('end_date');
-                
-                if (startDate && endDate && startDate.value && endDate.value) {
-                    const start = new Date(startDate.value);
-                    const end = new Date(endDate.value);
-                    
-                    if (end < start) {
+                const startDateInput = document.getElementById('start_date_offer');
+                const endDateInput = document.getElementById('end_date_offer');
+                if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+                    if (new Date(endDateInput.value) < new Date(startDateInput.value)) {
                         showAlert('La data di fine deve essere successiva alla data di inizio', 'error');
                         return;
                     }
                 }
-                
+
                 const formData = new FormData(this);
                 const data = {};
-                formData.forEach((value, key) => {
-                    data[key] = value;
-                });
+                for (let key of formData.keys()) {
+                     // For multi-select, getAll will return an array
+                    if (key === 'role') { // 'role' is the name in createOfferForm for job types
+                        data[key] = formData.getAll(key);
+                    } else {
+                        data[key] = formData.get(key);
+                    }
+                }
                 
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalBtnText = submitBtn.innerHTML;
@@ -2040,153 +1930,95 @@
                 
                 fetch('/create-offer', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Errore nel server');
-                    }
-                    return response.json();
-                })
-                .then(data => {
+                .then(response => response.json())
+                .then(responseData => {
                     submitBtn.innerHTML = originalBtnText;
                     submitBtn.disabled = false;
-                    
-                    if(data.success) {
+                    if(responseData.success) {
                         showToast('Offerta creata con successo!', 'success');
-                        
-                        // Reset form
                         createOfferForm.reset();
-                        
-                        // Hide form with animation
-                        createOfferForm.style.animation = 'slideUp var(--transition-base)';
-                        
+                        createOfferForm.style.animation = 'slideUp 0.3s ease-in forwards';
                         setTimeout(() => {
                             createOfferForm.style.display = 'none';
-                            toggleOfferBtn.innerHTML = '<i class="fas fa-plus"></i> Crea offerta';
+                            if(toggleOfferBtn) toggleOfferBtn.innerHTML = '<i class="fas fa-plus"></i> Crea offerta';
                         }, 300);
-                        
-                        // Refresh page after delay to show new offer
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                        
+                        setTimeout(() => { window.location.reload(); }, 1500);
                     } else {
-                        showToast(data.message || 'Si è verificato un errore', 'error');
+                        showToast(responseData.message || 'Si è verificato un errore', 'error');
                     }
                 })
                 .catch(error => {
                     submitBtn.innerHTML = originalBtnText;
                     submitBtn.disabled = false;
-                    showToast('Errore: ' + error.message, 'error');
+                    showToast('Errore di connessione: ' + error.message, 'error');
                 });
             });
         }
         
-        // Function to contact restaurateur
         function contactRestaurateur(offerId, buttonEl) {
-            // Show loading state on button
             const originalBtnText = buttonEl ? buttonEl.innerHTML : '';
             if (buttonEl) {
                 buttonEl.innerHTML = '<div class="spinner"></div> Contattando...';
                 buttonEl.disabled = true;
             }
-            
             fetch('/api/contact-restaurateur', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ offerId: offerId })
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Errore di rete');
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     showToast('Chat aperta, verrai reindirizzato...', 'success');
-                    
-                    // Add animation before redirect
                     document.body.style.opacity = '0';
                     document.body.style.transition = 'opacity 0.5s ease';
-                    
-                    setTimeout(() => {
-                        window.location.href = `/chat/${data.roomId}`;
-                    }, 600);
+                    setTimeout(() => { window.location.href = `/chat/${data.roomId}`; }, 600);
                 } else {
-                    if (buttonEl) {
-                        buttonEl.innerHTML = originalBtnText;
-                        buttonEl.disabled = false;
-                    }
-                    showToast('Errore: ' + data.error, 'error');
+                    if (buttonEl) { buttonEl.innerHTML = originalBtnText; buttonEl.disabled = false; }
+                    showToast('Errore: ' + (data.error || 'sconosciuto'), 'error');
                 }
             })
             .catch(error => {
-                console.error('Errore:', error);
-                if (buttonEl) {
-                    buttonEl.innerHTML = originalBtnText;
-                    buttonEl.disabled = false;
-                }
+                if (buttonEl) { buttonEl.innerHTML = originalBtnText; buttonEl.disabled = false; }
                 showToast('Si è verificato un errore durante il contatto', 'error');
             });
         }
         
-        // Set min date for date inputs to today
         document.querySelectorAll('input[type="date"]').forEach(input => {
-            const today = new Date();
-            const dd = String(today.getDate()).padStart(2, '0');
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const yyyy = today.getFullYear();
-            
-            const minDate = yyyy + '-' + mm + '-' + dd;
-            
-            input.min = minDate;
-            
-            // If empty and not a preference field, set default to today
-            if (!input.value && !input.id.includes('preferences')) {
-                input.value = minDate;
+            const today = new Date().toISOString().split('T')[0];
+            input.min = today;
+            if (!input.value && !input.id.includes('startDate') && !input.id.includes('endDate') && !input.id.includes('start_date') && !input.id.includes('end_date')) { 
+                 // Do not set default for preference dates, only for offer creation if needed
             }
         });
         
-        // Add typing animation to welcome message
-        const welcomeMessage = document.querySelector('.welcome-message strong');
-        if (welcomeMessage) {
-            const text = welcomeMessage.textContent;
-            welcomeMessage.textContent = '';
-            
-            const typeWriter = (text, i = 0) => {
+        const welcomeMessageStrong = document.querySelector('.welcome-message strong');
+        if (welcomeMessageStrong) {
+            const text = welcomeMessageStrong.textContent;
+            welcomeMessageStrong.textContent = '';
+            let i = 0;
+            const typeWriter = () => {
                 if (i < text.length) {
-                    welcomeMessage.textContent += text.charAt(i);
+                    welcomeMessageStrong.textContent += text.charAt(i);
                     i++;
-                    setTimeout(() => typeWriter(text, i), 100);
+                    setTimeout(typeWriter, 80);
                 }
             };
-            
-            setTimeout(() => {
-                typeWriter(text);
-            }, 500);
+            setTimeout(typeWriter, 500);
         }
         
-        // Online users counter animation
         const onlineCounter = document.getElementById('online-counter');
         if (onlineCounter) {
             setInterval(() => {
-                // Simulate random fluctuation for demo
                 let count = parseInt(onlineCounter.textContent);
-                let change = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+                let change = Math.floor(Math.random() * 3) - 1;
                 count = Math.max(1, count + change);
-                
-                // Animate counter change
                 if (change !== 0) {
                     onlineCounter.style.transform = 'scale(1.2)';
-                    onlineCounter.style.color = change > 0 ? '#34c759' : '#ff9f0a';
-                    
+                    onlineCounter.style.color = change > 0 ? 'var(--app-success)' : 'var(--app-warning)';
                     setTimeout(() => {
                         onlineCounter.textContent = count;
                         onlineCounter.style.transform = 'scale(1)';
@@ -2196,51 +2028,30 @@
             }, 8000);
         }
         
-        // Form validation animation
         document.querySelectorAll('input, select').forEach(input => {
             input.addEventListener('invalid', function(e) {
                 e.preventDefault();
-                
                 this.classList.add('invalid');
-                this.animate([
-                    { transform: 'translateX(-5px)' },
-                    { transform: 'translateX(5px)' },
-                    { transform: 'translateX(-5px)' },
-                    { transform: 'translateX(5px)' },
-                    { transform: 'translateX(0)' }
-                ], { duration: 300 });
-                
-                // Show validation message
+                this.animate([ { transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(0)' } ], { duration: 300 });
                 const parent = this.closest('.form-group');
                 if (parent) {
-                    // Remove any existing message
-                    const existingMsg = parent.querySelector('.validation-message');
-                    if (existingMsg) existingMsg.remove();
-                    
-                    // Add new message
-                    const msg = document.createElement('div');
-                    msg.className = 'validation-message';
-                    msg.style.color = 'var(--app-error)';
-                    msg.style.fontSize = '0.75rem';
-                    msg.style.marginTop = '0.25rem';
-                    msg.style.animation = 'fadeIn var(--transition-fast)';
-                    
-                    if (this.validity.valueMissing) {
-                        msg.textContent = 'Campo obbligatorio';
-                    } else if (this.validity.typeMismatch) {
-                        msg.textContent = 'Formato non valido';
-                    } else {
-                        msg.textContent = 'Valore non valido';
+                    let msgEl = parent.querySelector('.validation-message');
+                    if (!msgEl) {
+                        msgEl = document.createElement('div');
+                        msgEl.className = 'validation-message';
+                        msgEl.style.color = 'var(--app-error)';
+                        msgEl.style.fontSize = '0.75rem';
+                        msgEl.style.marginTop = '0.25rem';
+                        msgEl.style.animation = 'fadeIn 0.3s ease';
+                        parent.appendChild(msgEl);
                     }
-                    
-                    parent.appendChild(msg);
+                    if (this.validity.valueMissing) msgEl.textContent = 'Campo obbligatorio';
+                    else if (this.validity.typeMismatch) msgEl.textContent = 'Formato non valido';
+                    else msgEl.textContent = 'Valore non valido';
                 }
             });
-            
             input.addEventListener('input', function() {
                 this.classList.remove('invalid');
-                
-                // Remove validation message
                 const parent = this.closest('.form-group');
                 if (parent) {
                     const msg = parent.querySelector('.validation-message');
@@ -2249,25 +2060,19 @@
             });
         });
         
-        // Easter egg - hidden feature (Konami code)
         const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
         let konamiIndex = 0;
-        
         document.addEventListener('keydown', function(e) {
             if (e.key === konamiCode[konamiIndex]) {
                 konamiIndex++;
-                
                 if (konamiIndex === konamiCode.length) {
-                    // Easter egg activated!
-                    document.body.style.transition = 'transform 5s ease';
-                    document.body.style.transform = 'rotate(360deg)';
-                    
+                    document.body.style.transition = 'transform 5s cubic-bezier(0.68, -0.55, 0.27, 1.55)';
+                    document.body.style.transform = 'rotate(360deg) scale(0.9)';
+                    showToast('Easter Egg Sbloccato! 👾 Modalità Discoteca Attivata!', 'special');
                     setTimeout(() => {
-                        showToast('Hai scoperto un easter egg! 🎉', 'success');
-                        document.body.style.transition = '';
+                        document.body.style.transition = 'transform 1s ease';
                         document.body.style.transform = '';
                     }, 5000);
-                    
                     konamiIndex = 0;
                 }
             } else {
@@ -2275,7 +2080,6 @@
             }
         });
         
-        // Set current time in footer
         const currentTimeEl = document.createElement('div');
         currentTimeEl.style.position = 'fixed';
         currentTimeEl.style.bottom = '1rem';
@@ -2283,8 +2087,24 @@
         currentTimeEl.style.fontSize = '0.75rem';
         currentTimeEl.style.color = 'var(--app-text-secondary)';
         currentTimeEl.style.opacity = '0.7';
-        currentTimeEl.textContent = '⏱️ ' + new Date('2025-05-02 11:48:23').toLocaleString('it-IT'); // Using the provided date
+        const updateTime = () => {
+             currentTimeEl.textContent = '⏱️ ' + new Date().toLocaleString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit'});
+        };
+        updateTime();
+        setInterval(updateTime, 1000);
         document.body.appendChild(currentTimeEl);
+
+        // Helper for HBS 'isJobTypeSelected' - this is a client-side interpretation
+        // Server should ideally handle this for initial render if possible
+        // For dynamic updates, this can be used if preferences object is available globally
+        function updateSelectedJobTypes(preferences) {
+            const jobTypeSelect = document.getElementById('jobType');
+            if (jobTypeSelect && preferences && preferences.job_type && Array.isArray(preferences.job_type)) {
+                Array.from(jobTypeSelect.options).forEach(option => {
+                    option.selected = preferences.job_type.includes(option.value);
+                });
+            }
+        }
     </script>
 </body>
 </html>
