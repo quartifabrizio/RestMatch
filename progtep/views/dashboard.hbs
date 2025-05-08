@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RestMatch • Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             /* Color System */
@@ -26,26 +28,26 @@
             --app-accent: #06c;
             --app-accent-hover: #007aff;
             --app-sidebar: #f5f5f7;
-            
+
             /* Shadow System */
             --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
             --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
             --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
             --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.12);
-            
+
             /* Transitions */
             --transition-fast: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --transition-base: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --transition-slow: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --transition-bounce: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            
+
             /* Borders */
             --radius-sm: 8px;
             --radius-md: 12px;
             --radius-lg: 20px;
             --radius-xl: 28px;
         }
-        
+
         [data-theme="dark"] {
             --app-primary: #0a84ff;
             --app-primary-dark: #409cff;
@@ -65,7 +67,7 @@
             --app-accent-hover: #409cff;
             --app-sidebar: #1c1c1e;
         }
-        
+
         /* Base Styles */
         * {
             margin: 0;
@@ -75,7 +77,7 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
-        
+
         body {
             background-color: var(--app-background);
             color: var(--app-text-primary);
@@ -84,70 +86,73 @@
             overflow-x: hidden;
             transition: background-color var(--transition-base), color var(--transition-base);
         }
-        
+
         /* Hide scrollbar but maintain functionality */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
             background: transparent;
         }
-        
+
         ::-webkit-scrollbar-thumb {
             background: rgba(0, 0, 0, 0.1);
             border-radius: 8px;
         }
-        
+
         [data-theme="dark"] ::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 0, 0, 0.2);
         }
-        
+
         [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
         }
-        
+
         /* Layout */
         .app-container {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
             overflow: hidden;
-            background: linear-gradient(180deg, var(--app-background) 0%, rgba(245, 245, 247, 0.8) 100%);
+            background: radial-gradient(circle at top right, rgba(91, 158, 250, 0.08) 0%, transparent 60%),
+                linear-gradient(135deg, var(--app-background) 0%, rgba(245, 245, 247, 0.8) 100%);
         }
-        
+
         [data-theme="dark"] .app-container {
-            background: linear-gradient(180deg, var(--app-background) 0%, rgba(28, 28, 30, 0.8) 100%);
+            background: radial-gradient(circle at top right, rgba(91, 158, 250, 0.15) 0%, transparent 60%),
+                linear-gradient(135deg, var(--app-background) 0%, rgba(28, 28, 30, 0.8) 100%);
         }
-        
+
         .content-wrapper {
             display: flex;
             flex: 1;
             height: calc(100vh - 70px);
             overflow: hidden;
         }
-        
-        /* Navbar */
+
+        /* Navbar - Enhanced with glassmorphism */
         .navbar {
             position: sticky;
             top: 0;
             z-index: 1000;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            background-color: rgba(255, 255, 255, 0.85);
+            background-color: rgba(255, 255, 255, 0.8);
             border-bottom: 1px solid var(--app-divider);
             height: 70px;
             display: flex;
             align-items: center;
             transition: background-color var(--transition-base);
+            box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05);
         }
-        
+
         [data-theme="dark"] .navbar {
-            background-color: rgba(29, 29, 31, 0.85);
+            background-color: rgba(29, 29, 31, 0.75);
         }
-        
+
         .navbar-container {
             max-width: 1400px;
             width: 100%;
@@ -157,7 +162,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .logo {
             display: flex;
             align-items: center;
@@ -167,27 +172,46 @@
             font-weight: 600;
             font-size: 1.25rem;
             transition: transform var(--transition-bounce);
+            position: relative;
         }
-        
+
+        .logo:before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--app-primary), var(--app-primary-light));
+            border-radius: var(--radius-lg);
+            opacity: 0;
+            z-index: -1;
+            transform: scale(0.9);
+            transition: all var(--transition-base);
+        }
+
+        .logo:hover:before {
+            opacity: 0.1;
+            transform: scale(1.2);
+        }
+
         .logo:hover {
             transform: scale(1.05);
         }
-        
+
         .logo i {
             color: var(--app-primary);
             font-size: 1.5rem;
         }
-        
+
         .nav-links {
             display: flex;
             list-style: none;
             gap: 0.5rem;
             align-items: center;
         }
-        
-        /* Online Indicator */
+
+        /* Online Indicator - Enhanced with animation */
         .online-indicator {
-            background: linear-gradient(135deg, #34c759, var(--app-success));
+            background: linear-gradient(135deg, var(--app-success), #20c997);
             color: white;
             padding: 0.4rem 0.8rem;
             border-radius: var(--radius-lg);
@@ -195,22 +219,54 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 3px 10px rgba(50, 215, 75, 0.3);
             animation: pulse 2s infinite;
             margin-right: 1rem;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .online-indicator:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shine 4s infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                left: -100%;
+            }
+
+            25%,
+            100% {
+                left: 100%;
+            }
+        }
+
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(50, 215, 75, 0.6); }
-            70% { box-shadow: 0 0 0 10px rgba(50, 215, 75, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(50, 215, 75, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(50, 215, 75, 0.6);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(50, 215, 75, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(50, 215, 75, 0);
+            }
         }
-        
+
         .online-indicator i {
             font-size: 0.625rem;
         }
-        
-        /* Sidebar */
+
+        /* Sidebar - Kept exactly as provided */
         .sidebar {
             width: 75px;
             flex-shrink: 0;
@@ -223,11 +279,11 @@
             transition: width var(--transition-slow), background-color var(--transition-base);
             overflow: hidden;
         }
-        
+
         .sidebar:hover {
             width: 220px;
         }
-        
+
         .sidebar-nav {
             display: flex;
             flex-direction: column;
@@ -235,7 +291,7 @@
             gap: 0.5rem;
             margin-top: 1rem;
         }
-        
+
         .sidebar-nav-item {
             display: flex;
             align-items: center;
@@ -248,17 +304,17 @@
             white-space: nowrap;
             overflow: hidden;
         }
-        
+
         .sidebar-nav-item:hover {
             background-color: var(--app-component-bg);
             transform: translateX(4px);
         }
-        
+
         .sidebar-nav-item.active {
             background-color: var(--app-primary);
             color: white;
         }
-        
+
         .sidebar-nav-icon {
             display: flex;
             align-items: center;
@@ -273,27 +329,27 @@
             font-size: 1rem;
             transition: transform var(--transition-bounce), background var(--transition-base);
         }
-        
+
         .sidebar-nav-item:hover .sidebar-nav-icon {
             transform: scale(1.1) rotate(-10deg);
         }
-        
+
         .sidebar-nav-item.active .sidebar-nav-icon {
             background: white;
             color: var(--app-primary);
         }
-        
+
         .sidebar-nav-text {
             font-weight: 500;
             opacity: 0;
             transition: opacity var(--transition-base);
         }
-        
+
         .sidebar:hover .sidebar-nav-text {
             opacity: 1;
         }
-        
-        /* Theme Toggle */
+
+        /* Theme Toggle - Enhanced with better visual feedback */
         .theme-toggle {
             position: relative;
             width: 55px;
@@ -305,16 +361,37 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 6px;
-            transition: background-color var(--transition-base);
+            transition: all var(--transition-base);
             border: 1px solid var(--app-divider);
         }
-        
+
+        .theme-toggle:hover {
+            box-shadow: 0 0 10px rgba(0, 113, 227, 0.2);
+            transform: scale(1.05);
+        }
+
         .theme-toggle i {
             font-size: 14px;
-            color: var(--app-text-secondary);
             z-index: 1;
+            transition: all var(--transition-base);
         }
-        
+
+        .theme-toggle .fa-sun {
+            color: var(--app-warning);
+        }
+
+        .theme-toggle .fa-moon {
+            color: var(--app-text-secondary);
+        }
+
+        [data-theme="dark"] .theme-toggle .fa-sun {
+            color: var(--app-text-secondary);
+        }
+
+        [data-theme="dark"] .theme-toggle .fa-moon {
+            color: #9d79ff;
+        }
+
         .theme-toggle-slider {
             position: absolute;
             top: 3px;
@@ -322,16 +399,17 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background-color: var(--app-primary);
-            transition: transform var(--transition-base), background-color var(--transition-base);
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-light));
+            transition: transform var(--transition-bounce), background-color var(--transition-base);
             box-shadow: var(--shadow-sm);
         }
-        
+
         [data-theme="dark"] .theme-toggle-slider {
             transform: translateX(27px);
+            background: linear-gradient(135deg, #9d79ff, #7d4cff);
         }
-        
-        /* Main Content */
+
+        /* Main Content - Completely redesigned */
         .main-content {
             flex: 1;
             padding: 2rem;
@@ -339,26 +417,54 @@
             flex-direction: column;
             overflow: hidden;
         }
-        
+
         .dashboard-header {
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem 2rem;
+            background: linear-gradient(90deg, var(--app-background) 0%, rgba(0, 113, 227, 0.05) 100%);
         }
-        
+
+        [data-theme="dark"] .dashboard-header {
+            background: linear-gradient(90deg, var(--app-background) 0%, rgba(10, 132, 255, 0.1) 100%);
+        }
+
+        .dashboard-header:before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 113, 227, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        [data-theme="dark"] .dashboard-header:before {
+            background: radial-gradient(circle, rgba(10, 132, 255, 0.15) 0%, transparent 70%);
+        }
+
         .page-title {
-            font-size: 2rem;
+            font-size: 2.25rem;
             font-weight: 700;
             color: var(--app-text-primary);
             margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.875rem;
+            line-height: 1.2;
         }
-        
+
         .page-title i {
             font-size: 1.75rem;
-            color: var(--app-primary);
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        
+
         .welcome-message {
             font-size: 1.125rem;
             color: var(--app-text-secondary);
@@ -366,16 +472,34 @@
             align-items: center;
             gap: 0.5rem;
         }
-        
+
         .welcome-message i {
             color: var(--app-primary);
+            animation: pulse-small 2s infinite;
         }
-        
+
+        @keyframes pulse-small {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
         .welcome-message strong {
-            color: var(--app-primary);
             position: relative;
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
         }
-        
+
         .welcome-message strong:after {
             content: '';
             position: absolute;
@@ -386,62 +510,86 @@
             background: linear-gradient(90deg, var(--app-primary), var(--app-primary-light));
             transform: scaleX(0);
             transform-origin: left;
-            transition: transform 0.5s ease-out;
+            transition: transform 0.7s cubic-bezier(0.19, 1, 0.22, 1);
         }
-        
-        .welcome-message strong:hover:after {
+
+        .welcome-message:hover strong:after {
             transform: scaleX(1);
         }
-        
-        /* Alert */
+
+        /* Alert - Redesigned with better visibility */
         .alert {
-            padding: 1rem 1.5rem;
+            padding: 1.25rem 1.5rem;
             border-radius: var(--radius-md);
             margin-bottom: 1.5rem;
             font-weight: 500;
             display: none;
             animation: fadeIn var(--transition-base);
             transition: opacity var(--transition-base);
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-md);
+            background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-position: center right;
+            background-repeat: no-repeat;
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid;
         }
-        
+
+        .alert:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shine 3s infinite;
+        }
+
         .alert-success {
-            background-color: rgba(50, 215, 75, 0.15);
+            background-color: rgba(50, 215, 75, 0.12);
+            border-color: var(--app-success);
             color: var(--app-success);
-            border-left: 4px solid var(--app-success);
         }
-        
+
         .alert-error {
-            background-color: rgba(255, 59, 48, 0.15);
+            background-color: rgba(255, 59, 48, 0.12);
+            border-color: var(--app-error);
             color: var(--app-error);
-            border-left: 4px solid var(--app-error);
         }
-        
+
         .alert-info {
-            background-color: rgba(0, 122, 255, 0.15);
+            background-color: rgba(0, 122, 255, 0.12);
+            border-color: var(--app-primary);
             color: var(--app-primary);
-            border-left: 4px solid var(--app-primary);
         }
-        
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
-        /* Dashboard Grid */
+
+        /* Dashboard Grid - Improved layout with subtle shadows */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 350px 1fr;
-            gap: 1.5rem;
+            gap: 1.75rem;
             flex: 1;
             overflow: hidden;
             height: 100%;
         }
-        
-        /* Card Styles */
+
+        /* Card Styles - Enhanced with better visual hierarchy */
         .card {
             background-color: var(--app-card-bg);
-            border-radius: var(--radius-lg);
+            border-radius: var(--radius-xl);
             box-shadow: var(--shadow-md);
             overflow: hidden;
             transition: all var(--transition-base);
@@ -449,96 +597,131 @@
             flex-direction: column;
             height: 100%;
             position: relative;
+            border: 1px solid var(--app-divider);
         }
-        
+
         .card:hover {
             box-shadow: var(--shadow-lg);
+            border-color: rgba(0, 113, 227, 0.1);
         }
-        
+
         .card-floating {
             transform: translateY(0);
             transition: transform var(--transition-base);
         }
-        
+
         .card-floating:hover {
             transform: translateY(-5px);
         }
-        
+
         .card-header {
             padding: 1.5rem;
             border-bottom: 1px solid var(--app-divider);
-            background: linear-gradient(90deg, rgba(0,113,227,0.05) 0%, rgba(0,0,0,0) 100%);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(90deg, rgba(0, 113, 227, 0.05) 0%, rgba(0, 0, 0, 0) 100%);
         }
-        
+
+        .card-header:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top left, rgba(0, 113, 227, 0.1) 0%, rgba(0, 0, 0, 0) 60%);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .card:hover .card-header:before {
+            opacity: 1;
+        }
+
         [data-theme="dark"] .card-header {
-            background: linear-gradient(90deg, rgba(10,132,255,0.1) 0%, rgba(0,0,0,0) 100%);
+            background: linear-gradient(90deg, rgba(10, 132, 255, 0.1) 0%, rgba(0, 0, 0, 0) 100%);
         }
-        
+
         .card-title {
-            font-size: 1.25rem;
+            font-size: 1.375rem;
             font-weight: 600;
             color: var(--app-text-primary);
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            position: relative;
         }
-        
+
         .card-title i {
-            color: var(--app-primary);
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.25rem;
         }
-        
+
         .card-body {
-            padding: 1.5rem;
+            padding: 1.75rem;
             flex: 1;
             overflow: auto;
         }
-        
-        /* Form Styles */
+
+        /* Form Styles - Redesigned with better focus states */
         .form-group {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
+            position: relative;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 500;
             color: var(--app-text-primary);
+            transition: color var(--transition-base);
+            font-size: 0.9375rem;
         }
-        
+
         .form-field {
             position: relative;
         }
-        
+
         .form-field i {
             position: absolute;
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
             color: var(--app-text-secondary);
-            transition: color var(--transition-base);
+            transition: all var(--transition-base);
+            z-index: 1;
         }
-        
+
         .form-control {
             width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            padding: 0.85rem 1rem 0.85rem 2.5rem;
             border: 1px solid var(--app-divider);
             border-radius: var(--radius-md);
             background-color: var(--app-component-bg);
             color: var(--app-text-primary);
             transition: all var(--transition-base);
             font-size: 0.9375rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
-        
+
         .form-control:focus {
             outline: none;
             border-color: var(--app-primary);
-            box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.2);
+            background-color: rgba(0, 113, 227, 0.02);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
         }
-        
-        .form-control:focus + i {
+
+        .form-group:hover label {
             color: var(--app-primary);
         }
-        
+
+        .form-control:focus+i {
+            color: var(--app-primary);
+            transform: translateY(-50%) scale(1.1);
+        }
+
         select.form-control {
             -webkit-appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -547,29 +730,44 @@
             background-size: 1rem;
             padding-right: 2.5rem;
         }
-        
+
         .form-control.invalid {
             border-color: var(--app-error);
             background-color: rgba(255, 59, 48, 0.05);
         }
-        
+
         .validation-message {
             font-size: 0.75rem;
             color: var(--app-error);
-            margin-top: 0.25rem;
+            margin-top: 0.5rem;
             display: flex;
             align-items: center;
             gap: 0.25rem;
+            animation: fadeIn var(--transition-base);
         }
-        
-        /* Button Styles */
+
+        .validation-message::before {
+            content: "!";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            background-color: var(--app-error);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        /* Button Styles - Completely redesigned */
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.75rem 1.5rem;
+            padding: 0.85rem 1.75rem;
             border-radius: var(--radius-md);
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             transition: all var(--transition-base);
             border: none;
@@ -578,34 +776,62 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .btn:disabled {
             opacity: 0.7;
             cursor: not-allowed;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
             color: white;
-            box-shadow: 0 2px 8px rgba(0, 113, 227, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 113, 227, 0.3);
         }
-        
+
+        .btn-primary:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.7s;
+        }
+
         .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.6);
+            box-shadow: 0 6px 20px rgba(0, 113, 227, 0.4);
         }
-        
+
+        .btn-primary:hover:before {
+            left: 100%;
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(0, 113, 227, 0.3);
+        }
+
         .btn-secondary {
             background-color: var(--app-component-bg);
             color: var(--app-text-primary);
             border: 1px solid var(--app-divider);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
-        
+
         .btn-secondary:hover:not(:disabled) {
             background-color: var(--app-secondary);
             transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            border-color: rgba(0, 113, 227, 0.3);
         }
-        
+
+        .btn-secondary:active:not(:disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
         .btn-hover-effect:before {
             content: '';
             position: absolute;
@@ -616,11 +842,11 @@
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
             transition: left 0.7s;
         }
-        
+
         .btn-hover-effect:hover:before {
             left: 100%;
         }
-        
+
         .toggle-btn {
             background: transparent;
             border: none;
@@ -634,12 +860,32 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .toggle-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--app-primary);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+            z-index: -1;
+            border-radius: var(--radius-md);
+        }
+
         .toggle-btn:hover {
-            background-color: rgba(0, 113, 227, 0.1);
+            color: white;
         }
-        
+
+        .toggle-btn:hover:before {
+            opacity: 1;
+        }
+
         .spinner {
             width: 18px;
             height: 18px;
@@ -648,25 +894,29 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        
+
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
-        
-        /* Jobs Grid */
+
+        /* Jobs Grid - Redesigned with better spacing and scrolling */
         .jobs-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.75rem;
             overflow-y: auto;
-            max-height: 100%;
+            padding: 0.25rem;
             padding-right: 0.5rem;
+            height: 100%;
+            align-content: start;
         }
-        
-        /* Job Card */
+
+        /* Job Card - Completely redesigned with modern look */
         .job-card {
             background-color: var(--app-card-bg);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-lg);
             box-shadow: var(--shadow-sm);
             overflow: hidden;
             transition: all var(--transition-base);
@@ -675,95 +925,172 @@
             opacity: 0;
             transform: translateY(20px);
             animation: fadeUp 0.5s forwards;
+            border: 1px solid var(--app-divider);
+            height: 100%;
         }
-        
+
+        .job-card:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--app-primary), var(--app-primary-light));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform var(--transition-slow);
+        }
+
+        .job-card:hover:after {
+            transform: scaleX(1);
+        }
+
         @keyframes fadeUp {
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
+
         .job-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(0, 113, 227, 0.2);
         }
-        
+
         .job-image {
-            height: 140px;
+            height: 160px;
             overflow: hidden;
             position: relative;
-            background: linear-gradient(135deg, #0071e3, #34c759);
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
         }
-        
+
+        .job-image:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.6));
+            z-index: 1;
+            opacity: 0.7;
+            transition: opacity var(--transition-base);
+        }
+
+        .job-card:hover .job-image:before {
+            opacity: 0.5;
+        }
+
         .job-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.6;
+            opacity: 0.8;
             transition: transform var(--transition-base), opacity var(--transition-base);
         }
-        
+
         .job-card:hover .job-image img {
             transform: scale(1.05);
-            opacity: 0.8;
+            opacity: 0.9;
         }
-        
+
         .job-content {
             padding: 1.5rem;
             flex: 1;
             display: flex;
             flex-direction: column;
         }
-        
+
         .job-title {
-            font-size: 1.25rem;
-            font-weight: 600;
+            font-size: 1.35rem;
+            font-weight: 700;
             margin-bottom: 0.75rem;
             color: var(--app-text-primary);
+            line-height: 1.3;
+            position: relative;
+            display: inline-block;
         }
-        
+
         .job-badges {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
         }
-        
+
         .badge {
-            padding: 0.3rem 0.75rem;
+            padding: 0.35rem 0.85rem;
             border-radius: var(--radius-full);
             font-size: 0.75rem;
-            font-weight: 500;
-            background-color: rgba(0, 113, 227, 0.1);
+            font-weight: 600;
+            background: linear-gradient(135deg, rgba(0, 113, 227, 0.1), rgba(91, 158, 250, 0.15));
             color: var(--app-primary);
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--transition-fast);
         }
-        
+
+        .badge:hover {
+            transform: translateY(-1px);
+        }
+
+        .badge:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.7s;
+        }
+
+        .job-card:hover .badge:before {
+            left: 100%;
+        }
+
         .job-details {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            gap: 0.625rem;
+            margin-bottom: 1.25rem;
+            padding: 1rem;
+            background-color: var(--app-component-bg);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
         }
-        
+
+        .job-card:hover .job-details {
+            background: linear-gradient(90deg, rgba(0, 113, 227, 0.05), rgba(91, 158, 250, 0.05));
+        }
+
         .job-detail {
             font-size: 0.875rem;
             color: var(--app-text-secondary);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.625rem;
+            transition: transform var(--transition-fast);
         }
-        
+
+        .job-card:hover .job-detail:hover {
+            transform: translateX(3px);
+            color: var(--app-text-primary);
+        }
+
         .job-detail i {
             color: var(--app-primary);
-            font-size: 0.75rem;
-            opacity: 0.8;
+            font-size: 0.8125rem;
+            width: 16px;
+            text-align: center;
         }
-        
+
         .job-description {
             font-size: 0.9375rem;
             color: var(--app-text-primary);
-            line-height: 1.5;
+            line-height: 1.6;
             margin-bottom: 1.5rem;
             display: -webkit-box;
             -webkit-line-clamp: 3;
@@ -771,20 +1098,25 @@
             overflow: hidden;
             flex: 1;
         }
-        
+
         .job-actions {
             display: flex;
             gap: 0.75rem;
             margin-top: auto;
             flex-wrap: wrap;
         }
-        
+
+        .job-actions button {
+            flex: 1;
+            min-width: 0;
+        }
+
         .job-details-btn {
-            padding: 0.6rem 1rem;
+            padding: 0.7rem 1rem;
             font-size: 0.875rem;
         }
-        
-        /* Empty State */
+
+        /* Empty State - Redesigned with better visual feedback */
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -794,24 +1126,46 @@
             opacity: 0;
             transform: translateY(20px);
             animation: fadeUp 0.5s forwards;
+            height: 100%;
+            background-color: var(--app-card-bg);
+            border-radius: var(--radius-lg);
+            border: 2px dashed var(--app-divider);
         }
-        
+
         .empty-state i {
-            font-size: 3rem;
-            color: var(--app-primary);
-            opacity: 0.5;
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.7;
             margin-bottom: 1.5rem;
+            animation: float 4s ease-in-out infinite;
         }
-        
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
         .empty-state-text {
-            font-size: 1.125rem;
+            font-size: 1.25rem;
             color: var(--app-text-secondary);
             margin-bottom: 2rem;
             text-align: center;
             max-width: 400px;
+            line-height: 1.5;
         }
-        
-        /* Modal */
+
+        /* Modal - Completely redesigned with glassmorphism */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -826,46 +1180,48 @@
             opacity: 0;
             visibility: hidden;
             transition: all var(--transition-base);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
         }
-        
+
         .modal-overlay.active {
             opacity: 1;
             visibility: visible;
         }
-        
+
         .modal {
             background-color: var(--app-card-bg);
-            border-radius: var(--radius-lg);
+            border-radius: var(--radius-xl);
             box-shadow: var(--shadow-xl);
             width: 90%;
-            max-width: 700px;
+            max-width: 800px;
             max-height: 90vh;
             overflow: hidden;
             transform: scale(0.95);
             opacity: 0;
             transition: all var(--transition-base);
+            border: 1px solid var(--app-divider);
         }
-        
+
         .modal-overlay.active .modal {
             transform: scale(1);
             opacity: 1;
         }
-        
+
         .job-detail-modal {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
-        
+
         .job-detail-header {
-            height: 200px;
+            height: 240px;
             position: relative;
             overflow: hidden;
             display: flex;
             align-items: flex-end;
             padding: 2rem;
         }
-        
+
         .job-detail-header img {
             position: absolute;
             top: 0;
@@ -875,8 +1231,13 @@
             object-fit: cover;
             opacity: 0.3;
             z-index: 0;
+            transition: transform 20s ease;
         }
-        
+
+        .job-detail-modal:hover .job-detail-header img {
+            transform: scale(1.1);
+        }
+
         .job-detail-header:before {
             content: '';
             position: absolute;
@@ -884,124 +1245,202 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(0deg, var(--app-card-bg) 0%, rgba(0,0,0,0) 100%);
+            background: linear-gradient(0deg, var(--app-card-bg) 0%, rgba(0, 0, 0, 0) 100%);
             z-index: 1;
         }
-        
+
         .job-detail-header-content {
             z-index: 2;
             position: relative;
         }
-        
+
         .job-detail-title {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 2.25rem;
+            font-weight: 800;
             color: var(--app-text-primary);
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.875rem;
+            line-height: 1.2;
+            position: relative;
+            max-width: 80%;
         }
-        
+
+        .job-detail-title:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--app-primary), var(--app-primary-light));
+            border-radius: var(--radius-full);
+        }
+
         .job-detail-badges {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 0.625rem;
         }
-        
+
         .job-detail-badge {
-            padding: 0.3rem 0.75rem;
+            padding: 0.4rem 0.875rem;
             border-radius: var(--radius-full);
             font-size: 0.875rem;
-            font-weight: 500;
+            font-weight: 600;
             background-color: var(--app-primary);
             color: white;
+            box-shadow: 0 3px 10px rgba(0, 113, 227, 0.3);
+            transition: all var(--transition-base);
         }
-        
+
+        .job-detail-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 113, 227, 0.4);
+        }
+
         .job-detail-body {
             padding: 2rem;
             overflow-y: auto;
             flex: 1;
         }
-        
+
         .job-detail-section {
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
-        
+
         .job-detail-section:last-child {
             margin-bottom: 0;
         }
-        
+
         .job-detail-section-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
+            font-size: 1.375rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
             color: var(--app-text-primary);
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            position: relative;
+            padding-left: 1rem;
         }
-        
+
+        .job-detail-section-title:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 70%;
+            width: 3px;
+            background: linear-gradient(180deg, var(--app-primary), var(--app-primary-light));
+            border-radius: var(--radius-full);
+        }
+
         .job-detail-section-title i {
-            color: var(--app-primary);
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        
+
         .job-detail-info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.25rem;
         }
-        
+
         .job-detail-info-item {
-            padding: 0.75rem;
+            padding: 1.25rem;
             background-color: var(--app-component-bg);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .job-detail-info-item:before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, rgba(0, 113, 227, 0.05), transparent);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .job-detail-info-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .job-detail-info-item:hover:before {
+            opacity: 1;
+        }
+
         .job-detail-info-label {
-            font-size: 0.75rem;
-            font-weight: 500;
+            font-size: 0.8125rem;
+            font-weight: 600;
             color: var(--app-text-secondary);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-        
+
         .job-detail-info-value {
-            font-size: 0.9375rem;
+            font-size: 1rem;
             color: var(--app-text-primary);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.625rem;
+            font-weight: 500;
         }
-        
+
         .job-detail-info-value i {
             color: var(--app-primary);
+            font-size: 1.125rem;
         }
-        
+
         .job-detail-description {
-            font-size: 1rem;
-            line-height: 1.6;
+            font-size: 1.0625rem;
+            line-height: 1.7;
             color: var(--app-text-primary);
-        }
-        
-        .modal-footer {
+            background-color: var(--app-component-bg);
+            border-radius: var(--radius-lg);
             padding: 1.5rem;
+            position: relative;
+        }
+
+        .job-detail-description:before {
+            content: '"';
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            font-size: 3rem;
+            color: var(--app-primary);
+            opacity: 0.2;
+            font-family: Georgia, serif;
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem;
             border-top: 1px solid var(--app-divider);
             display: flex;
             align-items: center;
             justify-content: flex-end;
             gap: 1rem;
+            background-color: var(--app-component-bg);
         }
-        
-        /* Toast Notification */
+
+        /* Toast Notification - Enhanced with better visibility and animations */
         .toast {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
             padding: 1rem 1.5rem;
-            border-radius: var(--radius-md);
-            background-color: rgba(50, 50, 50, 0.95);
+            border-radius: var(--radius-lg);
+            background-color: rgba(29, 29, 31, 0.9);
             color: white;
             box-shadow: var(--shadow-lg);
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.875rem;
             transform: translateY(100px);
             opacity: 0;
             transition: all var(--transition-base);
@@ -1009,135 +1448,149 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             max-width: 400px;
+            border-left: 4px solid var(--app-primary);
         }
-        
+
         .toast.show {
             transform: translateY(0);
             opacity: 1;
+            animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
         }
-        
+
+        @keyframes shake {
+
+            10%,
+            90% {
+                transform: translateX(-1px);
+            }
+
+            20%,
+            80% {
+                transform: translateX(2px);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform: translateX(-3px);
+            }
+
+            40%,
+            60% {
+                transform: translateX(3px);
+            }
+        }
+
         .toast i {
-            font-size: 1.25rem;
+            font-size: 1.5rem;
         }
-        
+
         .toast.success {
-            background-color: rgba(50, 215, 75, 0.95);
+            background-color: rgba(50, 215, 75, 0.9);
+            border-left-color: var(--app-success);
         }
-        
+
         .toast.error {
-            background-color: rgba(255, 59, 48, 0.95);
+            background-color: rgba(255, 59, 48, 0.9);
+            border-left-color: var(--app-error);
         }
-        
+
         /* Animation variants for job cards */
-        .animate-job-0 { animation-delay: 0.1s; }
-        .animate-job-1 { animation-delay: 0.15s; }
-        .animate-job-2 { animation-delay: 0.2s; }
-        .animate-job-3 { animation-delay: 0.25s; }
-        .animate-job-4 { animation-delay: 0.3s; }
-        .animate-job-5 { animation-delay: 0.35s; }
-        .animate-job-6 { animation-delay: 0.4s; }
-        .animate-job-7 { animation-delay: 0.45s; }
-        .animate-job-8 { animation-delay: 0.5s; }
-        .animate-job-9 { animation-delay: 0.55s; }
-        
-        /* Animations */
+        .animate-job-0 {
+            animation-delay: 0.1s;
+        }
+
+        .animate-job-1 {
+            animation-delay: 0.15s;
+        }
+
+        .animate-job-2 {
+            animation-delay: 0.2s;
+        }
+
+        .animate-job-3 {
+            animation-delay: 0.25s;
+        }
+
+        .animate-job-4 {
+            animation-delay: 0.3s;
+        }
+
+        .animate-job-5 {
+            animation-delay: 0.35s;
+        }
+
+        .animate-job-6 {
+            animation-delay: 0.4s;
+        }
+
+        .animate-job-7 {
+            animation-delay: 0.45s;
+        }
+
+        .animate-job-8 {
+            animation-delay: 0.5s;
+        }
+
+        .animate-job-9 {
+            animation-delay: 0.55s;
+        }
+
+        /* Animations - Enhanced with better timing and easing */
         .animate-in {
             opacity: 0;
             transform: translateY(30px);
-            animation: fadeAndSlide 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            animation: fadeAndSlide 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         }
-        
+
         @keyframes fadeAndSlide {
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
         @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         @keyframes slideUp {
-            from { opacity: 1; transform: translateY(0); }
-            to { opacity: 0; transform: translateY(-20px); }
-        }
-        
-        /* Responsive styles */
-        @media (max-width: 1200px) {
-            .dashboard-grid {
-                grid-template-columns: 300px 1fr;
+            from {
+                opacity: 1;
+                transform: translateY(0);
             }
-            
-            .jobs-grid {
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
             }
         }
-        
-        @media (max-width: 992px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
-            }
-            
-            .main-content {
-                padding: 1.5rem;
-            }
-            
-            .card {
-                max-height: none;
-            }
-            
-            .card-body {
-                overflow: visible;
-            }
-            
-            .jobs-grid {
-                max-height: 600px;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .main-content {
-                padding: 1rem;
-            }
-            
-            .dashboard-header {
-                margin-bottom: 1rem;
-            }
-            
-            .page-title {
-                font-size: 1.5rem;
-            }
-            
-            .welcome-message {
-                font-size: 1rem;
-            }
-            
-            .jobs-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .job-actions {
-                flex-direction: column;
-                width: 100%;
-            }
-            
-            .job-actions button {
-                width: 100%;
-            }
-        }
-        
-        /* Footer */
+
+        /* Footer - Redesigned with better positioning and appearance */
         .footer {
             position: fixed;
-            bottom: 10px;
-            left: 10px;
+            bottom: 1rem;
+            left: 1rem;
             font-size: 0.75rem;
             color: var(--app-text-secondary);
             opacity: 0.7;
@@ -1145,9 +1598,129 @@
             flex-direction: column;
             gap: 0.25rem;
             z-index: 50;
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: var(--radius-md);
+            padding: 0.5rem 0.75rem;
+            transition: all var(--transition-base);
+            border: 1px solid var(--app-divider);
+        }
+
+        [data-theme="dark"] .footer {
+            background-color: rgba(29, 29, 31, 0.7);
+        }
+
+        .footer:hover {
+            opacity: 1;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Responsive styles */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 320px 1fr;
+            }
+
+            .jobs-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+                max-height: none;
+                height: auto;
+            }
+
+            .main-content {
+                padding: 1.5rem;
+                height: auto;
+                overflow: visible;
+            }
+
+            .card {
+                max-height: none;
+            }
+
+            .jobs-grid {
+                max-height: 700px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+
+            .dashboard-header {
+                margin-bottom: 1.25rem;
+                padding: 1.25rem;
+            }
+
+            .page-title {
+                font-size: 1.75rem;
+            }
+
+            .welcome-message {
+                font-size: 1rem;
+            }
+
+            .jobs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .job-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .job-actions button {
+                width: 100%;
+            }
+
+            .job-detail-header {
+                height: 180px;
+            }
+
+            .job-detail-title {
+                font-size: 1.75rem;
+            }
+
+            .job-detail-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-footer {
+                flex-direction: column-reverse;
+                gap: 0.75rem;
+            }
+
+            .modal-footer button {
+                width: 100%;
+            }
+        }
+
+        /* Special effect - subtle background pattern */
+        .card,
+        .job-card,
+        .modal,
+        .job-detail-description {
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='0.02' fill-rule='evenodd'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .job-card,
+        [data-theme="dark"] .modal,
+        [data-theme="dark"] .job-detail-description {
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.02' fill-rule='evenodd'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z'/%3E%3C/g%3E%3C/svg%3E");
         }
     </style>
 </head>
+
 <body>
     <div class="app-container" id="app">
         <!-- Navigation Bar -->
@@ -1157,13 +1730,9 @@
                     <i class="fas fa-utensils"></i>
                     <span>RestMatch</span>
                 </a>
-                
+
                 <div class="nav-links">
-                    <div class="online-indicator">
-                        <i class="fas fa-circle"></i>
-                        <span id="online-counter">5</span> online
-                    </div>
-                    
+
                     <div class="theme-toggle" id="themeToggle">
                         <i class="fas fa-sun"></i>
                         <i class="fas fa-moon"></i>
@@ -1172,7 +1741,7 @@
                 </div>
             </div>
         </nav>
-    
+
         <div class="content-wrapper">
             <!-- Sidebar -->
             <aside class="sidebar">
@@ -1209,20 +1778,21 @@
                     </a>
                 </nav>
             </aside>
-    
+
             <!-- Main Content -->
             <main class="main-content">
                 <div class="dashboard-header animate-in">
                     {{#if (equals user.ruolo "ristorante")}}
-                        <h1 class="page-title"><i class="fas fa-utensils"></i> Dashboard Ristoratore</h1>
+                    <h1 class="page-title"><i class="fas fa-utensils"></i> Dashboard Ristoratore</h1>
                     {{else}}
-                        <h1 class="page-title"><i class="fas fa-utensils"></i> Dashboard Lavoratore</h1>
+                    <h1 class="page-title"><i class="fas fa-utensils"></i> Dashboard Lavoratore</h1>
                     {{/if}}
-                    <p class="welcome-message"><i class="fas fa-user-circle"></i> Benvenuto, <strong>{{user.email}}</strong> • <span id="current-date">8 Maggio 2025</span></p>
+                    <p class="welcome-message"><i class="fas fa-user-circle"></i> Benvenuto,
+                        <strong>{{user.email}}</strong> • <span id="current-date">8 Maggio 2025</span></p>
                 </div>
-                
+
                 <div id="alert" class="alert"></div>
-                
+
                 <div class="dashboard-grid">
                     <!-- Left Card -->
                     <div class="card card-floating animate-in delay-2">
@@ -1236,91 +1806,119 @@
                                 <div class="form-group">
                                     <label for="region">Regione</label>
                                     <div class="form-field">
-                                        <input type="text" id="region" name="region" class="form-control" placeholder="Inserisci una regione" required value="{{preferences.region}}">
+                                        <input type="text" id="region" name="region" class="form-control"
+                                            placeholder="Inserisci una regione" required value="{{preferences.region}}">
                                         <i class="fas fa-map-marker-alt"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="city">Città</label>
                                     <div class="form-field">
-                                        <input type="text" id="city" name="city" class="form-control" placeholder="Inserisci una città" required value="{{preferences.city}}">
+                                        <input type="text" id="city" name="city" class="form-control"
+                                            placeholder="Inserisci una città" required value="{{preferences.city}}">
                                         <i class="fas fa-city"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="startDate">Data Inizio</label>
                                     <div class="form-field">
-                                        <input type="date" id="startDate" name="startDate" class="form-control" required value="{{preferences.startDate}}">
+                                        <input type="date" id="startDate" name="startDate" class="form-control" required
+                                            value="{{preferences.startDate}}">
                                         <i class="fas fa-calendar-alt"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="endDate">Data Fine</label>
                                     <div class="form-field">
-                                        <input type="date" id="endDate" name="endDate" class="form-control" required value="{{preferences.endDate}}">
+                                        <input type="date" id="endDate" name="endDate" class="form-control" required
+                                            value="{{preferences.endDate}}">
                                         <i class="fas fa-calendar-check"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="jobType">Lavoro Richiesto</label>
                                     <div class="form-field">
                                         <select id="jobType" name="jobType" class="form-control" required>
-                                            <option value="" disabled {{#unless preferences.jobType}}selected{{/unless}}>Seleziona un tipo di lavoro</option>
-                                            <option value="Chef" {{#if (equals preferences.jobType "Chef")}}selected{{/if}}>Chef</option>
-                                            <option value="Cameriere" {{#if (equals preferences.jobType "Cameriere")}}selected{{/if}}>Cameriere</option>
-                                            <option value="Barista" {{#if (equals preferences.jobType "Barista")}}selected{{/if}}>Barista</option>
-                                            <option value="Lavapiatti" {{#if (equals preferences.jobType "Lavapiatti")}}selected{{/if}}>Lavapiatti</option>
-                                            <option value="Responsabile Sala" {{#if (equals preferences.jobType "Responsabile Sala")}}selected{{/if}}>Responsabile Sala</option>
-                                            <option value="Aiuto Cuoco" {{#if (equals preferences.jobType "Aiuto Cuoco")}}selected{{/if}}>Aiuto Cuoco</option>
+                                            <option value="" disabled {{#unless
+                                                preferences.jobType}}selected{{/unless}}>Seleziona un tipo di lavoro
+                                            </option>
+                                            <option value="Chef" {{#if (equals preferences.jobType "Chef"
+                                                )}}selected{{/if}}>Chef</option>
+                                            <option value="Cameriere" {{#if (equals preferences.jobType "Cameriere"
+                                                )}}selected{{/if}}>Cameriere</option>
+                                            <option value="Barista" {{#if (equals preferences.jobType "Barista"
+                                                )}}selected{{/if}}>Barista</option>
+                                            <option value="Lavapiatti" {{#if (equals preferences.jobType "Lavapiatti"
+                                                )}}selected{{/if}}>Lavapiatti</option>
+                                            <option value="Responsabile Sala" {{#if (equals
+                                                preferences.jobType "Responsabile Sala" )}}selected{{/if}}>Responsabile
+                                                Sala</option>
+                                            <option value="Aiuto Cuoco" {{#if (equals preferences.jobType "Aiuto Cuoco"
+                                                )}}selected{{/if}}>Aiuto Cuoco</option>
                                         </select>
                                         <i class="fas fa-briefcase"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="restaurantType">Tipologia di Ristorante</label>
                                     <div class="form-field">
                                         <select id="restaurantType" name="restaurantType" class="form-control" required>
-                                            <option value="" disabled {{#unless preferences.restaurantType}}selected{{/unless}}>Seleziona una tipologia</option>
-                                            <option value="Trattoria" {{#if (equals preferences.restaurantType "Trattoria")}}selected{{/if}}>Trattoria</option>
-                                            <option value="Ristorante Cinese" {{#if (equals preferences.restaurantType "Ristorante Cinese")}}selected{{/if}}>Ristorante Cinese</option>
-                                            <option value="Ristorante Italiano" {{#if (equals preferences.restaurantType "Ristorante Italiano")}}selected{{/if}}>Ristorante Italiano</option>
-                                            <option value="Sushi" {{#if (equals preferences.restaurantType "Sushi")}}selected{{/if}}>Sushi</option>
-                                            <option value="Fast Food" {{#if (equals preferences.restaurantType "Fast Food")}}selected{{/if}}>Fast Food</option>
-                                            <option value="Pizzeria" {{#if (equals preferences.restaurantType "Pizzeria")}}selected{{/if}}>Pizzeria</option>
+                                            <option value="" disabled {{#unless
+                                                preferences.restaurantType}}selected{{/unless}}>Seleziona una tipologia
+                                            </option>
+                                            <option value="Trattoria" {{#if (equals
+                                                preferences.restaurantType "Trattoria" )}}selected{{/if}}>Trattoria
+                                            </option>
+                                            <option value="Ristorante Cinese" {{#if (equals
+                                                preferences.restaurantType "Ristorante Cinese" )}}selected{{/if}}>
+                                                Ristorante Cinese</option>
+                                            <option value="Ristorante Italiano" {{#if (equals
+                                                preferences.restaurantType "Ristorante Italiano" )}}selected{{/if}}>
+                                                Ristorante Italiano</option>
+                                            <option value="Sushi" {{#if (equals preferences.restaurantType "Sushi"
+                                                )}}selected{{/if}}>Sushi</option>
+                                            <option value="Fast Food" {{#if (equals
+                                                preferences.restaurantType "Fast Food" )}}selected{{/if}}>Fast Food
+                                            </option>
+                                            <option value="Pizzeria" {{#if (equals preferences.restaurantType "Pizzeria"
+                                                )}}selected{{/if}}>Pizzeria</option>
                                         </select>
                                         <i class="fas fa-store"></i>
                                     </div>
                                 </div>
-                                
+
                                 <button type="submit" class="btn btn-primary btn-hover-effect">
                                     <i class="fas fa-save"></i> Salva Preferenze
                                 </button>
                             </form>
-                            
+
                             {{#if (equals user.ruolo "ristorante")}}
-                            <div style="margin-top: 2.5rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div
+                                style="margin-top: 2.5rem; display: flex; justify-content: space-between; align-items: center;">
                                 <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--app-text-primary);">
-                                    <i class="fas fa-plus-circle" style="color: var(--app-primary);"></i> Nuova opportunità di lavoro
+                                    <i class="fas fa-plus-circle" style="color: var(--app-primary);"></i> Nuova
+                                    opportunità di lavoro
                                 </h3>
                                 <button id="toggleOfferForm" class="toggle-btn">
                                     <i class="fas fa-plus"></i> Crea offerta
                                 </button>
                             </div>
-                            
+
                             <form id="createOfferForm" action="/create-offer" method="POST" style="display: none;">
                                 <div class="form-group">
                                     <label for="title">Titolo Offerta</label>
                                     <div class="form-field">
-                                        <input type="text" id="title" name="title" class="form-control" placeholder="Inserisci un titolo per l'offerta" required>
+                                        <input type="text" id="title" name="title" class="form-control"
+                                            placeholder="Inserisci un titolo per l'offerta" required>
                                         <i class="fas fa-heading"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="role">Ruolo</label>
                                     <div class="form-field">
@@ -1336,35 +1934,39 @@
                                         <i class="fas fa-user-tag"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="description">Descrizione</label>
                                     <div class="form-field">
-                                        <input type="text" id="description" name="description" class="form-control" placeholder="Descrivi l'offerta di lavoro" required>
+                                        <input type="text" id="description" name="description" class="form-control"
+                                            placeholder="Descrivi l'offerta di lavoro" required>
                                         <i class="fas fa-align-left"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="city">Città</label>
                                     <div class="form-field">
-                                        <input type="text" id="city" name="city" class="form-control" placeholder="Inserisci la città" required>
+                                        <input type="text" id="city" name="city" class="form-control"
+                                            placeholder="Inserisci la città" required>
                                         <i class="fas fa-city"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="region">Regione</label>
                                     <div class="form-field">
-                                        <input type="text" id="region" name="region" class="form-control" placeholder="Inserisci la regione" required>
+                                        <input type="text" id="region" name="region" class="form-control"
+                                            placeholder="Inserisci la regione" required>
                                         <i class="fas fa-map-marker-alt"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="restaurant_type">Tipologia Ristorante</label>
                                     <div class="form-field">
-                                        <select id="restaurant_type" name="restaurant_type" class="form-control" required>
+                                        <select id="restaurant_type" name="restaurant_type" class="form-control"
+                                            required>
                                             <option value="" disabled selected>Seleziona una tipologia</option>
                                             <option value="Trattoria">Trattoria</option>
                                             <option value="Ristorante Cinese">Ristorante Cinese</option>
@@ -1376,7 +1978,7 @@
                                         <i class="fas fa-store"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="job_type">Tipo di Lavoro</label>
                                     <div class="form-field">
@@ -1392,15 +1994,16 @@
                                         <i class="fas fa-briefcase"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="start_date">Data Inizio</label>
                                     <div class="form-field">
-                                        <input type="date" id="start_date" name="start_date" class="form-control" required>
+                                        <input type="date" id="start_date" name="start_date" class="form-control"
+                                            required>
                                         <i class="fas fa-calendar-alt"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="end_date">Data Fine</label>
                                     <div class="form-field">
@@ -1408,15 +2011,16 @@
                                         <i class="fas fa-calendar-check"></i>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="salary">Stipendio (opzionale)</label>
                                     <div class="form-field">
-                                        <input type="text" id="salary" name="salary" class="form-control" placeholder="Es: 1500€/mese">
+                                        <input type="text" id="salary" name="salary" class="form-control"
+                                            placeholder="Es: 1500€/mese">
                                         <i class="fas fa-euro-sign"></i>
                                     </div>
                                 </div>
-                                
+
                                 <button type="submit" class="btn btn-primary btn-hover-effect">
                                     <i class="fas fa-paper-plane"></i> Crea Offerta
                                 </button>
@@ -1424,68 +2028,70 @@
                             {{/if}}
                         </div>
                     </div>
-                    
+
                     <!-- Right Card -->
                     <div class="card animate-in delay-3">
                         <div class="card-header">
                             <h2 class="card-title">
-                                <i class="fas fa-briefcase"></i> Offerte di Lavoro{{#if preferences.jobType}} per {{preferences.jobType}}{{/if}}
+                                <i class="fas fa-briefcase"></i> Offerte di Lavoro{{#if preferences.jobType}} per
+                                {{preferences.jobType}}{{/if}}
                             </h2>
                         </div>
                         <div class="card-body" style="padding: 0; overflow: hidden;">
                             <div class="jobs-grid" id="jobsList" style="padding: 1.5rem; height: 100%;">
                                 {{#if jobs.length}}
-                                    {{#each jobs}}
-                                    <div class="job-card animate-job-{{@index}}">
-                                        <div class="job-image">
-                                            <img src="{{imageUrl}}" alt="{{title}}">
+                                {{#each jobs}}
+                                <div class="job-card animate-job-{{@index}}">
+                                    <div class="job-image">
+                                        <img src="{{imageUrl}}" alt="{{title}}">
+                                    </div>
+                                    <div class="job-content">
+                                        <h3 class="job-title">{{title}}</h3>
+
+                                        <div class="job-badges">
+                                            <span class="badge badge-primary">{{role}}</span>
+                                            <span class="badge badge-primary">{{restaurant_type}}</span>
                                         </div>
-                                        <div class="job-content">
-                                            <h3 class="job-title">{{title}}</h3>
-                                            
-                                            <div class="job-badges">
-                                                <span class="badge badge-primary">{{role}}</span>
-                                                <span class="badge badge-primary">{{restaurant_type}}</span>
+
+                                        <div class="job-details">
+                                            <div class="job-detail">
+                                                <i class="fas fa-calendar-alt"></i>
+                                                <span>{{start_date}} - {{end_date}}</span>
                                             </div>
-                                            
-                                            <div class="job-details">
-                                                <div class="job-detail">
-                                                    <i class="fas fa-calendar-alt"></i>
-                                                    <span>{{start_date}} - {{end_date}}</span>
-                                                </div>
-                                                <div class="job-detail">
-                                                    <i class="fas fa-map-marker-alt"></i>
-                                                    <span>{{city}}, {{region}}</span>
-                                                </div>
-                                                {{#if salary}}
-                                                <div class="job-detail">
-                                                    <i class="fas fa-euro-sign"></i>
-                                                    <span>{{salary}}</span>
-                                                </div>
-                                                {{/if}}
+                                            <div class="job-detail">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                <span>{{city}}, {{region}}</span>
                                             </div>
-                                            
-                                            <p class="job-description">{{description}}</p>
-                                            
-                                            <div class="job-actions">
-                                                <button class="btn btn-primary btn-hover-effect contact-restaurateur" data-offer-id="{{id}}">
-                                                    <i class="fas fa-paper-plane"></i> Contatta Ristoratore
-                                                </button>
-                                                <button class="btn btn-secondary job-details-btn" data-offer-id="{{id}}">
-                                                    <i class="fas fa-info-circle"></i> Dettagli
-                                                </button>
+                                            {{#if salary}}
+                                            <div class="job-detail">
+                                                <i class="fas fa-euro-sign"></i>
+                                                <span>{{salary}}</span>
                                             </div>
+                                            {{/if}}
+                                        </div>
+
+                                        <p class="job-description">{{description}}</p>
+
+                                        <div class="job-actions">
+                                            <button class="btn btn-primary btn-hover-effect contact-restaurateur"
+                                                data-offer-id="{{id}}">
+                                                <i class="fas fa-paper-plane"></i> Contatta Ristoratore
+                                            </button>
+                                            <button class="btn btn-secondary job-details-btn" data-offer-id="{{id}}">
+                                                <i class="fas fa-info-circle"></i> Dettagli
+                                            </button>
                                         </div>
                                     </div>
-                                    {{/each}}
+                                </div>
+                                {{/each}}
                                 {{else}}
-                                    <div class="empty-state animate-in">
-                                        <i class="fas fa-search"></i>
-                                        <p class="empty-state-text">Nessuna offerta di lavoro disponibile al momento.</p>
-                                        <button class="btn btn-secondary">
-                                            <i class="fas fa-sync"></i> Aggiorna ricerca
-                                        </button>
-                                    </div>
+                                <div class="empty-state animate-in">
+                                    <i class="fas fa-search"></i>
+                                    <p class="empty-state-text">Nessuna offerta di lavoro disponibile al momento.</p>
+                                    <button class="btn btn-secondary">
+                                        <i class="fas fa-sync"></i> Aggiorna ricerca
+                                    </button>
+                                </div>
                                 {{/if}}
                             </div>
                         </div>
@@ -1494,13 +2100,13 @@
             </main>
         </div>
     </div>
-    
+
     <!-- Toast Notification -->
     <div id="toast" class="toast">
         <i class="fas fa-check-circle"></i>
         <span id="toast-message"></span>
     </div>
-    
+
     <!-- Modal -->
     <div id="jobDetailModal" class="modal-overlay">
         <div class="modal job-detail-modal">
@@ -1535,7 +2141,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Footer -->
     <div class="footer">
         <div>⏱️ Data e ora: <span id="current-date-footer">2025-05-08 09:34:58</span></div>
@@ -1558,7 +2164,7 @@
         const currentUser = document.getElementById('current-user');
         const modal = document.getElementById('jobDetailModal');
         const modalCloseBtn = document.querySelector('.modal-close-btn');
-        
+
         // Set current date
         const setCurrentDate = () => {
             const dateString = '2025-05-08 09:34:58';
@@ -1566,50 +2172,50 @@
             if (currentDateFooter) currentDateFooter.textContent = dateString;
             if (currentUser) currentUser.textContent = 'quartifabrizio';
         };
-        
+
         setCurrentDate();
-        
+
         // Check for saved theme
         const savedTheme = localStorage.getItem('theme') || 'light';
         if (savedTheme === 'dark') {
             app.setAttribute('data-theme', 'dark');
         }
-        
+
         // Theme toggle functionality
         if (themeToggle) {
             themeToggle.addEventListener('click', () => {
                 const currentTheme = app.getAttribute('data-theme') || 'light';
                 const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-                
+
                 app.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
-                
+
                 // Animate theme change
-                                document.body.style.transition = 'background-color 0.5s ease, color 0.5s ease';
+                document.body.style.transition = 'background-color 0.5s ease, color 0.5s ease';
             });
         }
-        
+
         // Show toast function
         function showToast(message, type = 'success') {
             toastMessage.textContent = message;
             toast.className = `toast ${type}`;
             toast.classList.add('show');
-            
+
             // Auto hide after 3 seconds
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3500);
         }
-        
+
         // Show alert function
         function showAlert(message, type) {
             alertEl.textContent = message;
             alertEl.className = `alert alert-${type}`;
             alertEl.style.display = 'block';
-            
+
             // Scroll to alert if not in view
             alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
+
             // Auto hide after 5 seconds
             setTimeout(() => {
                 alertEl.style.opacity = '0';
@@ -1619,37 +2225,37 @@
                 }, 300);
             }, 5000);
         }
-        
+
         // Handle preferences form submission
         if (preferencesForm) {
-            preferencesForm.addEventListener('submit', function(e) {
+            preferencesForm.addEventListener('submit', function (e) {
                 e.preventDefault();
-                
+
                 // Validate dates
                 const startDate = document.getElementById('startDate');
                 const endDate = document.getElementById('endDate');
-                
+
                 if (startDate && endDate && startDate.value && endDate.value) {
                     const start = new Date(startDate.value);
                     const end = new Date(endDate.value);
-                    
+
                     if (end < start) {
                         showAlert('La data di fine deve essere successiva alla data di inizio', 'error');
                         return;
                     }
                 }
-                
+
                 const formData = new FormData(this);
                 const data = {};
                 formData.forEach((value, key) => {
                     data[key] = value;
                 });
-                
+
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalBtnText = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<div class="spinner"></div> Salvataggio...';
                 submitBtn.disabled = true;
-                
+
                 fetch('/save-preferences', {
                     method: 'POST',
                     headers: {
@@ -1657,42 +2263,42 @@
                     },
                     body: JSON.stringify(data)
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Errore nel server');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    submitBtn.innerHTML = originalBtnText;
-                    submitBtn.disabled = false;
-                    
-                    if(data.success) {
-                        showToast('Preferenze salvate con successo!', 'success');
-                        
-                        // If offers received, update job listings with animation
-                        if(data.offers) {
-                            updateJobListings(data.offers);
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Errore nel server');
                         }
-                    } else {
-                        showToast(data.message || 'Si è verificato un errore', 'error');
-                    }
-                })
-                .catch(error => {
-                    submitBtn.innerHTML = originalBtnText;
-                    submitBtn.disabled = false;
-                    showToast('Errore: ' + error.message, 'error');
-                });
+                        return response.json();
+                    })
+                    .then(data => {
+                        submitBtn.innerHTML = originalBtnText;
+                        submitBtn.disabled = false;
+
+                        if (data.success) {
+                            showToast('Preferenze salvate con successo!', 'success');
+
+                            // If offers received, update job listings with animation
+                            if (data.offers) {
+                                updateJobListings(data.offers);
+                            }
+                        } else {
+                            showToast(data.message || 'Si è verificato un errore', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        submitBtn.innerHTML = originalBtnText;
+                        submitBtn.disabled = false;
+                        showToast('Errore: ' + error.message, 'error');
+                    });
             });
         }
-        
+
         // Function to update job listings with animation
         function updateJobListings(offers) {
             // First fade out existing content
             jobsList.style.opacity = '0';
-            
+
             setTimeout(() => {
-                if(offers.length === 0) {
+                if (offers.length === 0) {
                     jobsList.innerHTML = `
                         <div class="empty-state animate-in">
                             <i class="fas fa-search"></i>
@@ -1705,16 +2311,16 @@
                     jobsList.style.opacity = '1';
                     return;
                 }
-                
+
                 jobsList.innerHTML = '';
-                
+
                 offers.forEach((job, index) => {
                     const jobCard = document.createElement('div');
                     jobCard.className = 'job-card';
                     jobCard.classList.add(`animate-job-${index % 10}`);
-                    
+
                     const imageUrl = job.imageUrl || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
-                    
+
                     jobCard.innerHTML = `
                         <div class="job-image">
                             <img src="${imageUrl}" alt="${job.title}">
@@ -1756,40 +2362,40 @@
                             </div>
                         </div>
                     `;
-                    
+
                     jobsList.appendChild(jobCard);
                 });
-                
+
                 // Show the container
                 jobsList.style.opacity = '1';
-                
+
                 // Add event listeners for the new buttons
                 attachJobCardEvents();
             }, 300);
         }
-        
+
         // Attach event listeners to job card buttons
         function attachJobCardEvents() {
             // Contact restaurateur buttons
             document.querySelectorAll('.contact-restaurateur').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const offerId = this.getAttribute('data-offer-id');
                     contactRestaurateur(offerId, this);
                 });
             });
-            
+
             // Job details buttons
             document.querySelectorAll('.job-details-btn').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const offerId = this.getAttribute('data-offer-id');
-                    const jobData = this.hasAttribute('data-job') ? 
-                        JSON.parse(this.getAttribute('data-job')) : 
+                    const jobData = this.hasAttribute('data-job') ?
+                        JSON.parse(this.getAttribute('data-job')) :
                         { id: offerId };
                     showJobDetails(jobData);
                 });
             });
         }
-        
+
         // Function to show job details in modal
         function showJobDetails(job) {
             // Fallback for cases where we only have ID
@@ -1802,13 +2408,13 @@
                     const restaurantType = jobElement.querySelectorAll('.badge')[1]?.textContent;
                     const img = jobElement.querySelector('.job-image img').src;
                     const description = jobElement.querySelector('.job-description').textContent;
-                    
+
                     // Extract other details
                     const details = {};
                     jobElement.querySelectorAll('.job-detail').forEach(detail => {
                         const icon = detail.querySelector('i');
                         const text = detail.querySelector('span').textContent;
-                        
+
                         if (icon.classList.contains('fa-calendar-alt')) {
                             const dates = text.split(' - ');
                             details.start_date = dates[0];
@@ -1821,7 +2427,7 @@
                             details.salary = text;
                         }
                     });
-                    
+
                     // Combine everything
                     job = {
                         id: job.id,
@@ -1837,18 +2443,18 @@
                     return;
                 }
             }
-        
+
             // Set modal content
             document.getElementById('modal-job-img').src = job.imageUrl || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
             document.getElementById('modal-job-title').textContent = job.title;
-            
+
             // Set badges
             const badgesContainer = document.getElementById('modal-job-badges');
             badgesContainer.innerHTML = `
                 <span class="job-detail-badge">${job.role}</span>
                 <span class="job-detail-badge">${job.restaurant_type}</span>
             `;
-            
+
             // Set info grid
             const infoGrid = document.getElementById('modal-job-info');
             infoGrid.innerHTML = `
@@ -1883,103 +2489,103 @@
                 </div>
                 ` : ''}
             `;
-            
+
             // Set description
             document.getElementById('modal-job-description').textContent = job.description;
-            
+
             // Set contact button action
             const contactBtn = document.querySelector('.modal-contact-btn');
             contactBtn.setAttribute('data-offer-id', job.id);
-            
+
             // Clear previous event listeners
             const newContactBtn = contactBtn.cloneNode(true);
             contactBtn.parentNode.replaceChild(newContactBtn, contactBtn);
-            
+
             // Add new event listener
-            newContactBtn.addEventListener('click', function() {
+            newContactBtn.addEventListener('click', function () {
                 const offerId = this.getAttribute('data-offer-id');
                 contactRestaurateur(offerId, this);
                 closeModal();
             });
-            
+
             // Show modal with animation
             modal.classList.add('active');
             document.body.style.overflow = 'hidden'; // Prevent scrolling
         }
-        
+
         // Close modal function
         function closeModal() {
             modal.classList.remove('active');
             document.body.style.overflow = ''; // Re-enable scrolling
         }
-        
+
         // Close modal when clicking close button
         if (modalCloseBtn) {
             modalCloseBtn.addEventListener('click', closeModal);
         }
-        
+
         // Close modal when clicking outside
-        modal.addEventListener('click', function(e) {
+        modal.addEventListener('click', function (e) {
             if (e.target === modal) {
                 closeModal();
             }
         });
-        
+
         // Run attachment on page load
         attachJobCardEvents();
-        
+
         // Toggle offer creation form
         if (toggleOfferBtn && createOfferForm) {
-            toggleOfferBtn.addEventListener('click', function(e) {
+            toggleOfferBtn.addEventListener('click', function (e) {
                 e.preventDefault();
-                
+
                 if (createOfferForm.style.display === 'none' || createOfferForm.style.display === '') {
                     createOfferForm.style.display = 'block';
                     createOfferForm.style.animation = 'slideDown var(--transition-base)';
-                    
+
                     this.innerHTML = '<i class="fas fa-minus"></i> Nascondi form';
                 } else {
                     createOfferForm.style.animation = 'slideUp var(--transition-base)';
-                    
+
                     setTimeout(() => {
                         createOfferForm.style.display = 'none';
                     }, 300);
-                    
+
                     this.innerHTML = '<i class="fas fa-plus"></i> Crea offerta';
                 }
             });
         }
-        
+
         // Handle offer creation form submission
         if (createOfferForm) {
-            createOfferForm.addEventListener('submit', function(e) {
+            createOfferForm.addEventListener('submit', function (e) {
                 e.preventDefault();
-                
+
                 // Validate dates
                 const startDate = document.getElementById('start_date');
                 const endDate = document.getElementById('end_date');
-                
+
                 if (startDate && endDate && startDate.value && endDate.value) {
                     const start = new Date(startDate.value);
                     const end = new Date(endDate.value);
-                    
+
                     if (end < start) {
                         showAlert('La data di fine deve essere successiva alla data di inizio', 'error');
                         return;
                     }
                 }
-                
+
                 const formData = new FormData(this);
                 const data = {};
                 formData.forEach((value, key) => {
                     data[key] = value;
                 });
-                
+
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalBtnText = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<div class="spinner"></div> Creazione...';
                 submitBtn.disabled = true;
-                
+
                 fetch('/create-offer', {
                     method: 'POST',
                     headers: {
@@ -1987,47 +2593,47 @@
                     },
                     body: JSON.stringify(data)
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Errore nel server');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    submitBtn.innerHTML = originalBtnText;
-                    submitBtn.disabled = false;
-                    
-                    if(data.success) {
-                        showToast('Offerta creata con successo!', 'success');
-                        
-                        // Reset form
-                        createOfferForm.reset();
-                        
-                        // Hide form with animation
-                        createOfferForm.style.animation = 'slideUp var(--transition-base)';
-                        
-                        setTimeout(() => {
-                            createOfferForm.style.display = 'none';
-                            toggleOfferBtn.innerHTML = '<i class="fas fa-plus"></i> Crea offerta';
-                        }, 300);
-                        
-                        // Refresh page after delay to show new offer
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                        
-                    } else {
-                        showToast(data.message || 'Si è verificato un errore', 'error');
-                    }
-                })
-                .catch(error => {
-                    submitBtn.innerHTML = originalBtnText;
-                    submitBtn.disabled = false;
-                    showToast('Errore: ' + error.message, 'error');
-                });
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Errore nel server');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        submitBtn.innerHTML = originalBtnText;
+                        submitBtn.disabled = false;
+
+                        if (data.success) {
+                            showToast('Offerta creata con successo!', 'success');
+
+                            // Reset form
+                            createOfferForm.reset();
+
+                            // Hide form with animation
+                            createOfferForm.style.animation = 'slideUp var(--transition-base)';
+
+                            setTimeout(() => {
+                                createOfferForm.style.display = 'none';
+                                toggleOfferBtn.innerHTML = '<i class="fas fa-plus"></i> Crea offerta';
+                            }, 300);
+
+                            // Refresh page after delay to show new offer
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+
+                        } else {
+                            showToast(data.message || 'Si è verificato un errore', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        submitBtn.innerHTML = originalBtnText;
+                        submitBtn.disabled = false;
+                        showToast('Errore: ' + error.message, 'error');
+                    });
             });
         }
-        
+
         // Function to contact restaurateur
         function contactRestaurateur(offerId, buttonEl) {
             // Show loading state on button
@@ -2036,7 +2642,7 @@
                 buttonEl.innerHTML = '<div class="spinner"></div> Contattando...';
                 buttonEl.disabled = true;
             }
-            
+
             fetch('/api/contact-restaurateur', {
                 method: 'POST',
                 headers: {
@@ -2044,64 +2650,64 @@
                 },
                 body: JSON.stringify({ offerId: offerId })
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Errore di rete');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    showToast('Chat aperta, verrai reindirizzato...', 'success');
-                    
-                    // Add animation before redirect
-                    document.body.style.opacity = '0';
-                    document.body.style.transition = 'opacity 0.5s ease';
-                    
-                    setTimeout(() => {
-                        window.location.href = `/chat/${data.roomId}`;
-                    }, 600);
-                } else {
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Errore di rete');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        showToast('Chat aperta, verrai reindirizzato...', 'success');
+
+                        // Add animation before redirect
+                        document.body.style.opacity = '0';
+                        document.body.style.transition = 'opacity 0.5s ease';
+
+                        setTimeout(() => {
+                            window.location.href = `/chat/${data.roomId}`;
+                        }, 600);
+                    } else {
+                        if (buttonEl) {
+                            buttonEl.innerHTML = originalBtnText;
+                            buttonEl.disabled = false;
+                        }
+                        showToast('Errore: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
                     if (buttonEl) {
                         buttonEl.innerHTML = originalBtnText;
                         buttonEl.disabled = false;
                     }
-                    showToast('Errore: ' + data.error, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Errore:', error);
-                if (buttonEl) {
-                    buttonEl.innerHTML = originalBtnText;
-                    buttonEl.disabled = false;
-                }
-                showToast('Si è verificato un errore durante il contatto', 'error');
-            });
+                    showToast('Si è verificato un errore durante il contatto', 'error');
+                });
         }
-        
+
         // Set min date for date inputs to today
         document.querySelectorAll('input[type="date"]').forEach(input => {
             const today = new Date('2025-05-08');
             const dd = String(today.getDate()).padStart(2, '0');
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const yyyy = today.getFullYear();
-            
+
             const minDate = yyyy + '-' + mm + '-' + dd;
-            
+
             input.min = minDate;
-            
+
             // If empty and not a preference field, set default to today
             if (!input.value && !input.id.includes('preferences')) {
                 input.value = minDate;
             }
         });
-        
+
         // Add typing animation to welcome message
         const welcomeMessage = document.querySelector('.welcome-message strong');
         if (welcomeMessage) {
             const text = welcomeMessage.textContent;
             welcomeMessage.textContent = '';
-            
+
             const typeWriter = (text, i = 0) => {
                 if (i < text.length) {
                     welcomeMessage.textContent += text.charAt(i);
@@ -2109,12 +2715,12 @@
                     setTimeout(() => typeWriter(text, i), 100);
                 }
             };
-            
+
             setTimeout(() => {
                 typeWriter(text);
             }, 500);
         }
-        
+
         // Online users counter animation
         const onlineCounter = document.getElementById('online-counter');
         if (onlineCounter) {
@@ -2123,12 +2729,12 @@
                 let count = parseInt(onlineCounter.textContent);
                 let change = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
                 count = Math.max(1, count + change);
-                
+
                 // Animate counter change
                 if (change !== 0) {
                     onlineCounter.style.transform = 'scale(1.2)';
                     onlineCounter.style.color = change > 0 ? '#34c759' : '#ff9f0a';
-                    
+
                     setTimeout(() => {
                         onlineCounter.textContent = count;
                         onlineCounter.style.transform = 'scale(1)';
@@ -2137,12 +2743,12 @@
                 }
             }, 8000);
         }
-        
+
         // Form validation animation
         document.querySelectorAll('input, select').forEach(input => {
-            input.addEventListener('invalid', function(e) {
+            input.addEventListener('invalid', function (e) {
                 e.preventDefault();
-                
+
                 this.classList.add('invalid');
                 this.animate([
                     { transform: 'translateX(-5px)' },
@@ -2151,18 +2757,18 @@
                     { transform: 'translateX(5px)' },
                     { transform: 'translateX(0)' }
                 ], { duration: 300 });
-                
+
                 // Show validation message
                 const parent = this.closest('.form-group');
                 if (parent) {
                     // Remove any existing message
                     const existingMsg = parent.querySelector('.validation-message');
                     if (existingMsg) existingMsg.remove();
-                    
+
                     // Add new message
                     const msg = document.createElement('div');
                     msg.className = 'validation-message';
-                    
+
                     if (this.validity.valueMissing) {
                         msg.textContent = 'Campo obbligatorio';
                     } else if (this.validity.typeMismatch) {
@@ -2170,14 +2776,14 @@
                     } else {
                         msg.textContent = 'Valore non valido';
                     }
-                    
+
                     parent.appendChild(msg);
                 }
             });
-            
-            input.addEventListener('input', function() {
+
+            input.addEventListener('input', function () {
                 this.classList.remove('invalid');
-                
+
                 // Remove validation message
                 const parent = this.closest('.form-group');
                 if (parent) {
@@ -2186,17 +2792,18 @@
                 }
             });
         });
-        
+
         // Update date and time in the footer
         const updateDateTime = () => {
             const dateString = '2025-05-08 09:42:01';
-            
+
             if (currentDateFooter) {
                 currentDateFooter.textContent = dateString;
             }
         };
-        
+
         updateDateTime();
     </script>
 </body>
+
 </html>
