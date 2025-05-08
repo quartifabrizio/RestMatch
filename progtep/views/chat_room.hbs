@@ -1960,127 +1960,128 @@
     </div>
 
     <script>
-        // DOM Elements
-        const app = document.getElementById('app');
-        const themeToggle = document.getElementById('themeToggle');
-        const mobileToggle = document.getElementById('mobileToggle');
-        const navLinks = document.getElementById('navLinks');
-        const messagesContainer = document.getElementById('messages-container');
-        const messageForm = document.getElementById('message-form');
-        const messageInput = document.getElementById('message-input');
-        const typingIndicator = document.getElementById('typing-indicator');
-        const typingText = document.getElementById('typing-text');
-        const onlineCounter = document.getElementById('online-counter');
-        const participantsList = document.getElementById('participants-list');
-        const sendBtn = document.getElementById('sendBtn');
-        const emojiBtn = document.getElementById('emojiBtn');
-        const emojiPicker = document.getElementById('emojiPicker');
-        const emojiContent = document.getElementById('emojiContent');
-        const emojiTabs = document.querySelectorAll('.emoji-tab');
-        const emojiPickerClose = document.querySelector('.emoji-picker-close');
-        const attachBtn = document.getElementById('attachBtn');
-        const fileInput = document.getElementById('fileInput');
-        const phoneCallBtn = document.getElementById('phoneCallBtn');
-        const videoCallBtn = document.getElementById('videoCallBtn');
-        const infoBtn = document.getElementById('infoBtn');
-        const phoneCallModal = document.getElementById('phoneCallModal');
-        const videoCallModal = document.getElementById('videoCallModal');
-        const closePhoneModal = document.getElementById('closePhoneModal');
-        const closeVideoModal = document.getElementById('closeVideoModal');
-        const callUserName = document.getElementById('callUserName');
-        const callUserInitial = document.getElementById('callUserInitial');
-        const callStatus = document.getElementById('callStatus');
-        const declineCall = document.getElementById('declineCall');
-        const toggleMic = document.getElementById('toggleMic');
-        const toggleCamera = document.getElementById('toggleCamera');
-        const endVideoCall = document.getElementById('endVideoCall');
-        const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toast-message');
-        const addParticipantBtn = document.getElementById('addParticipantBtn');
+    // DOM Elements
+    const app = document.getElementById('app');
+    const themeToggle = document.getElementById('themeToggle');
+    const mobileToggle = document.getElementById('mobileToggle');
+    const navLinks = document.getElementById('navLinks');
+    const messagesContainer = document.getElementById('messages-container');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const typingText = document.getElementById('typing-text');
+    const onlineCounter = document.getElementById('online-counter');
+    const participantsList = document.getElementById('participants-list');
+    const sendBtn = document.getElementById('sendBtn');
+    const emojiBtn = document.getElementById('emojiBtn');
+    const emojiPicker = document.getElementById('emojiPicker');
+    const emojiContent = document.getElementById('emojiContent');
+    const emojiTabs = document.querySelectorAll('.emoji-tab');
+    const emojiPickerClose = document.querySelector('.emoji-picker-close');
+    const attachBtn = document.getElementById('attachBtn');
+    const fileInput = document.getElementById('fileInput');
+    const phoneCallBtn = document.getElementById('phoneCallBtn');
+    const videoCallBtn = document.getElementById('videoCallBtn');
+    const infoBtn = document.getElementById('infoBtn');
+    const phoneCallModal = document.getElementById('phoneCallModal');
+    const videoCallModal = document.getElementById('videoCallModal');
+    const closePhoneModal = document.getElementById('closePhoneModal');
+    const closeVideoModal = document.getElementById('closeVideoModal');
+    const callUserName = document.getElementById('callUserName');
+    const callUserInitial = document.getElementById('callUserInitial');
+    const callStatus = document.getElementById('callStatus');
+    const declineCall = document.getElementById('declineCall');
+    const toggleMic = document.getElementById('toggleMic');
+    const toggleCamera = document.getElementById('toggleCamera');
+    const endVideoCall = document.getElementById('endVideoCall');
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+    const addParticipantBtn = document.getElementById('addParticipantBtn');
+    
+    // App State
+    const state = {
+        socket: null,
+        roomId: "{{roomId}}",
+        userId: {{user.id}},
+        userName: "{{user.email}}",
+        typingTimeout: null,
+        isTyping: false,
+        attachedFile: null,
+        callActive: false,
+        videoCallActive: false,
+        micEnabled: true,
+        cameraEnabled: true,
+        participants: [],
+        emojis: {
+            smileys: ['😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '😗', '😙', '😚', '🙂', '🤗', '🤔', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴', '😌', '🤓', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤', '😢', '😭', '😦', '😧', '😨', '😩', '😬', '😰', '😱', '😳', '🤪', '😵', '😡', '😠', '🤬', '😷', '🤒', '🤕', '🤢', '🤮', '🤧'],
+            people: ['👶', '👦', '👧', '👨', '👩', '👴', '👵', '👨‍⚕️', '👩‍⚕️', '👨‍🎓', '👩‍🎓', '👨‍🏫', '👩‍🏫', '👨‍⚖️', '👩‍⚖️', '👨‍🌾', '👩‍🌾', '👨‍🍳', '👩‍🍳', '👨‍🔧', '👩‍🔧', '👨‍🏭', '👩‍🏭', '👨‍💻', '👩‍💻', '👨‍💼', '👩‍💼', '👨‍🔬', '👩‍🔬', '👨‍🎨', '👩‍🎨', '👨‍🚀', '👩‍🚀', '👨‍✈️', '👩‍✈️', '👮', '👮‍♀️', '🕵️', '🕵️‍♀️', '💂', '💂‍♀️', '👷', '👷‍♀️', '🤴', '👸', '👳', '👳‍♀️', '👲', '🧕', '🤵', '👰', '🤰', '🤱'],
+            nature: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🐣', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦗', '🕷', '🦂', '🦟', '🦠', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🐘', '🦏'],
+            food: ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🌽', '🥕', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🥞', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟', '🍕', '🥪', '🥙', '🌮', '🌯', '🥗', '🥘', '🥫', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🍰', '🧁', '🍮', '🎂', '🍭', '🍬', '🍫', '🍿', '🧂', '🍩', '🍪', '🌰', '🥜', '☕', '🍵', '🥤', '🍶', '🍺', '🍻', '🥂', '🍷', '🥃', '🍸', '🍹', '🍾'],
+            activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '⛳', '🏹', '🎣', '🥊', '🥋', '🎽', '⛸️', '🥌', '🛷', '🛹', '🎿', '⛷️', '🏂', '🏋️', '🤼', '🤸', '⛹️', '🤺', '🤾', '🏌️', '🏇', '🧘', '🏄', '🏊', '🤽', '🚣', '🧗', '🚵', '🚴', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🎻', '🎲', '🧩', '♟️', '🎯', '🎳', '🎮', '🎰'],
+            travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛴', '🚲', '🛵', '🏍️', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🛰️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚢', '⚓', '⛽', '🚧', '🚦', '🚥', '🚏', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏜️', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '⛺', '🏠', '🏡', '🏘️', '🏚️', '🏗️', '🏭', '🏢', '🏬', '🏣', '🏤', '🏥', '🏦', '🏨', '🏪', '🏫', '🏩', '💒', '🏛️', '⛪', '🕌', '🕍', '🕋', '⛩️'],
+            symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '⛔', '📛', '🚫', '❌', '⭕', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭']
+        },
+        currentEmojiTab: 'smileys'
+    };
+    
+    // Initialize app
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeTheme();
+        initializeMobileMenu();
+        initializeChat();
+        initializeEmojiPicker();
+        initializeAttachments();
+        initializeCalls();
         
-        // App State
-        const state = {
-            socket: null,
-            roomId: "{{roomId}}",
-            userId: {{user.id}},
-            userName: "{{user.email}}",
-            typingTimeout: null,
-            isTyping: false,
-            attachedFile: null,
-            callActive: false,
-            videoCallActive: false,
-            micEnabled: true,
-            cameraEnabled: true,
-            participants: [],
-            emojis: {
-                smileys: ['😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '😗', '😙', '😚', '🙂', '🤗', '🤔', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴', '😌', '🤓', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤', '😢', '😭', '😦', '😧', '😨', '😩', '😬', '😰', '😱', '😳', '🤪', '😵', '😡', '😠', '🤬', '😷', '🤒', '🤕', '🤢', '🤮', '🤧'],
-                people: ['👶', '👦', '👧', '👨', '👩', '👴', '👵', '👨‍⚕️', '👩‍⚕️', '👨‍🎓', '👩‍🎓', '👨‍🏫', '👩‍🏫', '👨‍⚖️', '👩‍⚖️', '👨‍🌾', '👩‍🌾', '👨‍🍳', '👩‍🍳', '👨‍🔧', '👩‍🔧', '👨‍🏭', '👩‍🏭', '👨‍💻', '👩‍💻', '👨‍💼', '👩‍💼', '👨‍🔬', '👩‍🔬', '👨‍🎨', '👩‍🎨', '👨‍🚀', '👩‍🚀', '👨‍✈️', '👩‍✈️', '👮', '👮‍♀️', '🕵️', '🕵️‍♀️', '💂', '💂‍♀️', '👷', '👷‍♀️', '🤴', '👸', '👳', '👳‍♀️', '👲', '🧕', '🤵', '👰', '🤰', '🤱'],
-                nature: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🐣', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦗', '🕷', '🦂', '🦟', '🦠', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🐘', '🦏'],
-                food: ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🌽', '🥕', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🥞', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟', '🍕', '🥪', '🥙', '🌮', '🌯', '🥗', '🥘', '🥫', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🍰', '🧁', '🍮', '🎂', '🍭', '🍬', '🍫', '🍿', '🧂', '🍩', '🍪', '🌰', '🥜', '☕', '🍵', '🥤', '🍶', '🍺', '🍻', '🥂', '🍷', '🥃', '🍸', '🍹', '🍾'],
-                activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '⛳', '🏹', '🎣', '🥊', '🥋', '🎽', '⛸️', '🥌', '🛷', '🛹', '🎿', '⛷️', '🏂', '🏋️', '🤼', '🤸', '⛹️', '🤺', '🤾', '🏌️', '🏇', '🧘', '🏄', '🏊', '🤽', '🚣', '🧗', '🚵', '🚴', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🎻', '🎲', '🧩', '♟️', '🎯', '🎳', '🎮', '🎰'],
-                travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛴', '🚲', '🛵', '🏍️', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🛰️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚢', '⚓', '⛽', '🚧', '🚦', '🚥', '🚏', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏜️', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '⛺', '🏠', '🏡', '🏘️', '🏚️', '🏗️', '🏭', '🏢', '🏬', '🏣', '🏤', '🏥', '🏦', '🏨', '🏪', '🏫', '🏩', '💒', '🏛️', '⛪', '🕌', '🕍', '🕋', '⛩️'],
-                symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '⛔', '📛', '🚫', '❌', '⭕', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭']
-            },
-            currentEmojiTab: 'smileys'
-        };
+        // Set current date and time in footer
+        const currentDateElem = document.getElementById('current-date');
+        const currentUserElem = document.getElementById('current-user');
         
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeTheme();
-            initializeMobileMenu();
-            initializeChat();
-            initializeEmojiPicker();
-            initializeAttachments();
-            initializeCalls();
-            
-            // Set current date and time in footer
-            const currentDateElem = document.getElementById('current-date');
-            const currentUserElem = document.getElementById('current-user');
-            
-            if (currentDateElem) currentDateElem.textContent = '2025-05-05 07:34:51';
-            if (currentUserElem) currentUserElem.textContent = 'quartifabrizio';
-        });
-        
-        // Theme toggle functionality
-        function initializeTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            if (savedTheme === 'dark') {
-                app.setAttribute('data-theme', 'dark');
-            }
-            
-            if (themeToggle) {
-                themeToggle.addEventListener('click', () => {
-                    const currentTheme = app.getAttribute('data-theme') || 'light';
-                    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-                    
-                    app.setAttribute('data-theme', newTheme);
-                    localStorage.setItem('theme', newTheme);
-                    
-                    // Animate theme change
-                    document.body.style.transition = 'background-color 0.5s ease, color 0.5s ease';
-                });
-            }
+        if (currentDateElem) currentDateElem.textContent = '2025-05-08 10:49:45';
+        if (currentUserElem) currentUserElem.textContent = 'quartifabrizio';
+    });
+    
+    // Theme toggle functionality
+    function initializeTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            app.setAttribute('data-theme', 'dark');
         }
         
-        // Mobile menu toggle
-        function initializeMobileMenu() {
-            if (mobileToggle && navLinks) {
-                mobileToggle.addEventListener('click', function() {
-                    navLinks.classList.toggle('active');
-                    
-                    if (navLinks.classList.contains('active')) {
-                        mobileToggle.innerHTML = '<i class="fas fa-times"></i>';
-                    } else {
-                        mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
-                    }
-                });
-            }
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = app.getAttribute('data-theme') || 'light';
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                
+                app.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // Animate theme change
+                document.body.style.transition = 'background-color 0.5s ease, color 0.5s ease';
+            });
         }
-        
-        // Socket.io and chat functionality
-        function initializeChat() {
+    }
+    
+    // Mobile menu toggle
+    function initializeMobileMenu() {
+        if (mobileToggle && navLinks) {
+            mobileToggle.addEventListener('click', function() {
+                navLinks.classList.toggle('active');
+                
+                if (navLinks.classList.contains('active')) {
+                    mobileToggle.innerHTML = '<i class="fas fa-times"></i>';
+                } else {
+                    mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            });
+        }
+    }
+    
+    // Socket.io and chat functionality
+    function initializeChat() {
+        try {
             // Connect to Socket.io
             state.socket = io();
             
@@ -2088,10 +2089,7 @@
             state.socket.emit('authenticate', { userId: state.userId });
             
             // Join the current room
-            state.socket.emit('join room', {
-                room_id: state.roomId,
-                user_id: state.userId
-            });
+            state.socket.emit('join room', state.roomId);
             
             // Initial scroll to bottom
             scrollToBottom();
@@ -2100,11 +2098,6 @@
             state.socket.on('chat message', function(message) {
                 if (message.roomId === state.roomId) {
                     addMessage(message);
-                    
-                    // Play notification sound for messages from others
-                    if (message.senderId !== state.userId) {
-                        playNotificationSound();
-                    }
                 }
             });
             
@@ -2131,47 +2124,24 @@
                 if (onlineCounter) onlineCounter.textContent = count;
             });
             
-            // Listen for file uploads
-            state.socket.on('file uploaded', function(data) {
-                if (data.roomId === state.roomId) {
-                    // File was uploaded successfully, now send the message with the attachment
-                    const message = {
-                        roomId: state.roomId,
-                        content: data.message || '',
-                        attachment: data.filename,
-                        fileSize: data.fileSize,
-                        fileType: data.fileType
-                    };
-                    
-                    // Send message with attachment
-                    state.socket.emit('chat message', message);
-                }
-            });
-            
             // Handle message form submission
-            if (messageForm && messageInput) {
+            if (messageForm) {
                 messageForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     sendMessage();
                 });
-                
-                // Handle typing events
+            }
+            
+            // Handle typing events
+            if (messageInput) {
                 messageInput.addEventListener('input', function() {
-                    // Resize textarea based on content
-                    this.style.height = 'auto';
-                    this.style.height = (this.scrollHeight) + 'px';
-                    if (this.scrollHeight > 150) {
-                        this.style.height = '150px';
-                    }
-                    
                     // Handle typing indicator
                     if (!state.isTyping) {
                         state.isTyping = true;
                         state.socket.emit('typing', { 
                             roomId: state.roomId, 
                             isTyping: true,
-                            userId: state.userId,
-                            userName: state.userName
+                            userId: state.userId
                         });
                     }
                     
@@ -2187,278 +2157,170 @@
                     }, 1000);
                 });
             }
-            
-            // Add Participant Button
-            if (addParticipantBtn) {
-                addParticipantBtn.addEventListener('click', function() {
-                    showToast('Funzionalità "Aggiungi partecipante" sarà disponibile presto!', 'info');
-                });
-            }
-            
-            // Cleanup when leaving the page
-            window.addEventListener('beforeunload', function() {
-                state.socket.emit('leave room', {
-                    room_id: state.roomId,
-                    user_id: state.userId
-                });
-            });
+        } catch (error) {
+            console.error("Chat initialization error:", error);
+            showToast("Errore di connessione al server", "error");
         }
-        
-        // Send message function
-        function sendMessage() {
-            const message = messageInput.value.trim();
+    }
+    
+    // Send message function - Fixed to work with existing server code
+    function sendMessage() {
+        try {
+            const messageText = messageInput.value.trim();
+            if (!messageText) return;
             
-            // Don't send if message is empty and no file is attached
-            if (!message && !state.attachedFile) return;
+            // Create message object - This matches what the server expects
+            const messageData = {
+                roomId: state.roomId,
+                message: messageText
+            };
             
-            // If a file is attached, handle file upload first
-            if (state.attachedFile) {
-                const formData = new FormData();
-                formData.append('file', state.attachedFile);
-                formData.append('roomId', state.roomId);
-                formData.append('message', message);
-                
-                // Show loading state
-                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                sendBtn.disabled = true;
-                
-                fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Errore durante l\'upload del file');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // File uploaded successfully, the socket will handle the message
-                    // Reset UI
-                    resetMessageInput();
-                })
-                .catch(error => {
-                    showToast('Errore durante l\'upload del file', 'error');
-                    console.error('Upload error:', error);
-                    
-                    // Reset UI
-                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-                    sendBtn.disabled = false;
-                });
-            } else {
-                // No file, just send the text message
-                state.socket.emit('chat message', {
-                    roomId: state.roomId,
-                    content: message,
-                    senderId: state.userId,
-                    sender: state.userName,
-                    timestamp: new Date().toISOString()
-                });
-                
-                // Reset input
-                resetMessageInput();
-            }
-        }
-        
-        // Reset message input after sending
-        function resetMessageInput() {
-            messageInput.value = '';
-            messageInput.style.height = 'auto';
-            
-            // Reset typing indicator
-            state.isTyping = false;
-            clearTimeout(state.typingTimeout);
-            state.socket.emit('typing', { 
-                roomId: state.roomId, 
-                isTyping: false,
-                userId: state.userId
-            });
-            
-            // Reset file attachment
-            state.attachedFile = null;
-            
-            // Reset button
-            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-            sendBtn.disabled = false;
-            
-            // Focus on input
-            messageInput.focus();
-        }
-        
-        // Add message to the UI
-        function addMessage(message) {
-            if (!messagesContainer) return;
-            
-            const isSelf = message.senderId === state.userId;
-            const messageGroupClass = isSelf ? 'message-group-self' : 'message-group-other';
-            const messageClass = isSelf ? 'message-self' : 'message-other';
-            
-            const messageGroup = document.createElement('div');
-            messageGroup.className = `message-group ${messageGroupClass}`;
-            
-            // Add sender info for other people's messages
-            if (!isSelf) {
-                const senderInfo = document.createElement('div');
-                senderInfo.className = 'message-sender-info';
-                senderInfo.innerHTML = `
-                    <div class="message-sender-avatar">${message.sender ? message.sender[0] : '?'}</div>
-                    <div class="message-sender-name">${message.sender}</div>
-                `;
-                messageGroup.appendChild(senderInfo);
-            }
-            
-            const messageEl = document.createElement('div');
-            messageEl.className = `message ${messageClass}`;
-            
-            // Message content
-            const contentEl = document.createElement('div');
-            contentEl.className = 'message-content';
-            contentEl.textContent = message.content;
-            messageEl.appendChild(contentEl);
-            
-            // File attachment if any
-            if (message.attachment) {
-                const attachmentContainer = document.createElement('div');
-                attachmentContainer.className = 'message-attachment';
-                
-                const isImage = /\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(message.attachment);
-                
-                if (isImage) {
-                    attachmentContainer.innerHTML = `
-                        <div class="attachment-preview">
-                            <img src="/uploads/${message.attachment}" alt="Immagine allegata">
-                        </div>
-                    `;
-                } else {
-                    attachmentContainer.innerHTML = `
-                        <div class="attachment-file">
-                            <i class="fas fa-file-alt attachment-icon"></i>
-                            <div class="attachment-info">
-                                <div class="attachment-name">${message.attachment}</div>
-                                <div class="attachment-size">${message.fileSize || 'File'}</div>
-                            </div>
-                            <button class="attachment-action" data-file="${message.attachment}" title="Scarica">
-                                <i class="fas fa-download"></i>
-                            </button>
-                        </div>
-                    `;
+            // Use fetch API to send the message as the server expects
+            fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(messageData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Errore nell\'invio del messaggio');
                 }
-                
-                messageEl.appendChild(attachmentContainer);
-            }
-            
-            // Message timestamp
-            const timeEl = document.createElement('div');
-            timeEl.className = 'message-time';
-            
-            const formattedTime = formatTime(message.timestamp);
-            timeEl.innerHTML = `
-                ${isSelf ? '<i class="fas fa-check"></i>' : ''}
-                <span>${formattedTime}</span>
+                return response.json();
+            })
+            .then(() => {
+                // Clear the input field
+                messageInput.value = '';
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                showToast('Errore nell\'invio del messaggio', 'error');
+            });
+        } catch (error) {
+            console.error("Send message error:", error);
+            showToast("Errore nell'invio del messaggio", "error");
+        }
+    }
+    
+    // Add message to the UI - Fixed to work with server response format
+    function addMessage(message) {
+        if (!messagesContainer) return;
+        
+        const isSelf = message.senderId === state.userId || message.sender === state.userName;
+        const messageGroupClass = isSelf ? 'message-group-self' : 'message-group-other';
+        const messageClass = isSelf ? 'message-self' : 'message-other';
+        
+        const messageGroup = document.createElement('div');
+        messageGroup.className = `message-group ${messageGroupClass}`;
+        
+        // Add sender info for other people's messages
+        if (!isSelf) {
+            const senderInfo = document.createElement('div');
+            senderInfo.className = 'message-sender-info';
+            senderInfo.innerHTML = `
+                <div class="message-sender-avatar">${message.sender ? message.sender[0] : '?'}</div>
+                <div class="message-sender-name">${message.sender || "Utente"}</div>
             `;
-            messageEl.appendChild(timeEl);
-            
-            messageGroup.appendChild(messageEl);
-            messagesContainer.appendChild(messageGroup);
-            
-            // Add click event to download attachment
-            const downloadBtns = messageGroup.querySelectorAll('.attachment-action');
-            downloadBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const filename = this.getAttribute('data-file');
-                    if (filename) {
-                        downloadFile(filename);
-                    }
-                });
-            });
-            
-            // Scroll to bottom
-            scrollToBottom();
+            messageGroup.appendChild(senderInfo);
         }
         
-        // Download attachment
-        function downloadFile(filename) {
-            window.open(`/uploads/${filename}`, '_blank');
-        }
+        const messageEl = document.createElement('div');
+        messageEl.className = `message ${messageClass}`;
         
-        // Format timestamp
-        function formatTime(timestamp) {
-            if (!timestamp) return '';
-            
+        // Message content - Use 'content' or 'message' field depending on what's available
+        const contentEl = document.createElement('div');
+        contentEl.className = 'message-content';
+        contentEl.textContent = message.content || message.message;
+        messageEl.appendChild(contentEl);
+        
+        // Message timestamp
+        const timeEl = document.createElement('div');
+        timeEl.className = 'message-time';
+        
+        // Format the time based on what's available
+        const timestamp = message.timestamp ? formatTime(message.timestamp) : new Date().toLocaleTimeString();
+        timeEl.innerHTML = `${isSelf ? '<i class="fas fa-check"></i>' : ''} <span>${timestamp}</span>`;
+        messageEl.appendChild(timeEl);
+        
+        messageGroup.appendChild(messageEl);
+        messagesContainer.appendChild(messageGroup);
+        
+        // Scroll to bottom
+        scrollToBottom();
+    }
+    
+    // Format timestamp
+    function formatTime(timestamp) {
+        if (!timestamp) return '';
+        
+        try {
             const date = new Date(timestamp);
-            const now = new Date();
-            const isToday = date.toDateString() === now.toDateString();
-            
-            if (isToday) {
-                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            } else {
-                return `${date.toLocaleDateString([], { day: 'numeric', month: 'short' })} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-            }
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            return timestamp;
         }
+    }
+    
+    // Update participant status in the UI
+    function updateParticipantStatus(userId, status) {
+        const participantItems = document.querySelectorAll(`#participants-list li[data-user-id="${userId}"]`);
         
-        // Update participant status in the UI
-        function updateParticipantStatus(userId, status) {
-            const participantItems = document.querySelectorAll(`#participants-list li[data-user-id="${userId}"]`);
+        participantItems.forEach(item => {
+            const badge = item.querySelector('.status-badge');
+            const avatarStatus = item.querySelector('.avatar-status');
             
-            participantItems.forEach(item => {
-                const badge = item.querySelector('.status-badge');
-                const avatarStatus = item.querySelector('.avatar-status');
-                
-                if (badge) {
-                    if (status === 'online') {
-                        badge.className = 'status-badge online';
-                        badge.innerHTML = '<span>Online</span>';
-                    } else {
-                        badge.className = 'status-badge offline';
-                        badge.innerHTML = '<span>Offline</span>';
-                    }
+            if (badge) {
+                if (status === 'online') {
+                    badge.className = 'status-badge online';
+                    badge.innerHTML = '<span>Online</span>';
+                } else {
+                    badge.className = 'status-badge offline';
+                    badge.innerHTML = '<span>Offline</span>';
                 }
-                
-                if (avatarStatus) {
-                    if (status === 'online') {
-                        avatarStatus.className = 'avatar-status online';
-                    } else {
-                        avatarStatus.className = 'avatar-status offline';
-                    }
+            }
+            
+            if (avatarStatus) {
+                if (status === 'online') {
+                    avatarStatus.className = 'avatar-status online';
+                } else {
+                    avatarStatus.className = 'avatar-status offline';
                 }
+            }
+        });
+    }
+    
+    // Scroll to bottom of messages smoothly
+    function scrollToBottom() {
+        if (messagesContainer) {
+            messagesContainer.scrollTo({
+                top: messagesContainer.scrollHeight,
+                behavior: 'smooth'
             });
         }
+    }
+    
+    // Initialize emoji picker
+    function initializeEmojiPicker() {
+        // Populate the first tab
+        populateEmojiTab(state.currentEmojiTab);
         
-        // Scroll to bottom of messages smoothly
-        function scrollToBottom() {
-            if (messagesContainer) {
-                messagesContainer.scrollTo({
-                    top: messagesContainer.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }
-        }
-        
-        // Initialize emoji picker
-        function initializeEmojiPicker() {
-            // Populate the first tab
-            populateEmojiTab(state.currentEmojiTab);
+        // Handle emoji button click
+        if (emojiBtn && emojiPicker) {
+            emojiBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                emojiPicker.classList.toggle('show');
+            });
             
-            // Handle emoji button click
-            if (emojiBtn && emojiPicker) {
-                emojiBtn.addEventListener('click', function() {
-                    emojiPicker.classList.toggle('show');
-                });
-                
-                // Close emoji picker
+            // Close emoji picker
+            if (emojiPickerClose) {
                 emojiPickerClose.addEventListener('click', function() {
                     emojiPicker.classList.remove('show');
                 });
-                
-                // Close emoji picker when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!emojiBtn.contains(e.target) && 
-                        !emojiPicker.contains(e.target)) {
-                        emojiPicker.classList.remove('show');
-                    }
-                });
-                
-                // Handle tab switching
+            }
+            
+            // Handle tab switching
+            if (emojiTabs) {
                 emojiTabs.forEach(tab => {
                     tab.addEventListener('click', function() {
                         const tabName = this.getAttribute('data-tab');
@@ -2476,293 +2338,161 @@
                 });
             }
         }
+    }
+    
+    // Populate emoji tab with emojis
+    function populateEmojiTab(tabName) {
+        if (!emojiContent) return;
         
-        // Populate emoji tab with emojis
-        function populateEmojiTab(tabName) {
-            if (!emojiContent) return;
-            
-            // Clear current content
-            emojiContent.innerHTML = '';
-            
-            // Get emojis for current tab
-            const emojis = state.emojis[tabName] || [];
-            
-            // Add emoji items
-            emojis.forEach(emoji => {
-                const emojiItem = document.createElement('div');
-                emojiItem.className = 'emoji-item';
-                emojiItem.textContent = emoji;
-                emojiItem.addEventListener('click', function() {
-                    insertEmoji(emoji);
-                });
-                
-                emojiContent.appendChild(emojiItem);
+        // Clear current content
+        emojiContent.innerHTML = '';
+        
+        // Get emojis for current tab
+        const emojis = state.emojis[tabName] || [];
+        
+        // Add emoji items
+        emojis.forEach(emoji => {
+            const emojiItem = document.createElement('div');
+            emojiItem.className = 'emoji-item';
+            emojiItem.textContent = emoji;
+            emojiItem.addEventListener('click', function() {
+                insertEmoji(emoji);
             });
-        }
+            
+            emojiContent.appendChild(emojiItem);
+        });
+    }
+    
+    // Insert emoji into message input
+    function insertEmoji(emoji) {
+        if (!messageInput) return;
         
-        // Insert emoji into message input
-        function insertEmoji(emoji) {
-            if (!messageInput) return;
-            
-            // Get cursor position
-            const startPos = messageInput.selectionStart;
-            const endPos = messageInput.selectionEnd;
-            const text = messageInput.value;
-            
-            // Insert emoji at cursor position
-            messageInput.value = text.substring(0, startPos) + emoji + text.substring(endPos);
-            
-            // Reset cursor position after emoji
-            messageInput.selectionStart = messageInput.selectionEnd = startPos + emoji.length;
-            
-            // Focus back on input
-            messageInput.focus();
-        }
+        // Get cursor position
+        const startPos = messageInput.selectionStart;
+        const endPos = messageInput.selectionEnd;
+        const text = messageInput.value;
         
-        // Initialize file attachments
-        function initializeAttachments() {
-            if (attachBtn && fileInput) {
-                // Open file picker
-                attachBtn.addEventListener('click', function() {
-                    fileInput.click();
-                });
-                
-                // Handle file selection
-                fileInput.addEventListener('change', function() {
-                    if (this.files && this.files[0]) {
-                        const file = this.files[0];
-                        
-                        // Check file size (max 10MB)
-                        if (file.size > 10 * 1024 * 1024) {
-                            showToast('Il file è troppo grande! Massimo 10MB consentiti.', 'error');
-                            return;
-                        }
-                        
-                        // Store the file
-                        state.attachedFile = file;
-                        
-                        // Update UI to show selected file
-                        showToast(`File allegato: ${file.name}`, 'success');
-                        
-                        // Change attach button to indicate attachment
-                        attachBtn.innerHTML = '<i class="fas fa-paperclip" style="color: var(--app-primary);"></i>';
-                    }
-                });
-            }
-        }
+        // Insert emoji at cursor position
+        messageInput.value = text.substring(0, startPos) + emoji + text.substring(endPos);
         
-        // Initialize call functionality
-        function initializeCalls() {
-            // Phone call
-            if (phoneCallBtn && phoneCallModal && closePhoneModal) {
-                // Show phone call modal
-                phoneCallBtn.addEventListener('click', function() {
-                    // Check if any participant has a phone number
-                    const hasPhoneNumber = document.querySelectorAll('.participant-item')
-                        .length > 1; // At least one other participant
+        // Reset cursor position after emoji
+        messageInput.selectionStart = messageInput.selectionEnd = startPos + emoji.length;
+        
+        // Focus back on input
+        messageInput.focus();
+        
+        // Close emoji picker
+        if (emojiPicker) {
+            emojiPicker.classList.remove('show');
+        }
+    }
+    
+    // Initialize file attachments
+    function initializeAttachments() {
+        if (attachBtn && fileInput) {
+            // Open file picker
+            attachBtn.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            // Handle file selection
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
                     
-                    if (!hasPhoneNumber) {
-                        showToast('Nessun partecipante con numero di telefono disponibile', 'info');
+                    // Check file size (max 10MB)
+                    if (file.size > 10 * 1024 * 1024) {
+                        showToast('Il file è troppo grande! Massimo 10MB consentiti.', 'error');
                         return;
                     }
                     
-                    // Set up call UI
-                    callUserName.textContent = document.querySelector('.room-name').textContent;
-                    callUserInitial.textContent = document.querySelector('.room-name').textContent.charAt(0);
-                    callStatus.textContent = 'Chiamata in corso...';
+                    // Store the file
+                    state.attachedFile = file;
                     
-                    // Show modal
-                    phoneCallModal.classList.add('show');
-                    
-                    // Simulate call after 2 seconds
-                    setTimeout(() => {
-                        callStatus.textContent = 'Connesso';
-                        state.callActive = true;
-                        
-                        // Play call sound
-                        playCallSound();
-                    }, 2000);
-                });
+                    // Update UI to show selected file
+                    showToast(`File allegato: ${file.name}`, 'success');
+                }
+            });
+        }
+    }
+    
+    // Initialize call functionality
+    function initializeCalls() {
+        // Phone call
+        if (phoneCallBtn && phoneCallModal && closePhoneModal) {
+            // Show phone call modal
+            phoneCallBtn.addEventListener('click', function() {
+                // Set up call UI
+                if (callUserName) callUserName.textContent = document.querySelector('.room-name')?.textContent || 'Utente';
+                if (callUserInitial) callUserInitial.textContent = (document.querySelector('.room-name')?.textContent || 'U').charAt(0);
+                if (callStatus) callStatus.textContent = 'Chiamata in corso...';
                 
-                // Close phone call modal
-                closePhoneModal.addEventListener('click', function() {
-                    phoneCallModal.classList.remove('show');
-                    state.callActive = false;
-                    stopCallSound();
-                });
-                
-                // Decline call
+                // Show modal
+                phoneCallModal.classList.add('show');
+            });
+            
+            // Close phone call modal
+            closePhoneModal.addEventListener('click', function() {
+                phoneCallModal.classList.remove('show');
+            });
+            
+            // Decline call
+            if (declineCall) {
                 declineCall.addEventListener('click', function() {
                     phoneCallModal.classList.remove('show');
-                    state.callActive = false;
-                    stopCallSound();
-                    
                     showToast('Chiamata terminata', 'info');
                 });
             }
+        }
+        
+        // Video call
+        if (videoCallBtn && videoCallModal && closeVideoModal) {
+            // Show video call modal
+            videoCallBtn.addEventListener('click', function() {
+                videoCallModal.classList.add('show');
+                showToast('Funzionalità in fase di sviluppo', 'info');
+            });
             
-            // Video call
-            if (videoCallBtn && videoCallModal && closeVideoModal) {
-                // Show video call modal
-                videoCallBtn.addEventListener('click', function() {
-                    videoCallModal.classList.add('show');
-                    
-                    // Simulate video initialization
-                    setTimeout(() => {
-                        state.videoCallActive = true;
-                        
-                        // Request camera and microphone access
-                        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                            .then(stream => {
-                                // Show local video
-                                if (localVideo) {
-                                    localVideo.srcObject = stream;
-                                }
-                                
-                                // Simulate remote video after 1 second
-                                setTimeout(() => {
-                                    if (remoteVideo) {
-                                        // Use local stream as remote for demo
-                                        remoteVideo.srcObject = stream;
-                                    }
-                                }, 1000);
-                            })
-                            .catch(error => {
-                                console.error('Error accessing media devices:', error);
-                                showToast('Errore nell\'accesso alla fotocamera o al microfono', 'error');
-                            });
-                    }, 500);
+            // Close video call modal
+            if (closeVideoModal) {
+                closeVideoModal.addEventListener('click', function() {
+                    videoCallModal.classList.remove('show');
                 });
-                
-                // Close video call modal
-                closeVideoModal.addEventListener('click', endVideoCallFunc);
-                endVideoCall.addEventListener('click', endVideoCallFunc);
-                
-                // Toggle microphone
-                if (toggleMic) {
-                    toggleMic.addEventListener('click', function() {
-                        if (!localVideo || !localVideo.srcObject) return;
-                        
-                        const audioTracks = localVideo.srcObject.getAudioTracks();
-                        if (audioTracks.length === 0) return;
-                        
-                        const enabled = !audioTracks[0].enabled;
-                        audioTracks[0].enabled = enabled;
-                        
-                        // Update UI
-                        state.micEnabled = enabled;
-                        this.innerHTML = enabled ? 
-                            '<i class="fas fa-microphone"></i>' : 
-                            '<i class="fas fa-microphone-slash"></i>';
-                        
-                        this.classList.toggle('active', !enabled);
-                    });
-                }
-                
-                // Toggle camera
-                if (toggleCamera) {
-                    toggleCamera.addEventListener('click', function() {
-                        if (!localVideo || !localVideo.srcObject) return;
-                        
-                        const videoTracks = localVideo.srcObject.getVideoTracks();
-                        if (videoTracks.length === 0) return;
-                        
-                        const enabled = !videoTracks[0].enabled;
-                        videoTracks[0].enabled = enabled;
-                        
-                        // Update UI
-                        state.cameraEnabled = enabled;
-                        this.innerHTML = enabled ? 
-                            '<i class="fas fa-video"></i>' : 
-                            '<i class="fas fa-video-slash"></i>';
-                        
-                        this.classList.toggle('active', !enabled);
-                    });
-                }
             }
             
-            // Info button
-            if (infoBtn) {
-                infoBtn.addEventListener('click', function() {
-                    showToast('Informazioni su questa chat disponibili presto!', 'info');
+            if (endVideoCall) {
+                endVideoCall.addEventListener('click', function() {
+                    videoCallModal.classList.remove('show');
                 });
             }
         }
         
-        // End video call
-        function endVideoCallFunc() {
-            videoCallModal.classList.remove('show');
-            state.videoCallActive = false;
-            
-            // Stop all media tracks
-            if (localVideo && localVideo.srcObject) {
-                localVideo.srcObject.getTracks().forEach(track => track.stop());
-                localVideo.srcObject = null;
-            }
-            
-            if (remoteVideo) {
-                remoteVideo.srcObject = null;
-            }
-            
-            // Reset UI
-            if (toggleMic) {
-                toggleMic.innerHTML = '<i class="fas fa-microphone"></i>';
-                toggleMic.classList.remove('active');
-            }
-            
-            if (toggleCamera) {
-                toggleCamera.innerHTML = '<i class="fas fa-video"></i>';
-                toggleCamera.classList.remove('active');
-            }
-            
-            state.micEnabled = true;
-            state.cameraEnabled = true;
+        // Info button
+        if (infoBtn) {
+            infoBtn.addEventListener('click', function() {
+                showToast('Informazioni su questa chat disponibili presto!', 'info');
+            });
         }
+    }
+    
+    // Show toast notifications
+    function showToast(message, type = 'success') {
+        if (!toast) return;
         
-        // Audio functions
-        let callSound = null;
+        // Set message
+        toast.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span id="toast-message">${message}</span>
+        `;
         
-        function playNotificationSound() {
-            const audio = new Audio('/sounds/notification.mp3');
-            audio.play().catch(e => console.log('Sound play prevented by browser policy'));
-        }
+        toast.className = `toast ${type}`;
+        toast.classList.add('show');
         
-        function playCallSound() {
-            callSound = new Audio('/sounds/call-ring.mp3');
-            callSound.loop = true;
-            callSound.play().catch(e => console.log('Sound play prevented by browser policy'));
-        }
-        
-        function stopCallSound() {
-            if (callSound) {
-                callSound.pause();
-                callSound.currentTime = 0;
-            }
-        }
-        
-        // Show toast notifications
-        function showToast(message, type = 'success') {
-            if (!toast || !toastMessage) return;
-            
-            // Set icon based on type
-            const iconMap = {
-                success: 'check-circle',
-                error: 'exclamation-circle',
-                info: 'info-circle',
-                warning: 'exclamation-triangle'
-            };
-            
-            const icon = iconMap[type] || 'info-circle';
-            toast.innerHTML = `<i class="fas fa-${icon}"></i><span id="toast-message">${message}</span>`;
-            
-            toast.className = `toast ${type}`;
-            toast.classList.add('show');
-            
-            // Auto hide after 3 seconds
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3500);
-        }
-    </script>
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3500);
+    }
+</script>
 </body>
 </html>

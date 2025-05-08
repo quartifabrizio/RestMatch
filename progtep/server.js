@@ -16,6 +16,8 @@ const swaggerUi = require('swagger-ui-express');
 const hbs = require('hbs');
 const fs = require('fs');
 
+const connectedUsers = new Set();
+
 const app = express();
 const port = 3000;
 
@@ -68,13 +70,13 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'API Documentazione',
+      title: 'RestMatch API Documentazione',
       version: '1.0.0',
-      description: 'Documentazione delle API del server',
+      description: 'API per la piattaforma RestMatch - Matching tra ristoratori e lavoratori',
       contact: {
-        name: 'Supporto',
-        url: 'https://example.com',
-        email: 'support@example.com'
+        name: 'RestMatch Support',
+        url: 'https://restmatch.example.com',
+        email: 'support@restmatch.example.com'
       },
     },
     servers: [
@@ -118,7 +120,8 @@ const swaggerOptions = {
             },
             ruolo: {
               type: 'string',
-              description: 'Ruolo dell\'utente'
+              description: 'Ruolo dell\'utente',
+              enum: ['ristoratore', 'lavoratore', 'admin', 'google']
             },
             password: {
               type: 'string',
@@ -154,12 +157,132 @@ const swaggerOptions = {
               description: 'Data di fine'
             },
             job_type: {
-              type: 'string',
-              description: 'Tipi di lavoro (separati da virgole)'
+              oneOf: [
+                { type: 'string', description: 'Tipi di lavoro (separati da virgole)' },
+                { 
+                  type: 'array', 
+                  description: 'Tipi di lavoro come array',
+                  items: { type: 'string' }
+                }
+              ]
             },
             restaurant_type: {
               type: 'string',
               description: 'Tipo di ristorante (opzionale)'
+            },
+            preference_name: {
+              type: 'string',
+              description: 'Nome della preferenza'
+            }
+          }
+        },
+        JobOffer: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID offerta generato automaticamente'
+            },
+            title: {
+              type: 'string',
+              description: 'Titolo dell\'offerta'
+            },
+            role: {
+              oneOf: [
+                { type: 'string', description: 'Ruoli richiesti (separati da virgole)' },
+                { 
+                  type: 'array', 
+                  description: 'Ruoli richiesti come array',
+                  items: { type: 'string' }
+                }
+              ]
+            },
+            description: {
+              type: 'string',
+              description: 'Descrizione dell\'offerta'
+            },
+            city: {
+              type: 'string',
+              description: 'Città dell\'offerta'
+            },
+            region: {
+              type: 'string',
+              description: 'Regione dell\'offerta'
+            },
+            restaurant_type: {
+              type: 'string',
+              description: 'Tipo di ristorante'
+            },
+            job_type: {
+              type: 'string',
+              description: 'Tipo di lavoro principale'
+            },
+            start_date: {
+              type: 'string',
+              description: 'Data di inizio'
+            },
+            end_date: {
+              type: 'string',
+              description: 'Data di fine'
+            },
+            salary: {
+              type: 'string',
+              description: 'Stipendio offerto'
+            },
+            imageUrl: {
+              type: 'string',
+              description: 'URL dell\'immagine'
+            },
+            user_id: {
+              type: 'integer',
+              description: 'ID dell\'utente ristoratore'
+            }
+          }
+        },
+        ChatRoom: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID chat room generato automaticamente'
+            },
+            name: {
+              type: 'string',
+              description: 'Nome della chat room'
+            },
+            type: {
+              type: 'string',
+              enum: ['private', 'group'],
+              description: 'Tipo di chat room'
+            }
+          }
+        },
+        Message: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID messaggio generato automaticamente'
+            },
+            sender_id: {
+              type: 'integer',
+              description: 'ID mittente'
+            },
+            recipient_id: {
+              type: 'integer',
+              description: 'ID destinatario'
+            },
+            room_id: {
+              type: 'integer',
+              description: 'ID chat room'
+            },
+            message: {
+              type: 'string',
+              description: 'Contenuto del messaggio'
+            },
+            is_read: {
+              type: 'integer',
+              description: 'Flag per indicare se il messaggio è stato letto'
             }
           }
         },
@@ -208,7 +331,33 @@ const swaggerOptions = {
           }
         }
       }
-    }
+    },
+    tags: [
+      {
+        name: 'Authentication',
+        description: 'Operazioni di autenticazione'
+      },
+      {
+        name: 'Users',
+        description: 'Gestione degli utenti'
+      },
+      {
+        name: 'Preferences',
+        description: 'Gestione delle preferenze di ricerca'
+      },
+      {
+        name: 'Offers',
+        description: 'Gestione delle offerte di lavoro'
+      },
+      {
+        name: 'Chat',
+        description: 'Sistema di messaggistica'
+      },
+      {
+        name: 'Utility',
+        description: 'Funzioni di utilità'
+      }
+    ]
   },
   apis: ['./server.js'],
 };
@@ -399,7 +548,7 @@ const sessionDb = new sqlite3.Database('session.db', (err) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_SECRET,
-    callbackURL: 'http://localhost:3000/auth/google/callback'
+    callbackURL: 'https://super-duper-capybara-9px67vxggjj2x96g-3000.app.github.dev/auth/google/callback'
 }, (accessToken, refreshToken, profile, done) => {
     const email = profile.emails[0].value;
     const query = `SELECT * FROM userss WHERE email = ?`;
@@ -427,8 +576,36 @@ passport.deserializeUser((user, done) => {
     done(null, user);
 });
 
+/**
+ * @swagger
+ * /auth/google:
+ *   get:
+ *     summary: Inizia autenticazione con Google
+ *     tags: [Authentication]
+ *     responses:
+ *       302:
+ *         description: Redirect a Google per autenticazione
+ */
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
+/**
+ * @swagger
+ * /auth/google/callback:
+ *   get:
+ *     summary: Callback dopo autenticazione Google
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         schema:
+ *           type: string
+ *         description: Codice di autenticazione Google
+ *     responses:
+ *       302:
+ *         description: Redirect a dashboard
+ *       401:
+ *         description: Autenticazione fallita
+ */
 app.get('/auth/google/callback', passport.authenticate('google', {
     failureRedirect: '/login'
 }), (req, res) => {
@@ -440,6 +617,20 @@ app.get('/auth/google/callback', passport.authenticate('google', {
     res.redirect('/dashboard');
 });
 
+/**
+ * @swagger
+ * /ajax:
+ *   get:
+ *     summary: Pagina di esplorazione utenti
+ *     tags: [Users]
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Pagina HTML
+ *       302:
+ *         description: Redirect alla pagina di login se non autenticato
+ */
 app.get('/ajax', requireAuth, (req, res) => {
     res.render('ajax', {
         user: req.session.user,
@@ -447,7 +638,26 @@ app.get('/ajax', requireAuth, (req, res) => {
     });
 });
 
-// FIXED API endpoint to get all preferences
+/**
+ * @swagger
+ * /api/preferences:
+ *   get:
+ *     summary: Ottiene le preferenze dell'utente
+ *     tags: [Preferences]
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista delle preferenze
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Preference'
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/api/preferences', requireAuth, (req, res) => {
     const query = `
         SELECT 
@@ -481,7 +691,29 @@ app.get('/api/preferences', requireAuth, (req, res) => {
     });
 });
 
-// FIXED endpoint to get preferences filtered by city
+/**
+ * @swagger
+ * /api/preferences/filter:
+ *   get:
+ *     summary: Ottiene le preferenze filtrate per città
+ *     tags: [Preferences]
+ *     security:
+ *       - sessionAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: city
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Città da filtrare
+ *     responses:
+ *       200:
+ *         description: Lista delle preferenze filtrate
+ *       400:
+ *         description: Parametro city mancante
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/api/preferences/filter', requireAuth, (req, res) => {
     const { city } = req.query;
     if (!city) {
@@ -526,8 +758,6 @@ app.get('/api/preferences/filter', requireAuth, (req, res) => {
         res.json(preferences);
     });
 });
-
-
 
 // Sample job types and restaurant types for random generation
 const restaurantTypes = ['Trattoria', 'Ristorante Cinese', 'Ristorante Italiano', 'Sushi', 'Fast Food', 'Pizzeria'];
@@ -715,7 +945,65 @@ function insertJobOffers(jobsToInsert, restaurantUsers) {
 // Schedule a daily update of job offers
 setInterval(fetchAndStoreJobOffers, 24 * 60 * 60 * 1000);
 
-// Add an endpoint to allow restaurateurs to create job offers
+/**
+ * @swagger
+ * /create-offer:
+ *   post:
+ *     summary: Crea una nuova offerta di lavoro
+ *     tags: [Offers]
+ *     security:
+ *       - sessionAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - role
+ *               - description
+ *               - city
+ *               - region
+ *               - start_date
+ *               - end_date
+ *             properties:
+ *               title:
+ *                 type: string
+ *               role:
+ *                 oneOf:
+ *                   - type: string
+ *                   - type: array
+ *                     items:
+ *                       type: string
+ *               description:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               region:
+ *                 type: string
+ *               restaurant_type:
+ *                 type: string
+ *               job_type:
+ *                 type: string
+ *               start_date:
+ *                 type: string
+ *                 format: date
+ *               end_date:
+ *                 type: string
+ *                 format: date
+ *               salary:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Offerta creata con successo
+ *       400:
+ *         description: Dati mancanti o non validi
+ *       403:
+ *         description: Solo i ristoratori possono creare offerte
+ *       500:
+ *         description: Errore del server
+ */
 app.post('/create-offer', requireAuth, (req, res) => {
     // Check if user is a restaurant
     if (req.session.user.ruolo !== 'ristoratore') {
@@ -774,7 +1062,45 @@ app.post('/create-offer', requireAuth, (req, res) => {
     });
 });
 
-// Add this endpoint to handle contacting the restaurant owner
+/**
+ * @swagger
+ * /api/contact-restaurateur:
+ *   post:
+ *     summary: Contatta un ristoratore per un'offerta di lavoro
+ *     tags: [Chat]
+ *     security:
+ *       - sessionAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - offerId
+ *             properties:
+ *               offerId:
+ *                 type: integer
+ *                 description: ID dell'offerta di lavoro
+ *     responses:
+ *       200:
+ *         description: Chat room creata con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 roomId:
+ *                   type: integer
+ *       400:
+ *         description: ID offerta mancante
+ *       404:
+ *         description: Offerta non trovata
+ *       500:
+ *         description: Errore del server
+ */
 app.post('/api/contact-restaurateur', requireAuth, (req, res) => {
     const userId = req.session.user.id;
     const { offerId } = req.body;
@@ -853,7 +1179,46 @@ app.post('/api/contact-restaurateur', requireAuth, (req, res) => {
     });
 });
 
-// API endpoint to get public user profiles
+/**
+ * @swagger
+ * /api/public-profiles:
+ *   get:
+ *     summary: Ottiene i profili pubblici degli utenti
+ *     tags: [Users]
+ *     security:
+ *       - sessionAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *         description: Filtra per città
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *         description: Filtra per ruolo
+ *     responses:
+ *       200:
+ *         description: Lista dei profili pubblici
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   email:
+ *                     type: string
+ *                   citta:
+ *                     type: string
+ *                   ruolo:
+ *                     type: string
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/api/public-profiles', requireAuth, (req, res) => {
     const { city, role } = req.query;
     
@@ -894,7 +1259,22 @@ app.get('/api/public-profiles', requireAuth, (req, res) => {
     });
 });
 
-// API endpoint to get all users
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Ottiene tutti gli utenti (solo admin)
+ *     tags: [Users]
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista di tutti gli utenti
+ *       403:
+ *         description: Non autorizzato, richiede privilegi di admin
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/api/users', requireAuth, (req, res) => {
     // Only allow admin or self
     if (req.session.user.ruolo !== 'admin' && !req.session.user.email.endsWith('@admin.it')) {
@@ -922,7 +1302,31 @@ app.get('/api/users', requireAuth, (req, res) => {
     });
 });
 
-// API endpoint to get users filtered by city
+/**
+ * @swagger
+ * /api/users/filter:
+ *   get:
+ *     summary: Ottiene utenti filtrati per città (solo admin)
+ *     tags: [Users]
+ *     security:
+ *       - sessionAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: city
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Città da filtrare
+ *     responses:
+ *       200:
+ *         description: Lista degli utenti filtrati
+ *       400:
+ *         description: Parametro city mancante
+ *       403:
+ *         description: Non autorizzato, richiede privilegi di admin
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/api/users/filter', requireAuth, (req, res) => {
     // Only allow admin or self
     if (req.session.user.ruolo !== 'admin' && !req.session.user.email.endsWith('@admin.it')) {
@@ -956,7 +1360,67 @@ app.get('/api/users/filter', requireAuth, (req, res) => {
     });
 });
 
-// Save preferences (now using sessionDb) - AGGIORNATO PER SUPPORTARE ARRAY DI JOB TYPES
+/**
+ * @swagger
+ * /save-preferences:
+ *   post:
+ *     summary: Salva le preferenze dell'utente
+ *     tags: [Preferences]
+ *     security:
+ *       - sessionAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - city
+ *               - startDate
+ *               - endDate
+ *               - jobType
+ *             properties:
+ *               region:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               startDate:
+ *                 type: string
+ *                 format: date
+ *               endDate:
+ *                 type: string
+ *                 format: date
+ *               jobType:
+ *                 oneOf:
+ *                   - type: string
+ *                   - type: array
+ *                     items:
+ *                       type: string
+ *               restaurantType:
+ *                 type: string
+ *               preferenceName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Preferenze salvate con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 offers:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/JobOffer'
+ *       400:
+ *         description: Dati mancanti o non validi
+ *       500:
+ *         description: Errore del server
+ */
 app.post('/save-preferences', requireAuth, (req, res) => {
     // Estrai i parametri dalla request
     let { region, city, startDate, endDate, jobType, restaurantType, preferenceName } = req.body;
@@ -1074,7 +1538,29 @@ app.post('/save-preferences', requireAuth, (req, res) => {
     });
 });
 
-// Get filtered offers by preference ID (now using sessionDb)
+/**
+ * @swagger
+ * /api/get-filtered-offers/{preferenceId}:
+ *   get:
+ *     summary: Ottiene le offerte filtrate in base a una preferenza
+ *     tags: [Offers]
+ *     security:
+ *       - sessionAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: preferenceId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID della preferenza
+ *     responses:
+ *       200:
+ *         description: Offerte filtrate in base alla preferenza
+ *       404:
+ *         description: Preferenza non trovata
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
     const preferenceId = req.params.preferenceId;
     
@@ -1164,7 +1650,18 @@ app.get('/api/get-filtered-offers/:preferenceId', requireAuth, (req, res) => {
     });
 });
 
-// Get all distinct cities from the offers database
+/**
+ * @swagger
+ * /api/cities:
+ *   get:
+ *     summary: Ottiene tutte le città disponibili
+ *     tags: [Utility]
+ *     responses:
+ *       200:
+ *         description: Lista delle città
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/api/cities', (req, res) => {
     db.all('SELECT DISTINCT city FROM offerte ORDER BY city', [], (err, rows) => {
         if (err) {
@@ -1176,7 +1673,18 @@ app.get('/api/cities', (req, res) => {
     });
 });
 
-// Get all distinct regions from the offers database
+/**
+ * @swagger
+ * /api/regions:
+ *   get:
+ *     summary: Ottiene tutte le regioni disponibili
+ *     tags: [Utility]
+ *     responses:
+ *       200:
+ *         description: Lista delle regioni
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/api/regions', (req, res) => {
     db.all('SELECT DISTINCT region FROM offerte ORDER BY region', [], (err, rows) => {
         if (err) {
@@ -1188,7 +1696,20 @@ app.get('/api/regions', (req, res) => {
     });
 });
 
-// Get dashboard with job offers (now using sessionDb for preferences)
+/**
+ * @swagger
+ * /dashboard:
+ *   get:
+ *     summary: Pagina dashboard con offerte di lavoro
+ *     tags: [Utility]
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Pagina HTML della dashboard
+ *       302:
+ *         description: Redirect alla pagina di login se non autenticato
+ */
 app.get('/dashboard', requireAuth, (req, res) => {
     // First, fetch all user preferences from session.db
     const getUserPreferences = `SELECT * FROM preferences WHERE user_id = ?`;
@@ -1262,9 +1783,48 @@ app.get('/dashboard', requireAuth, (req, res) => {
     });
 });
 
+/**
+ * @swagger
+ * /images/{filename}:
+ *   get:
+ *     summary: Serve static image files
+ *     tags: [Utility]
+ *     parameters:
+ *       - in: path
+ *         name: filename
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Nome del file immagine
+ *     responses:
+ *       200:
+ *         description: File immagine
+ *         content:
+ *           image/*:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: File non trovato
+ */
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
-// Add profile route
+/**
+ * @swagger
+ * /profile:
+ *   get:
+ *     summary: Pagina profilo utente
+ *     tags: [Users]
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Pagina HTML del profilo
+ *       302:
+ *         description: Redirect alla pagina di login se non autenticato
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/profile', requireAuth, (req, res) => {
     const query = `SELECT * FROM userss WHERE id = ?`;
     db.get(query, [req.session.user.id], (err, user) => {
@@ -1284,7 +1844,22 @@ app.get('/profile', requireAuth, (req, res) => {
     });
 });
 
-// Routes for chat
+/**
+ * @swagger
+ * /chat:
+ *   get:
+ *     summary: Pagina principale chat
+ *     tags: [Chat]
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Pagina HTML della chat
+ *       302:
+ *         description: Redirect alla pagina di login se non autenticato
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/chat', requireAuth, (req, res) => {
     const query = `
         SELECT r.id, r.name, r.type, 
@@ -1319,6 +1894,31 @@ app.get('/chat', requireAuth, (req, res) => {
     });
 });
 
+/**
+ * @swagger
+ * /chat/{roomId}:
+ *   get:
+ *     summary: Pagina chat specifica
+ *     tags: [Chat]
+ *     security:
+ *       - sessionAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID della chat room
+ *     responses:
+ *       200:
+ *         description: Pagina HTML della chat room
+ *       302:
+ *         description: Redirect alla pagina di login se non autenticato
+ *       404:
+ *         description: Chat room non trovata
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/chat/:roomId', requireAuth, (req, res) => {
     const roomId = req.params.roomId;
     const userId = req.session.user.id;
@@ -1392,7 +1992,36 @@ app.get('/chat/:roomId', requireAuth, (req, res) => {
     });
 });
 
-// Add profile update endpoint
+/**
+ * @swagger
+ * /update-profile:
+ *   post:
+ *     summary: Aggiorna il profilo utente
+ *     tags: [Users]
+ *     security:
+ *       - sessionAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               telefono:
+ *                 type: string
+ *               data_nascita:
+ *                 type: string
+ *                 format: date
+ *               citta:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profilo aggiornato con successo
+ *       500:
+ *         description: Errore del server
+ */
 app.post('/update-profile', requireAuth, (req, res) => {
     const { telefono, data_nascita, citta, password } = req.body;
     const userId = req.session.user.id;
@@ -1424,7 +2053,42 @@ app.post('/update-profile', requireAuth, (req, res) => {
     });
 });
 
-// API routes for chat
+/**
+ * @swagger
+ * /api/rooms:
+ *   post:
+ *     summary: Crea una nuova chat room
+ *     tags: [Chat]
+ *     security:
+ *       - sessionAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - type
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Nome della chat room
+ *               type:
+ *                 type: string
+ *                 enum: [private, group]
+ *                 description: Tipo di chat room
+ *               participants:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 description: Lista di ID utenti partecipanti
+ *     responses:
+ *       201:
+ *         description: Chat room creata con successo
+ *       500:
+ *         description: Errore del server
+ */
 app.post('/api/rooms', requireAuth, (req, res) => {
     const { name, type, participants } = req.body;
     const userId = req.session.user.id;
@@ -1464,6 +2128,38 @@ app.post('/api/rooms', requireAuth, (req, res) => {
     });
 });
 
+/**
+ * @swagger
+ * /api/messages:
+ *   post:
+ *     summary: Invia un messaggio in una chat room
+ *     tags: [Chat]
+ *     security:
+ *       - sessionAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - roomId
+ *               - message
+ *             properties:
+ *               roomId:
+ *                 type: integer
+ *                 description: ID della chat room
+ *               message:
+ *                 type: string
+ *                 description: Testo del messaggio
+ *     responses:
+ *       201:
+ *         description: Messaggio inviato con successo
+ *       403:
+ *         description: Accesso non autorizzato alla chat room
+ *       500:
+ *         description: Errore del server
+ */
 app.post('/api/messages', requireAuth, (req, res) => {
     const { roomId, message } = req.body;
     const senderId = req.session.user.id;
@@ -1510,7 +2206,26 @@ app.post('/api/messages', requireAuth, (req, res) => {
     });
 });
 
-// Basic routes
+/**
+ * @swagger
+ * /registra:
+ *   post:
+ *     summary: Registra un nuovo utente
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RegisterRequest'
+ *     responses:
+ *       201:
+ *         description: Registrazione completata con successo
+ *       400:
+ *         description: Utente già registrato
+ *       500:
+ *         description: Errore del server
+ */
 app.post('/registra', (req, res) => {
     const { email, telefono, data_nascita, citta, ruolo, password } = req.body;
 
@@ -1527,6 +2242,33 @@ app.post('/registra', (req, res) => {
     });
 });
 
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Effettua il login
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login effettuato con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 redirect:
+ *                   type: string
+ *       401:
+ *         description: Credenziali non valide
+ *       500:
+ *         description: Errore del server
+ */
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
@@ -1554,6 +2296,18 @@ app.post('/login', (req, res) => {
     });
 });
 
+/**
+ * @swagger
+ * /logout:
+ *   get:
+ *     summary: Effettua il logout
+ *     tags: [Authentication]
+ *     responses:
+ *       302:
+ *         description: Reindirizzamento alla home page
+ *       500:
+ *         description: Errore del server
+ */
 app.get('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -1565,6 +2319,18 @@ app.get('/logout', (req, res) => {
     });
 });
 
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Home page
+ *     tags: [Authentication]
+ *     responses:
+ *       200:
+ *         description: Pagina HTML di login/home
+ *       302:
+ *         description: Reindirizzamento alla dashboard se già autenticato
+ */
 app.get('/', (req, res) => {
     if (req.session.user) {
         return res.redirect('/dashboard');
@@ -1574,6 +2340,16 @@ app.get('/', (req, res) => {
     });
 });
 
+/**
+ * @swagger
+ * /registra:
+ *   get:
+ *     summary: Pagina di registrazione
+ *     tags: [Authentication]
+ *     responses:
+ *       200:
+ *         description: Pagina HTML di registrazione
+ */
 app.get('/registra', (req, res) => {
     res.render('registra', {
         year: new Date().getFullYear()
@@ -1588,6 +2364,20 @@ function requireAdmin(req, res, next) {
     next();
 }
 
+/**
+ * @swagger
+ * /admin:
+ *   get:
+ *     summary: Pannello di amministrazione
+ *     tags: [Users]
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Pagina HTML di amministrazione
+ *       302:
+ *         description: Reindirizzamento alla home page se non admin
+ */
 app.get('/admin', requireAdmin, (req, res) => {
     const query = `SELECT * FROM userss`;
     db.all(query, [], (err, users) => {
@@ -1607,26 +2397,25 @@ app.get('/admin', requireAdmin, (req, res) => {
 // WebSocket events
 io.on('connection', (socket) => {
     console.log('Un utente si è connesso');
-    onlineUsers++;
-    io.emit('update online users', onlineUsers);
     
-    socket.on('authenticate', (userData) => {
-        if (userData && userData.userId) {
-            socket.userId = userData.userId;
-            socket.join(`user_${userData.userId}`);
-            console.log(`Utente ${userData.userId} autenticato`);
-            
-            const roomsQuery = `SELECT room_id FROM room_participants WHERE user_id = ?`;
-            db.all(roomsQuery, [userData.userId], (err, rooms) => {
-                if (!err && rooms) {
-                    rooms.forEach(room => {
-                        socket.join(`room_${room.room_id}`);
-                        console.log(`Utente ${userData.userId} si è unito alla room ${room.room_id}`);
-                    });
-                }
-            });
-            
-            io.emit('user status', { userId: userData.userId, status: 'online' });
+    // Aggiorniamo il contatore in modo più affidabile
+    updateOnlineUsers();
+    
+    socket.on('authenticate', (data) => {
+        if (data && data.userId) {
+            // Store the user ID in the socket object
+            socket.userId = data.userId;
+            connectedUsers.add(data.userId);
+            updateOnlineUsers();
+        }
+    });
+
+     // When user disconnects, remove them from the set
+     socket.on('disconnect', () => {
+        console.log('Un utente si è disconnesso');
+        if (socket.userId) {
+            connectedUsers.delete(socket.userId);
+            updateOnlineUsers();
         }
     });
     
@@ -1659,18 +2448,20 @@ io.on('connection', (socket) => {
         console.log(`Utente ha lasciato la room ${roomId}`);
     });
     
-    socket.on('disconnect', () => {
-        onlineUsers = Math.max(0, onlineUsers - 1);
-        io.emit('update online users', onlineUsers);
-        
-        if (socket.userId) {
-            io.emit('user status', { userId: socket.userId, status: 'offline' });
-            console.log(`Utente ${socket.userId} si è disconnesso`);
-        } else {
-            console.log('Un utente si è disconnesso');
-        }
+    
+    // Invia l'orario server al client per sincronizzazione
+    socket.emit('server time', {
+        timestamp: new Date().toISOString(),
+        formattedDate: '2025-05-08 10:09:21' // Data aggiornata come richiesto dal client
     });
 });
+
+
+// Funzione per aggiornare il contatore di utenti online
+function updateOnlineUsers() {
+    const onlineCount = connectedUsers.size || 0;
+    io.emit('update online users', onlineCount);
+}
 
 // Global counter for online users
 let onlineUsers = 0;
@@ -1690,4 +2481,3 @@ server.listen(port, '0.0.0.0', (err) => {
         console.log(`Documentazione Swagger disponibile su http://localhost:${port}/api-docs`);
     }
 });
-        

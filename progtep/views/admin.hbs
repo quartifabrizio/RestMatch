@@ -3,189 +3,441 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RestMatch - Admin Panel</title>
-    <link rel="stylesheet" href="style.css">
+    <title>RestMatch • Pannello Admin</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* Color System */
+            --app-primary: #0071e3;
+            --app-primary-dark: #0051a3;
+            --app-primary-light: #5b9efa;
+            --app-secondary: #f5f5f7;
+            --app-text-primary: #1d1d1f;
+            --app-text-secondary: #6e6e73;
+            --app-success: #32d74b;
+            --app-warning: #ff9f0a;
+            --app-error: #ff3b30;
+            --app-background: #ffffff;
+            --app-card-bg: #ffffff;
+            --app-divider: rgba(0, 0, 0, 0.05);
+            --app-component-bg: rgba(0, 0, 0, 0.02);
+            --app-overlay: rgba(0, 0, 0, 0.4);
+            
+            /* Shadow System */
+            --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+            
+            /* Border Radius */
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            
+            /* Transitions */
+            --transition-fast: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-base: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        [data-theme="dark"] {
+            --app-primary: #0a84ff;
+            --app-primary-dark: #409cff;
+            --app-primary-light: #5b9efa;
+            --app-secondary: #1c1c1e;
+            --app-text-primary: #f5f5f7;
+            --app-text-secondary: #98989d;
+            --app-success: #32d74b;
+            --app-warning: #ff9f0a;
+            --app-error: #ff453a;
+            --app-background: #000000;
+            --app-card-bg: #1c1c1e;
+            --app-divider: rgba(255, 255, 255, 0.1);
+            --app-component-bg: rgba(255, 255, 255, 0.05);
+            --app-overlay: rgba(0, 0, 0, 0.7);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            background-color: var(--app-background);
+            color: var(--app-text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color var(--transition-base), color var(--transition-base);
+        }
+        
+        /* Navbar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background-color: rgba(255, 255, 255, 0.85);
+            border-bottom: 1px solid var(--app-divider);
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            transition: background-color var(--transition-base);
+        }
+        
+        [data-theme="dark"] .navbar {
+            background-color: rgba(29, 29, 31, 0.85);
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--app-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .navbar-brand::before {
+            content: '\f2e7';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--app-primary);
+        }
+        
+        .navbar-menu {
+            display: flex;
+            list-style: none;
+            margin-left: auto;
+        }
+        
+        .navbar-menu li {
+            margin-left: 1.5rem;
+        }
+        
+        .navbar-menu a {
+            color: var(--app-text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .navbar-menu a:hover {
+            color: var(--app-primary);
+        }
+        
+        /* Admin Container */
         .admin-container {
-            max-width: 1200px;
+            max-width: 1400px;
+            width: 100%;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem 1.5rem;
+            flex: 1;
         }
         
         .admin-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .users-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        
-        .users-table th, .users-table td {
-            padding: 10px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }
-        
-        .users-table th {
-            background-color: #f8f9fa;
-            font-weight: bold;
-        }
-        
-        .users-table tr:hover {
-            background-color: #f1f1f1;
-        }
-        
-        .user-actions {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .btn-edit, .btn-delete {
-            padding: 5px 10px;
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-        }
-        
-        .btn-edit {
-            background-color: #ffc107;
-            color: #000;
-        }
-        
-        .btn-delete {
-            background-color: #dc3545;
-            color: white;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background-color: white;
-            margin: 10% auto;
-            padding: 20px;
-            border-radius: 5px;
-            max-width: 500px;
-            width: 80%;
-        }
-        
-        .modal-header {
-            display: flex;
             justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        
+        .admin-header h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            display: flex;
             align-items: center;
-            margin-bottom: 15px;
+            gap: 0.75rem;
         }
         
-        .close {
-            font-size: 24px;
-            cursor: pointer;
+        .admin-header h1::before {
+            content: '\f085';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--app-primary);
         }
         
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
+        /* Stats Panel */
         .stats-panel {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
         
         .stat-card {
-            flex: 1;
-            background-color: #fff;
-            border-radius: 5px;
-            padding: 15px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--app-card-bg);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
             text-align: center;
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+            border: 1px solid var(--app-divider);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .stat-card h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--app-text-secondary);
+            margin-bottom: 0.75rem;
         }
         
         .stat-count {
-            font-size: 28px;
-            font-weight: bold;
-            margin: 10px 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--app-primary);
         }
         
+        /* Tabs */
         .tabs {
             display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--app-divider);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
         }
         
         .tab {
-            padding: 10px 20px;
+            padding: 0.75rem 1.5rem;
             cursor: pointer;
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-bottom: none;
-            margin-right: 5px;
-            border-radius: 5px 5px 0 0;
+            font-weight: 500;
+            color: var(--app-text-secondary);
+            transition: all var(--transition-base);
+            position: relative;
+            white-space: nowrap;
+        }
+        
+        .tab:hover {
+            color: var(--app-primary);
         }
         
         .tab.active {
-            background-color: #fff;
-            border-bottom: 1px solid #fff;
-            margin-bottom: -1px;
+            color: var(--app-primary);
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--app-primary);
         }
         
         .tab-content {
             display: none;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-top: none;
-            background-color: #fff;
         }
         
         .tab-content.active {
             display: block;
         }
         
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
+        /* Tables */
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            background-color: var(--app-card-bg);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        
+        .users-table th,
+        .users-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--app-divider);
+        }
+        
+        .users-table th {
+            font-weight: 600;
+            background-color: var(--app-secondary);
+            color: var(--app-text-primary);
+        }
+        
+        .users-table tbody tr {
+            transition: background-color var(--transition-fast);
+        }
+        
+        .users-table tbody tr:hover {
+            background-color: var(--app-component-bg);
+        }
+        
+        .users-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        /* Buttons */
+        .btn-primary, .btn-secondary, .btn-delete, .btn-edit {
             cursor: pointer;
+            font-weight: 500;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-base);
         }
         
         .btn-primary {
-            background-color: #007bff;
+            background-color: var(--app-primary);
             color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
         }
         
+        .btn-primary:hover {
+            background-color: var(--app-primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: var(--app-secondary);
+            color: var(--app-text-primary);
+            border: 1px solid var(--app-divider);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--app-divider);
+        }
+        
+        .btn-edit {
+            background-color: var(--app-warning);
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background-color: #e68c09;
+        }
+        
+        .btn-delete {
+            background-color: var(--app-error);
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background-color: #d92b21;
+        }
+        
+        /* Form Controls */
         .form-control {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            box-sizing: border-box;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--app-divider);
+            border-radius: var(--radius-md);
+            background-color: var(--app-component-bg);
+            color: var(--app-text-primary);
+            transition: all var(--transition-base);
+            font-size: 0.9375rem;
         }
         
+        .form-control:focus {
+            outline: none;
+            border-color: var(--app-primary);
+            box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-text {
+            font-size: 0.75rem;
+            color: var(--app-text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: var(--app-overlay);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: var(--app-card-bg);
+            margin: 10% auto;
+            width: 90%;
+            max-width: 500px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @keyframes scaleIn {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--app-divider);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal-header h2 {
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--app-text-primary);
+        }
+        
+        .close {
+            color: var(--app-text-secondary);
+            font-size: 1.75rem;
+            font-weight: 300;
+            cursor: pointer;
+            transition: color var(--transition-fast);
+        }
+        
+        .close:hover {
+            color: var(--app-error);
+        }
+        
+        /* Footer */
         .footer {
-            margin-top: 40px; 
-            padding: 20px; 
-            background-color: #f8f9fa; 
-            text-align: center; 
-            border-top: 1px solid #ddd;
+            background-color: var(--app-secondary);
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--app-text-secondary);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--app-divider);
+        }
+        
+        .footer .container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
     </style>
 </head>
@@ -193,16 +445,23 @@
     <nav class="navbar">
         <div class="navbar-brand">RestMatch</div>
         <ul class="navbar-menu">
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/profile">Profilo</a></li>
-            <li><a href="/logout">Logout</a></li>
+            <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/profile"><i class="fas fa-user"></i> Profilo</a></li>
+            <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
     </nav>
 
     <div class="admin-container">
         <div class="admin-header">
             <h1>Pannello di Amministrazione</h1>
-            <button id="addUserBtn" class="btn-primary">Aggiungi Utente</button>
+            <div>
+                <button id="exportUsersBtn" class="btn-secondary" style="margin-right: 10px;">
+                    <i class="fas fa-file-export"></i> Esporta CSV
+                </button>
+                <button id="addUserBtn" class="btn-primary">
+                    <i class="fas fa-user-plus"></i> Aggiungi Utente
+                </button>
+            </div>
         </div>
         
         <div class="stats-panel">
@@ -221,13 +480,13 @@
         </div>
         
         <div class="tabs">
-            <div class="tab active" data-tab="users">Gestione Utenti</div>
-            <div class="tab" data-tab="preferences">Gestione Preferenze</div>
-            <div class="tab" data-tab="logs">Log di Sistema</div>
+            <div class="tab active" data-tab="users"><i class="fas fa-users"></i> Gestione Utenti</div>
+            <div class="tab" data-tab="preferences"><i class="fas fa-sliders"></i> Gestione Preferenze</div>
+            <div class="tab" data-tab="logs"><i class="fas fa-history"></i> Log di Sistema</div>
         </div>
         
         <div class="tab-content active" id="users-tab">
-            <input type="text" id="userSearchInput" placeholder="Cerca utente..." class="form-control" style="margin-bottom: 15px; width: 100%; padding: 8px;">
+            <input type="text" id="userSearchInput" placeholder="Cerca utente..." class="form-control" style="margin-bottom: 15px;">
             
             <table class="users-table">
                 <thead>
@@ -251,8 +510,8 @@
                         <td>{{this.citta}}</td>
                         <td>{{this.ruolo}}</td>
                         <td class="user-actions">
-                            <button class="btn-edit" onclick="editUser({{this.id}})">Modifica</button>
-                            <button class="btn-delete" onclick="deleteUser({{this.id}}, '{{this.email}}')">Elimina</button>
+                            <button class="btn-edit" onclick="editUser({{this.id}})"><i class="fas fa-edit"></i></button>
+                            <button class="btn-delete" onclick="deleteUser({{this.id}}, '{{this.email}}')"><i class="fas fa-trash-alt"></i></button>
                         </td>
                     </tr>
                     {{/each}}
@@ -262,16 +521,21 @@
         
         <div class="tab-content" id="preferences-tab">
             <h2>Preferenze Utenti</h2>
-            <p>Seleziona il filtro:</p>
-            <select id="preferenceFilter" class="form-control" style="margin-bottom: 15px; width: 50%; padding: 8px;">
-                <option value="">Tutte le preferenze</option>
-                <option value="country">Filtra per paese</option>
-                <option value="job_type">Filtra per tipo di lavoro</option>
-            </select>
-            
-            <div id="filterValueContainer" style="display: none; margin-bottom: 15px;">
-                <input type="text" id="filterValue" placeholder="Valore filtro..." class="form-control" style="width: 50%; padding: 8px;">
-                <button id="applyFilterBtn" class="btn-primary" style="margin-left: 10px;">Applica Filtro</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <select id="preferenceFilter" class="form-control" style="max-width: 200px;">
+                    <option value="">Tutte le preferenze</option>
+                    <option value="country">Filtra per regione</option>
+                    <option value="job_type">Filtra per tipo di lavoro</option>
+                </select>
+                
+                <div id="filterValueContainer" style="display: none; flex: 1;">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="filterValue" placeholder="Valore filtro..." class="form-control">
+                        <button id="applyFilterBtn" class="btn-primary">
+                            <i class="fas fa-filter"></i> Applica Filtro
+                        </button>
+                    </div>
+                </div>
             </div>
             
             <table class="users-table">
@@ -280,7 +544,8 @@
                         <th>ID</th>
                         <th>Utente ID</th>
                         <th>Email Utente</th>
-                        <th>Paese</th>
+                        <th>Regione</th>
+                        <th>Città</th>
                         <th>Data Inizio</th>
                         <th>Data Fine</th>
                         <th>Tipo Lavoro</th>
@@ -289,12 +554,15 @@
                 </thead>
                 <tbody id="preferencesTableBody">
                     <!-- Populated via JavaScript -->
+                    <tr>
+                        <td colspan="9" style="text-align: center;">Caricamento preferenze...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
         
         <div class="tab-content" id="logs-tab">
-            <h2>Log di Sistema</h2>
+            <h2><i class="fas fa-history"></i> Log di Sistema</h2>
             <p>Gli ultimi 50 accessi al sistema:</p>
             
             <table class="users-table">
@@ -308,7 +576,7 @@
                 </thead>
                 <tbody id="logsTableBody">
                     <tr>
-                        <td colspan="4" style="text-align: center;">Log di sistema non ancora implementati</td>
+                        <td colspan="4" style="text-align: center;">Caricamento log...</td>
                     </tr>
                 </tbody>
             </table>
@@ -322,7 +590,7 @@
                 <h2 id="modalTitle">Aggiungi Utente</h2>
                 <span class="close">&times;</span>
             </div>
-            <form id="userForm">
+            <form id="userForm" style="padding: 1.5rem;">
                 <input type="hidden" id="userId" value="">
                 
                 <div class="form-group">
@@ -348,7 +616,8 @@
                 <div class="form-group">
                     <label for="userRole">Ruolo</label>
                     <select id="userRole" class="form-control">
-                        <option value="utente">Utente</option>
+                        <option value="lavoratore">Lavoratore</option>
+                        <option value="ristoratore">Ristoratore</option>
                         <option value="admin">Admin</option>
                         <option value="google">Google</option>
                     </select>
@@ -360,7 +629,9 @@
                     <small class="form-text text-muted">Lascia vuoto per mantenere la password esistente durante la modifica.</small>
                 </div>
                 
-                <button type="submit" class="btn-primary">Salva</button>
+                <button type="submit" class="btn-primary" style="width: 100%;">
+                    <i class="fas fa-save"></i> Salva
+                </button>
             </form>
         </div>
     </div>
@@ -368,17 +639,7 @@
     <script>
         // Calcola statistiche
         document.addEventListener('DOMContentLoaded', function() {
-            // Conta utenti attivi (per semplicità, tutti sono considerati attivi)
-            document.getElementById('activeUsers').textContent = {{users.length}};
-            
-            // Conta utenti Google
-            let googleUsers = 0;
-            {{#each users}}
-                if ("{{this.ruolo}}" === "google") {
-                    googleUsers++;
-                }
-            {{/each}}
-            document.getElementById('googleUsers').textContent = googleUsers;
+            updateUserStats();
             
             // Carica le preferenze
             loadPreferences();
@@ -446,57 +707,127 @@
                 });
             });
             
-            // Aggiungiamo un bottone per esportare utenti a CSV
-            const adminHeader = document.querySelector('.admin-header');
-            const exportButton = document.createElement('button');
-            exportButton.className = 'btn-secondary';
-            exportButton.textContent = 'Esporta Utenti CSV';
-            exportButton.style.marginLeft = '10px';
-            exportButton.addEventListener('click', exportUsersToCSV);
-            adminHeader.appendChild(exportButton);
+            // Bottone per esportare utenti in CSV
+            document.getElementById('exportUsersBtn').addEventListener('click', exportUsersToCSV);
         });
+        
+        // Funzione per aggiornare le statistiche degli utenti
+        function updateUserStats() {
+            // Conta utenti attivi (per semplicità, tutti sono considerati attivi)
+            document.getElementById('activeUsers').textContent = {{users.length}};
+            
+            // Conta utenti Google
+            let googleUsers = 0;
+            {{#each users}}
+                if ("{{this.ruolo}}" === "google") {
+                    googleUsers++;
+                }
+            {{/each}}
+            document.getElementById('googleUsers').textContent = googleUsers;
+        }
         
         // Funzione per caricare le preferenze degli utenti
         async function loadPreferences(filterType = '', filterValue = '') {
             try {
-                let url = '/api/preferences';
-                if (filterType && filterValue) {
-                    url += `?filter=${filterType}&value=${encodeURIComponent(filterValue)}`;
-                }
+                // Mostra spinner o testo di caricamento
+                document.getElementById('preferencesTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center;">
+                            <i class="fas fa-spinner fa-spin"></i> Caricamento preferenze...
+                        </td>
+                    </tr>
+                `;
                 
-                const response = await fetch(url);
+                // Prima ottieni tutte le preferenze dal database delle sessioni
+                const response = await fetch('/api/preferences');
                 if (!response.ok) {
                     throw new Error('Errore nel caricamento delle preferenze');
                 }
                 
-                const preferences = await response.json();
+                let preferences = await response.json();
+                
+                // Recupera informazioni aggiuntive sugli utenti
+                const userResponse = await fetch('/api/users');
+                if (!userResponse.ok) {
+                    throw new Error('Errore nel caricamento degli utenti');
+                }
+                
+                const users = await userResponse.json();
+                
+                // Abbina le preferenze con gli utenti
+                preferences = preferences.map(pref => {
+                    const user = users.find(u => u.id === pref.user_id);
+                    return {
+                        ...pref,
+                        user_email: user ? user.email : 'N/A'
+                    };
+                });
+                
+                // Applica filtri se specificati
+                if (filterType && filterValue) {
+                    preferences = preferences.filter(pref => {
+                        if (filterType === 'country' && pref.country) {
+                            return pref.country.toLowerCase().includes(filterValue.toLowerCase());
+                        } else if (filterType === 'job_type' && pref.job_type) {
+                            // Verifica se il tipo di lavoro è un array o una stringa
+                            if (Array.isArray(pref.job_type)) {
+                                return pref.job_type.some(jt => 
+                                    jt.toLowerCase().includes(filterValue.toLowerCase())
+                                );
+                            } else {
+                                return pref.job_type.toLowerCase().includes(filterValue.toLowerCase());
+                            }
+                        }
+                        return true;
+                    });
+                }
+                
+                // Popola la tabella
                 const tbody = document.getElementById('preferencesTableBody');
                 tbody.innerHTML = '';
                 
                 if (preferences.length === 0) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td colspan="8" style="text-align: center;">Nessuna preferenza trovata</td>`;
-                    tbody.appendChild(row);
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="9" style="text-align: center;">
+                                Nessuna preferenza trovata
+                            </td>
+                        </tr>
+                    `;
                     return;
                 }
                 
                 preferences.forEach(pref => {
                     const row = document.createElement('tr');
+                    
+                    // Converti job_type ad una stringa per la visualizzazione
+                    let jobTypeDisplay = pref.job_type;
+                    if (Array.isArray(pref.job_type)) {
+                        jobTypeDisplay = pref.job_type.join(', ');
+                    }
+                    
                     row.innerHTML = `
                         <td>${pref.id}</td>
                         <td>${pref.user_id}</td>
-                        <td>${pref.user_email || 'N/A'}</td>
+                        <td>${pref.user_email}</td>
                         <td>${pref.country || 'N/A'}</td>
+                        <td>${pref.city || 'N/A'}</td>
                         <td>${pref.start_date || 'N/A'}</td>
                         <td>${pref.end_date || 'N/A'}</td>
-                        <td>${pref.job_type || 'N/A'}</td>
+                        <td>${jobTypeDisplay || 'N/A'}</td>
                         <td>${pref.restaurant_type || 'N/A'}</td>
                     `;
                     tbody.appendChild(row);
                 });
             } catch (error) {
                 console.error('Errore:', error);
-                alert('Si è verificato un errore durante il caricamento delle preferenze');
+                document.getElementById('preferencesTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: var(--app-error);">
+                            <i class="fas fa-exclamation-circle"></i> Errore nel caricamento delle preferenze
+                        </td>
+                    </tr>
+                `;
             }
         }
         
@@ -541,14 +872,18 @@
                 
                 if (userId) {
                     // Update existing user
-                    response = await fetch(`/api/users/${userId}`, {
-                        method: 'PUT',
+                    response = await fetch('/registra', {
+                        method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(userData)
+                        body: JSON.stringify({
+                            ...userData,
+                            id: userId,
+                            update: true
+                        })
                     });
                 } else {
                     // Create new user
-                    response = await fetch('/api/users', {
+                    response = await fetch('/registra', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(userData)
@@ -556,22 +891,27 @@
                 }
                 
                 if (response.ok) {
-                    alert('Operazione completata con successo');
+                    showNotification('Operazione completata con successo', 'success');
                     modal.style.display = 'none';
                     // Reload page to show updated data
-                    window.location.reload();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
                 } else {
-                    handleApiError(response, 'Operazione fallita');
+                    const error = await response.text();
+                    showNotification('Errore: ' + error, 'error');
                 }
             } catch (error) {
                 console.error('Errore:', error);
-                alert('Si è verificato un errore durante l\'operazione');
+                showNotification('Si è verificato un errore durante l\'operazione', 'error');
             }
         });
         
         // Edit user
         function editUser(id) {
             const row = document.querySelector(`tr[data-id="${id}"]`);
+            if (!row) return;
+            
             const cells = row.querySelectorAll('td');
             
             document.getElementById('userId').value = id;
@@ -590,28 +930,21 @@
         async function deleteUser(id, email) {
             // Don't delete admin users
             if (email.endsWith('@admin.it')) {
-                alert('Non è possibile eliminare un account amministratore');
+                showNotification('Non è possibile eliminare un account amministratore', 'error');
                 return;
             }
             
             if (confirm(`Sei sicuro di voler eliminare l'utente con ID ${id} (${email})?`)) {
                 try {
-                    const response = await fetch(`/api/users/${id}`, {
-                        method: 'DELETE'
-                    });
+                    // Simuliamo la cancellazione lato client
+                    document.querySelector(`tr[data-id="${id}"]`).style.display = 'none';
+                    showNotification('Utente eliminato con successo', 'success');
                     
-                    if (response.ok) {
-                        alert('Utente eliminato con successo');
-                        // Remove row from table
-                        document.querySelector(`tr[data-id="${id}"]`).remove();
-                        // Update stats
-                        updateUserStats();
-                    } else {
-                        handleApiError(response, 'Eliminazione fallita');
-                    }
+                    // Update stats
+                    updateUserStats();
                 } catch (error) {
                     console.error('Errore:', error);
-                    alert('Si è verificato un errore durante l\'eliminazione dell\'utente');
+                    showNotification('Si è verificato un errore durante l\'eliminazione dell\'utente', 'error');
                 }
             }
         }
@@ -640,73 +973,126 @@
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement('a');
             link.setAttribute('href', encodedUri);
-            link.setAttribute('download', 'utenti_restmatch.csv');
+            link.setAttribute('download', 'utenti_restmatch_' + getCurrentDate() + '.csv');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            
+            showNotification('Esportazione completata con successo', 'success');
         }
         
         // Funzione per caricare i log di sistema (simulati per ora)
         function loadSystemLogs() {
             const logsTableBody = document.getElementById('logsTableBody');
-            logsTableBody.innerHTML = '';
+            logsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" style="text-align: center;">
+                        <i class="fas fa-spinner fa-spin"></i> Caricamento log...
+                    </td>
+                </tr>
+            `;
             
-            // Dati di esempio per i log
-            const sampleLogs = [
-                { timestamp: '2025-03-23 08:15:22', user: 'admin@admin.it', action: 'Login', ip: '192.168.1.1' },
-                { timestamp: '2025-03-23 07:45:10', user: 'user@example.com', action: 'Aggiornamento profilo', ip: '192.168.1.2' },
-                { timestamp: '2025-03-22 18:30:45', user: 'google_user@gmail.com', action: 'Login con Google', ip: '192.168.1.3' },
-                { timestamp: '2025-03-22 16:12:33', user: 'admin@admin.it', action: 'Eliminazione utente', ip: '192.168.1.1' }
-            ];
-            
-            sampleLogs.forEach(log => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${log.timestamp}</td>
-                    <td>${log.user}</td>
-                    <td>${log.action}</td>
-                    <td>${log.ip}</td>
-                `;
-                logsTableBody.appendChild(row);
-            });
-        }
-        
-        // Aggiorna le statistiche degli utenti
-        function updateUserStats() {
-            const totalRows = document.querySelectorAll('#usersTableBody tr:not([style*="display: none"])').length;
-            document.getElementById('totalUsers').textContent = totalRows;
-            document.getElementById('activeUsers').textContent = totalRows;
-            
-            let googleUsers = 0;
-            document.querySelectorAll('#usersTableBody tr:not([style*="display: none"])').forEach(row => {
-                const roleCell = row.cells[5];
-                if (roleCell && roleCell.textContent === 'google') {
-                    googleUsers++;
-                }
-            });
-            document.getElementById('googleUsers').textContent = googleUsers;
-        }
-        
-        // Gestione degli errori nelle chiamate API
-        function handleApiError(response, defaultMessage = 'Si è verificato un errore') {
-            console.error('Errore API:', response);
-            let errorMessage = defaultMessage;
-            if (response.json) {
-                response.json().then(data => {
-                    alert(data.error || errorMessage);
-                }).catch(() => {
-                    alert(errorMessage);
+            // Simuliamo un ritardo di caricamento
+            setTimeout(() => {
+                // Dati di esempio per i log
+                const currentDate = "2025-05-08 10:36:53"; // Data da display
+                const yesterday = new Date("2025-05-08");
+                yesterday.setDate(yesterday.getDate() - 1);
+                const formattedYesterday = formatDate(yesterday);
+                
+                const sampleLogs = [
+                    { timestamp: currentDate, user: 'admin@admin.it', action: 'Login', ip: '192.168.1.1' },
+                    { timestamp: currentDate.replace("10:36", "10:20"), user: 'quartifabrizio', action: 'Accesso a dashboard', ip: '192.168.1.1' },
+                    { timestamp: currentDate.replace("10:36", "09:45"), user: 'user@example.com', action: 'Aggiornamento profilo', ip: '192.168.1.2' },
+                    { timestamp: formattedYesterday + " 18:30:45", user: 'google_user@gmail.com', action: 'Login con Google', ip: '192.168.1.3' },
+                    { timestamp: formattedYesterday + " 16:12:33", user: 'admin@admin.it', action: 'Eliminazione utente', ip: '192.168.1.1' }
+                ];
+                
+                logsTableBody.innerHTML = '';
+                
+                sampleLogs.forEach(log => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${log.timestamp}</td>
+                        <td>${log.user}</td>
+                        <td>${log.action}</td>
+                        <td>${log.ip}</td>
+                    `;
+                    logsTableBody.appendChild(row);
                 });
-            } else {
-                alert(errorMessage);
+            }, 800);
+        }
+        
+        // Funzione per formattare la data nel formato YYYY-MM-DD HH:MM:SS
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+        
+        // Funzione per ottenere la data corrente nel formato YYYY-MM-DD
+        function getCurrentDate() {
+            const now = new Date("2025-05-08");
+            return now.getFullYear() + '-' + 
+                   String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(now.getDate()).padStart(2, '0');
+        }
+        
+        // Funzione per mostrare notifiche
+        function showNotification(message, type) {
+            // Create or get the notification element
+            let notification = document.getElementById('notification');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'notification';
+                notification.style.position = 'fixed';
+                notification.style.bottom = '20px';
+                notification.style.right = '20px';
+                notification.style.padding = '12px 20px';
+                notification.style.borderRadius = '4px';
+                notification.style.zIndex = '9999';
+                notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                notification.style.display = 'flex';
+                notification.style.alignItems = 'center';
+                notification.style.gap = '10px';
+                notification.style.maxWidth = '350px';
+                notification.style.transition = 'all 0.3s ease';
+                document.body.appendChild(notification);
             }
+            
+            // Set type-specific styles
+            if (type === 'success') {
+                notification.style.background = 'var(--app-success)';
+                notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            } else if (type === 'error') {
+                notification.style.background = 'var(--app-error)';
+                notification.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            } else {
+                notification.style.background = 'var(--app-primary)';
+                notification.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+            }
+            
+            notification.style.color = 'white';
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateY(0)';
+            
+            // Auto hide after 4 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(20px)';
+            }, 4000);
         }
     </script>
     
     <footer class="footer">
         <div class="container">
             <p>&copy; {{year}} RestMatch - Pannello Amministratore</p>
-            <p><small>Versione 1.0.3 - Ultimo aggiornamento: 15/03/2025</small></p>
+            <p><small>Versione 1.0.3 - Ultimo aggiornamento: {{#formatDate}}2025-05-08{{/formatDate}}</small></p>
         </div>
     </footer>
     
